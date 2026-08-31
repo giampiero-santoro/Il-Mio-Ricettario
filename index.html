@@ -1,0 +1,2858 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Il Mio Ricettario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --wood-dark:#2b1d14;
+    --wood:#3e2b1d;
+    --parchment:#f2e6c9;
+    --parchment-light:#f8f0da;
+    --ink:#2c2015;
+    --ink-soft:#5a4a37;
+    --gold:#b8892c;
+    --gold-bright:#d9a94a;
+    --brass:#8c6a2f;
+    --line:#c9b688;
+    --shadow: rgba(20,12,5,0.35);
+    --green:#4a7c3a;
+    --orange:#c9762a;
+    --red:#8a2e2e;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(ellipse at top, #4a3320 0%, var(--wood-dark) 60%);
+    min-height:100vh;
+    font-family:'Crimson Pro', serif;
+    color:var(--ink);
+    padding:32px 16px 80px;
+  }
+  h1,h2,h3,.display{font-family:'Cormorant Garamond', serif;}
+
+  .masthead{max-width:960px;margin:0 auto 20px;text-align:center;color:var(--parchment-light);}
+  .masthead .eyebrow{letter-spacing:.35em;text-transform:uppercase;font-size:11px;color:var(--gold-bright);margin-bottom:6px;}
+  .masthead h1{font-size:44px;font-weight:600;margin:0 0 4px;letter-spacing:.02em;}
+  .masthead .sub{font-size:15px;font-style:italic;color:#d8c8a4;}
+
+  .view-nav{display:flex;gap:10px;justify-content:center;max-width:960px;margin:0 auto 22px;}
+  .view-nav-btn{
+    background:var(--parchment); border:1px solid var(--brass); color:var(--brass);
+    border-radius:20px; padding:8px 20px; font-size:14px; font-weight:600;
+  }
+  .view-nav-btn.active{background:var(--gold-bright); color:#2c1d0d; border-color:var(--gold-bright);}
+
+  .book{
+    max-width:960px;margin:0 auto;background:var(--parchment);
+    border:1px solid var(--line);border-radius:4px;
+    box-shadow:0 30px 60px var(--shadow), inset 0 0 0 6px var(--parchment-light);
+    padding:28px;
+    background-image:repeating-linear-gradient(0deg, rgba(160,120,60,0.035) 0px, rgba(160,120,60,0.035) 1px, transparent 1px, transparent 26px);
+  }
+
+  .panel{
+    background:rgba(184,137,44,0.1);
+    border:1px solid var(--gold);
+    border-radius:4px;
+    padding:16px 18px;
+    margin-bottom:18px;
+  }
+  .panel-header{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
+  .panel-icon{font-size:22px;line-height:1;}
+  .panel-header h3{margin:0 0 2px;font-size:20px;color:var(--ink);}
+  .panel-sub{font-size:13px;color:var(--ink-soft);font-style:italic;}
+  .panel-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .panel-row input[type="text"]{flex:1;min-width:220px;}
+
+  .toolbar{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+    border-bottom:2px solid var(--gold);padding-bottom:16px;margin-bottom:20px;
+  }
+  .toolbar-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .search-wrap{flex:1;min-width:200px;position:relative;}
+
+  .menu-wrap{position:relative;display:inline-block;}
+  .menu-dropdown{
+    display:none;flex-direction:column;gap:2px;position:absolute;top:100%;left:0;margin-top:6px;
+    background:var(--parchment-light);border:1px solid var(--brass);border-radius:6px;
+    box-shadow:0 8px 24px rgba(44,29,13,0.25);min-width:210px;z-index:60;padding:6px;
+  }
+  .menu-dropdown.open{display:flex;}
+  .menu-dropdown button{
+    background:transparent;border:none;text-align:left;padding:9px 10px;border-radius:4px;
+    font-family:'Crimson Pro',serif;font-size:14.5px;color:var(--wood);cursor:pointer;width:100%;
+  }
+  .menu-dropdown button:hover{background:rgba(140,106,47,0.12);}
+  .menu-divider{height:1px;background:var(--line);margin:5px 2px;}
+  .menu-info{font-size:11.5px;color:var(--ink-soft);padding:4px 10px 8px;border-bottom:1px solid var(--line);margin-bottom:4px;}
+  .menu-info.warning{color:#a33322;font-weight:600;}
+  .schedule-dropdown{min-width:230px;padding:12px;}
+  .schedule-field{display:flex;flex-direction:column;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:9px;}
+  .schedule-field select, .schedule-field input{margin-top:3px;padding:6px 8px;font-size:14px;width:100%;}
+  .schedule-status{font-size:12.5px;color:var(--brass);font-weight:600;margin-top:8px;text-align:center;}
+  #advanced-filters-toggle.active{background:var(--brass);color:#fff;border-color:var(--brass);}
+  @media (max-width:600px){
+    .menu-dropdown{left:0;right:0;min-width:0;}
+  }
+
+  input[type="text"], select, textarea, input[type="number"], input[type="date"]{
+    font-family:'Crimson Pro', serif;background:var(--parchment-light);
+    border:1px solid var(--line);border-radius:3px;padding:9px 12px;font-size:15px;color:var(--ink);
+  }
+  input[type="time"]{
+    font-family:'Crimson Pro', serif;background:var(--parchment-light);
+    border:1px solid var(--line);border-radius:3px;padding:9px 12px;font-size:15px;color:var(--ink);
+    -webkit-appearance:none;appearance:none;
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--gold-bright);outline-offset:1px;}
+  #search{width:100%;}
+  #category-filter{min-width:170px;}
+
+  button{font-family:'Crimson Pro', serif;cursor:pointer;border:none;border-radius:3px;padding:10px 18px;font-size:14px;letter-spacing:.03em;-webkit-tap-highlight-color:transparent;}
+  .btn-gold{background:linear-gradient(180deg, var(--gold-bright), var(--brass));color:#2c1d0d;font-weight:600;box-shadow:0 2px 0 rgba(0,0,0,.25);}
+  .btn-gold:hover{filter:brightness(1.06);}
+  .btn-ghost{background:transparent;border:1px solid var(--ink-soft);color:var(--ink-soft);}
+  .btn-ghost:hover{background:rgba(0,0,0,0.05);}
+  .btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);}
+  .btn-danger:hover{background:rgba(138,46,46,0.08);}
+  .btn-small{padding:5px 10px;font-size:12px;}
+  button:disabled{opacity:.45;cursor:not-allowed;}
+
+  #recipe-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(230px,1fr));gap:16px;}
+  .card{
+    background:var(--parchment-light);border:1px solid var(--line);
+    border-left:5px solid var(--cat-color, var(--brass));border-radius:3px;
+    padding:16px;position:relative;cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;box-shadow:0 2px 6px rgba(0,0,0,.08);
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(0,0,0,.18);}
+  .card .thumb{
+    width:100%;height:110px;object-fit:cover;border-radius:3px;margin-bottom:8px;border:1px solid var(--line);
+  }
+  .card .cat-tag{
+    display:inline-block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#fff;
+    background:var(--cat-color, var(--brass));border-radius:20px;padding:3px 10px;margin-bottom:8px;font-weight:600;
+  }
+  .card .pressure-badge{
+    display:inline-block;font-size:14px;margin-left:6px;margin-bottom:8px;vertical-align:middle;
+  }
+  .dispensa-qty{font-size:13px;color:var(--ink-soft);}
+  .dispensa-expiry{font-size:12.5px;margin-top:6px;color:var(--ink-soft);}
+  .dispensa-expiry.soon{color:#b8892c;font-weight:600;}
+  .dispensa-expiry.expired{color:#a33322;font-weight:600;}
+  .dispensa-notes{font-size:12px;color:var(--ink-soft);font-style:italic;margin-top:6px;}
+  .card .star{
+    position:absolute;top:12px;right:12px;font-size:18px;background:none;border:none;padding:2px;
+    color:var(--line);
+  }
+  .card .star.active{color:var(--gold-bright);}
+  .card h3{margin:0 0 6px;font-size:22px;color:var(--ink);line-height:1.15;}
+  .card .meta{font-size:12.5px;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;}
+  .card .last-made{font-size:11.5px;color:var(--brass);margin-top:6px;font-style:italic;}
+  .empty-state{grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--ink-soft);font-style:italic;}
+  .recipe-picker-list{max-height:55vh;overflow-y:auto;margin-top:6px;border-top:1px solid var(--line);}
+  .recipe-picker-item{
+    display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer;
+  }
+  .recipe-picker-item:hover{background:rgba(140,106,47,0.10);}
+  .recipe-picker-item .cat-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;}
+  .recipe-picker-item .name{flex:1;font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--ink);}
+  .recipe-picker-item .meta{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+  .recipe-picker-empty{padding:24px 4px;text-align:center;color:var(--ink-soft);font-style:italic;}
+
+  .card .match-badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:6px;}
+  .match-badge.ready{background:var(--green);color:#fff;}
+  .match-badge.missing{background:var(--orange);color:#fff;}
+  .card .missing-list{font-size:12px;color:var(--red);margin-top:6px;}
+  .card .missing-list b{color:var(--red);}
+
+  .overlay{position:fixed;inset:0;background:rgba(15,9,4,0.72);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;z-index:50;}
+  .overlay.active{display:flex;}
+  .modal{background:var(--parchment-light);max-width:680px;width:100%;border-radius:4px;border:1px solid var(--line);box-shadow:0 30px 70px rgba(0,0,0,.5);padding:28px;position:relative;}
+  .modal h2{margin-top:0;font-size:28px;color:var(--ink);}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--brass);margin-bottom:5px;}
+  .field input, .field select, .field textarea{width:100%;}
+  .row{display:flex;gap:12px;}
+  .row > .field{flex:1;}
+  textarea{resize:vertical;min-height:70px;line-height:1.5;}
+
+  .list-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+  .list-row input{flex:1;}
+  .list-row input.qty{flex:0 0 70px;}
+  .list-row input.unit{flex:0 0 70px;}
+  .remove-row{background:transparent;border:none;color:var(--red);font-size:18px;padding:2px 8px;line-height:1;}
+  .add-row-btn{font-size:13px;background:transparent;border:1px dashed var(--brass);color:var(--brass);padding:6px 12px;}
+  .ingredients-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  #nutrition-toggle-btn.active{background:var(--brass);color:#fff;}
+  #dispensa-nutrition-toggle-btn.active{background:var(--brass);color:#fff;}
+  .ingredient-block{margin-bottom:8px;}
+  .ingredient-nutrition{
+    display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;padding:8px;border:1px dashed var(--line);border-radius:4px;
+    background:rgba(255,255,255,0.35);
+  }
+  .ingredient-nutrition .mini{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);}
+  .ingredient-nutrition .mini input{width:64px;padding:5px 6px;font-size:13px;}
+  .nutrition-summary{
+    margin:14px 0 18px;padding:12px 14px;border:1px solid var(--line);border-radius:4px;background:rgba(255,255,255,0.35);
+  }
+  .nutrition-summary h4{margin:0 0 8px;font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--wood);}
+  .nutrition-grid{display:flex;flex-wrap:wrap;gap:10px 18px;}
+  .nutrition-grid div{font-size:13px;color:var(--ink);}
+  .nutrition-grid b{color:var(--brass);}
+  .nutrition-note{font-size:11.5px;color:var(--ink-soft);font-style:italic;margin-top:8px;}
+
+  .step-block{border:1px solid var(--line);border-radius:3px;padding:10px;margin-bottom:10px;background:rgba(255,255,255,0.35);}
+  .step-row-bottom{display:flex;gap:10px;align-items:flex-end;margin-top:8px;flex-wrap:wrap;}
+  .step-row-bottom .mini{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
+  .step-row-bottom .mini input{width:90px;padding:5px 6px;font-size:13px;}
+  .robot-toggle-btn{background:transparent;border:1px solid var(--brass);color:var(--brass);border-radius:14px;padding:6px 12px;font-size:12.5px;}
+  .robot-toggle-btn.active{background:var(--brass);color:#fff;}
+  .pressure-toggle-btn{background:transparent;border:1px solid var(--brass);color:var(--brass);border-radius:14px;padding:6px 12px;font-size:12.5px;}
+  .pressure-toggle-btn.active{background:var(--brass);color:#fff;}
+  .step-settings{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+  .step-settings .mini{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
+  .step-settings .mini input, .step-settings .mini select{width:72px;padding:5px 6px;font-size:13px;}
+
+  .photo-preview{max-width:160px;max-height:110px;border-radius:3px;border:1px solid var(--line);display:block;margin-top:8px;}
+
+  .modal-actions{display:flex;justify-content:space-between;margin-top:20px;gap:10px;flex-wrap:wrap;}
+
+  #view-modal .servings-control{
+    display:flex;align-items:center;gap:10px;background:rgba(184,137,44,0.12);
+    border:1px solid var(--gold);border-radius:4px;padding:8px 14px;margin:14px 0 14px;width:fit-content;
+  }
+  .servings-control button{width:28px;height:28px;padding:0;border-radius:50%;background:var(--gold-bright);color:#2c1d0d;font-weight:700;}
+  .servings-control .count{font-weight:600;min-width:70px;text-align:center;}
+
+  .view-top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+  .view-photo{width:100%;max-height:220px;object-fit:cover;border-radius:4px;border:1px solid var(--line);margin:10px 0 4px;}
+  .last-made-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13.5px;color:var(--ink-soft);flex-wrap:wrap;}
+
+  #view-ingredients{list-style:none;padding:0;margin:0 0 22px;}
+  #view-ingredients li{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:6px 0;font-size:16px;}
+  #view-ingredients li .amt{color:var(--brass);font-weight:600;}
+
+  .view-step{display:flex;gap:14px;margin-bottom:16px;align-items:flex-start;}
+  .view-step .num{
+    flex:0 0 30px;height:30px;border-radius:50%;background:var(--wood);color:var(--gold-bright);
+    display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:15px;
+  }
+  .view-step .txt{flex:1;padding-top:2px;}
+  .step-meta{display:inline-flex;gap:10px;margin-top:6px;font-size:12px;color:var(--wood);background:var(--parchment);border:1px solid var(--brass);border-radius:20px;padding:4px 12px;align-items:center;flex-wrap:wrap;}
+  .step-meta span b{color:var(--brass);}
+  .step-timer-btn{background:none;border:1px solid var(--brass);color:var(--brass);border-radius:12px;padding:2px 10px;font-size:11px;}
+  .step-timer-display{font-weight:700;color:var(--red);}
+
+  .view-notes{border-top:1px solid var(--line);margin-top:10px;padding-top:14px;font-style:italic;color:var(--ink-soft);}
+
+  .close-x{position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;color:var(--ink-soft);padding:4px 8px;}
+
+  footer{text-align:center;color:#9c8a68;font-size:12px;margin-top:26px;}
+
+  /* ---------- Guided cooking mode ---------- */
+  .cook-overlay{
+    position:fixed;inset:0;background:var(--wood-dark);z-index:80;display:none;
+    flex-direction:column;align-items:center;justify-content:center;padding:30px 16px;color:var(--parchment-light);
+    text-align:center;
+  }
+  .cook-overlay.active{display:flex;}
+  .cook-overlay .cook-progress{font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold-bright);margin-bottom:14px;}
+  .cook-overlay .cook-step-text{font-size:clamp(22px,4vw,34px);max-width:760px;line-height:1.35;margin-bottom:22px;font-family:'Cormorant Garamond',serif;}
+  .cook-overlay .cook-dial{font-size:16px;color:var(--parchment);background:rgba(255,255,255,0.08);border:1px solid var(--gold);border-radius:24px;padding:8px 20px;margin-bottom:24px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+  .cook-nav{display:flex;gap:14px;align-items:center;}
+  .cook-nav button{padding:12px 22px;font-size:15px;}
+  .cook-release-row{display:flex;align-items:center;gap:16px;justify-content:center;margin:6px 0 14px;}
+  .cook-timer-small{font-size:26px;margin-bottom:0;}
+  .cook-timer{font-size:40px;font-weight:700;color:var(--gold-bright);margin-bottom:10px;font-family:'Cormorant Garamond',serif;}
+  .cook-exit{position:absolute;top:20px;right:24px;background:none;border:1px solid var(--parchment-light);color:var(--parchment-light);border-radius:20px;padding:6px 16px;font-size:13px;}
+
+  /* ---------- Pianificazione settimanale (vista dedicata) ---------- */
+  .planning-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+  .planning-header h2{margin:0 0 2px;font-size:26px;color:var(--ink);}
+
+  .plan-day-card{background:var(--parchment-light);border:1px solid var(--line);border-radius:6px;padding:20px 22px;box-shadow:0 4px 14px rgba(44,29,13,0.08);}
+  .plan-day-card h3{margin:0 0 14px;font-size:26px;color:var(--brass);text-align:center;}
+  .plan-meal-block{padding:10px 0;border-top:1px dashed var(--line);}
+  .plan-meal-block:first-of-type{border-top:none;padding-top:0;}
+  .plan-meal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
+  .plan-meal-name{font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--ink-soft);}
+  .plan-meal-actions{display:flex;gap:2px;flex:0 0 auto;}
+  .icon-btn{background:none;border:none;color:var(--ink-soft);font-size:13px;padding:2px 6px;}
+  .icon-btn:hover{color:var(--brass);}
+  .plan-entry-list{margin-bottom:8px;}
+  .plan-entry{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px dotted var(--line);font-size:14.5px;}
+  .plan-entry-time{font-weight:700;color:var(--brass);font-size:11.5px;background:var(--parchment);border:1px solid var(--line);border-radius:10px;padding:1px 8px;flex:0 0 auto;}
+  .plan-entry-name{flex:1;cursor:pointer;}
+  .plan-entry-name:hover{text-decoration:underline;}
+  .plan-entry-empty{font-size:13px;font-style:italic;color:var(--ink-soft);padding:2px 0;}
+  .plan-add-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .plan-add-row select{flex:1;min-width:140px;}
+  .plan-add-row input[type="time"]{width:110px;}
+  .plan-day-nav{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+  .plan-day-tabs{display:flex;gap:6px;flex:1;overflow-x:auto;padding-bottom:2px;}
+  .plan-day-tab{
+    flex:0 0 auto;background:var(--parchment);border:1px solid var(--brass);color:var(--brass);
+    border-radius:16px;padding:7px 14px;font-size:13.5px;font-weight:600;white-space:nowrap;
+  }
+  .plan-day-tab.active{background:var(--brass);color:#fff;}
+  .plan-day-nav-arrow{flex:0 0 auto;background:transparent;border:1px solid var(--line);color:var(--brass);border-radius:50%;width:34px;height:34px;font-size:16px;padding:0;}
+  .tag-checks{display:flex;flex-wrap:wrap;gap:6px 14px;}
+  .tag-checks label{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:400;text-transform:none;letter-spacing:normal;}
+  .tag-checks input{width:auto;}
+  .tag-filter-chip{background:var(--parchment);border:1px solid var(--brass);color:var(--brass);border-radius:14px;padding:5px 13px;font-size:12.5px;}
+  .tag-filter-chip.active{background:var(--brass);color:#fff;}
+  .view-tag-chip{display:inline-block;background:var(--parchment);border:1px solid var(--brass);color:var(--brass);border-radius:12px;padding:2px 10px;font-size:11.5px;margin-right:6px;}
+
+  .shopping-list-items{list-style:none;padding:0;margin:0;}
+  .shopping-list-items li{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dotted var(--line);font-size:15px;}
+  .shopping-list-items li.checked span{text-decoration:line-through;color:var(--ink-soft);}
+  .shopping-list-items li .amt{color:var(--brass);font-weight:600;margin-left:auto;}
+
+  @media (max-width:600px){
+    .masthead h1{font-size:32px;}
+    .row{flex-direction:column;}
+    .toolbar{flex-direction:column;align-items:stretch;}
+    .panel-row{flex-direction:column;align-items:stretch;}
+  }
+  @media (prefers-reduced-motion: reduce){.card{transition:none;}}
+
+  /* ---------- Print ---------- */
+  @media print{
+    body{background:#fff;padding:0;}
+    .masthead, .panel, .toolbar, footer, .cook-overlay, .view-nav, #planning-view, #dispensa-view{display:none !important;}
+    .book{box-shadow:none;border:none;background:#fff;padding:0;}
+    #recipe-list{display:none;}
+    .overlay{position:static;background:none;padding:0;display:block !important;}
+    .modal{box-shadow:none;border:none;max-width:100%;}
+    #edit-overlay{display:none !important;}
+    body:not(.printing-recipe):not(.printing-week) .overlay{display:none !important;}
+    body.printing-recipe #view-overlay{display:block !important;}
+    body.printing-week .overlay{display:none !important;}
+    #print-week-content{display:none;}
+    body.printing-week #print-week-content{display:block !important;}
+    .close-x, .servings-control, .modal-actions, .step-timer-btn{display:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="eyebrow">Ricettario personale</div>
+  <h1>Il Mio Ricettario</h1>
+  <div class="sub">Le tue ricette, da ogni fonte — annotate, adattate, tramandate</div>
+</div>
+
+<div class="view-nav">
+  <button class="view-nav-btn active" id="nav-recipes-btn">📖 Ricettario</button>
+  <button class="view-nav-btn" id="nav-planning-btn">📅 Pianificazione</button>
+  <button class="view-nav-btn" id="nav-dispensa-btn">🥫 Dispensa</button>
+</div>
+
+<div class="book">
+
+  <div id="recipes-view">
+
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button class="btn-gold" id="new-recipe-btn">+ Nuova ricetta</button>
+      <button class="btn-ghost" id="paste-import-btn">📋 Importa ricetta</button>
+      <button class="btn-ghost" id="import-recipe-file-btn">📄 Importa ricetta (file)</button>
+      <input type="file" id="import-recipe-file-input" accept=".json,application/json" style="display:none;">
+      <div class="menu-wrap">
+        <button class="btn-ghost" id="data-menu-btn">📦 Backup e CSV ▾</button>
+        <div class="menu-dropdown" id="data-menu-dropdown">
+          <div class="menu-info" id="backup-reminder-text"></div>
+          <button id="export-btn">⬇ Esporta backup</button>
+          <button id="import-btn">⬆ Importa backup</button>
+          <input type="file" id="import-file-input" accept="application/json" style="display:none;">
+          <div class="menu-divider"></div>
+          <button id="export-csv-btn">⬇ Esporta CSV</button>
+          <button id="import-csv-btn">⬆ Importa CSV</button>
+          <input type="file" id="import-csv-file-input" accept=".csv,text/csv" style="display:none;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-icon">🧺</span>
+      <div>
+        <h3>Cosa posso cucinare?</h3>
+        <div class="panel-sub">Scrivi gli ingredienti che hai, separati da virgola</div>
+      </div>
+    </div>
+    <div class="panel-row">
+      <input type="text" id="pantry-input" placeholder="es. uova, pecorino, guanciale, spaghetti">
+      <button class="btn-gold" id="pantry-search-btn">Trova ricette</button>
+      <button class="btn-ghost" id="pantry-reset-btn" style="display:none;">Mostra tutte</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-group" style="flex:1;">
+      <div class="search-wrap">
+        <input type="text" id="search" placeholder="Cerca per nome o ingrediente…">
+      </div>
+      <select id="category-filter">
+        <option value="">Tutte le categorie</option>
+        <option value="Primi">Primi</option>
+        <option value="Secondi">Secondi</option>
+        <option value="Zuppe & Vellutate">Zuppe &amp; Vellutate</option>
+        <option value="Impasti & Pane">Impasti &amp; Pane</option>
+        <option value="Salse & Sughi">Salse &amp; Sughi</option>
+        <option value="Dolci">Dolci</option>
+        <option value="Infusi & Tisane">Infusi &amp; Tisane</option>
+        <option value="Altro">Altro</option>
+      </select>
+      <button class="btn-ghost" id="favorites-filter-btn">★ Solo preferite</button>
+      <button class="btn-ghost" id="pressure-filter-btn">🍲 Solo pentola a pressione</button>
+      <button class="btn-ghost" id="advanced-filters-toggle">🔍 Altri filtri ▾</button>
+    </div>
+  </div>
+
+  <div class="panel" id="advanced-filters-panel" style="display:none;">
+    <div class="panel-row">
+      <input type="text" id="exclude-input" placeholder="Escludi ingredienti, es. glutine, latticini">
+      <button class="btn-ghost btn-small" id="exclude-apply-btn">Applica esclusione</button>
+      <button class="btn-ghost btn-small" id="exclude-clear-btn" style="display:none;">Rimuovi esclusione</button>
+    </div>
+    <div class="panel-row" id="tag-filter-row" style="margin-bottom:0;"></div>
+  </div>
+
+  <div id="recipe-list"></div>
+
+  </div>
+
+  <div id="planning-view" style="display:none;">
+    <div class="planning-header">
+      <div>
+        <h2>📅 Pianificazione settimanale</h2>
+        <div class="panel-sub">Colazione, pranzo, cena, spuntini — più ricette per ogni fascia, con orario facoltativo</div>
+      </div>
+      <button class="btn-ghost btn-small" id="add-mealtype-btn">+ Aggiungi fascia pasto</button>
+    </div>
+
+    <div class="panel-row" style="align-items:center;">
+      <label style="font-size:13px;color:var(--ink-soft);">Per quante persone stai pianificando?</label>
+      <input type="number" id="plan-servings-input" min="1" style="width:70px;">
+    </div>
+
+    <div class="plan-day-nav">
+      <button type="button" class="plan-day-nav-arrow" id="plan-day-prev" title="Giorno precedente">‹</button>
+      <div class="plan-day-tabs" id="plan-day-tabs"></div>
+      <button type="button" class="plan-day-nav-arrow" id="plan-day-next" title="Giorno successivo">›</button>
+    </div>
+
+    <div id="planning-days"></div>
+
+    <div class="modal-actions" style="border-top:1px solid var(--line);padding-top:16px;margin-top:4px;">
+      <button class="btn-ghost" id="clear-week-btn">Svuota settimana</button>
+      <button class="btn-ghost" id="copy-last-week-btn">📋 Copia settimana scorsa</button>
+      <button class="btn-ghost" id="print-week-btn">🖨 Stampa settimana</button>
+      <button class="btn-ghost" id="export-week-pdf-btn">⬇ Esporta PDF settimana</button>
+      <div style="flex:1;"></div>
+      <button class="btn-gold" id="generate-shopping-btn">Genera lista della spesa dalla settimana</button>
+    </div>
+  </div>
+
+  <div id="dispensa-view" style="display:none;">
+
+    <div class="toolbar">
+      <div class="toolbar-group" style="flex:1;">
+        <button class="btn-gold" id="new-dispensa-item-btn">+ Nuovo prodotto</button>
+        <div class="search-wrap">
+          <input type="text" id="dispensa-search" placeholder="Cerca prodotto…">
+        </div>
+        <select id="dispensa-category-filter">
+          <option value="">Tutte le categorie</option>
+          <option value="Frutta">Frutta</option>
+          <option value="Verdura">Verdura</option>
+          <option value="Salumi">Salumi</option>
+          <option value="Latticini e pronti">Latticini e pronti</option>
+          <option value="Altro">Altro</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="dispensa-list"></div>
+
+  </div>
+
+</div>
+
+<div id="print-week-content" style="display:none;"></div>
+
+<footer>Conservato localmente sul tuo dispositivo · nessun server, nessun account</footer>
+
+<!-- ============ EDIT / CREATE MODAL ============ -->
+<div class="overlay" id="edit-overlay">
+  <div class="modal">
+    <button class="close-x" id="edit-close">×</button>
+    <h2 id="edit-title">Nuova ricetta</h2>
+
+    <div class="row">
+      <div class="field">
+        <label>Nome ricetta</label>
+        <input type="text" id="f-name" placeholder="es. Carbonara risottata">
+      </div>
+      <div class="field">
+        <label>Categoria</label>
+        <select id="f-category">
+          <option>Primi</option>
+          <option>Secondi</option>
+          <option>Zuppe & Vellutate</option>
+          <option>Impasti & Pane</option>
+          <option>Salse & Sughi</option>
+          <option>Dolci</option>
+          <option>Infusi &amp; Tisane</option>
+          <option>Altro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Tag dietetici (facoltativi)</label>
+      <div class="tag-checks" id="f-tags-wrap"></div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Porzioni base</label>
+        <input type="number" id="f-servings" min="1" value="4">
+      </div>
+      <div class="field">
+        <label>Tempo totale (min)</label>
+        <input type="number" id="f-time" min="1" placeholder="es. 25">
+      </div>
+      <div class="field">
+        <label>Tipo pentola a pressione (facoltativo)</label>
+        <select id="f-cooker-type">
+          <option value="">— non specificato —</option>
+          <option value="Elettrica">Elettrica</option>
+          <option value="A fornello">A fornello</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Foto (opzionale)</label>
+      <input type="file" id="f-photo" accept="image/*">
+      <img id="f-photo-preview" class="photo-preview" style="display:none;">
+    </div>
+
+    <div class="field">
+      <label>Ingredienti</label>
+      <div id="ingredients-editor"></div>
+      <div class="ingredients-actions">
+        <button class="add-row-btn" id="add-ingredient">+ Aggiungi ingrediente</button>
+        <button type="button" class="btn-ghost btn-small" id="nutrition-toggle-btn">🍎 Valori nutrizionali</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Passaggi</label>
+      <div style="font-size:12.5px;color:var(--ink-soft);font-style:italic;margin:-2px 0 10px;">Scrivi il passaggio in modo normale. Se usi un robot da cucina, premi "🤖 Impostazioni robot" per aggiungere velocità/temperatura/modalità a quel passaggio — è del tutto facoltativo.</div>
+      <div id="steps-editor"></div>
+      <button class="add-row-btn" id="add-step">+ Aggiungi passaggio</button>
+    </div>
+
+    <div class="field">
+      <label>Note personali</label>
+      <textarea id="f-notes" placeholder="es. usare carote al posto dei piselli…"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-danger" id="delete-recipe-btn" style="display:none;">Elimina ricetta</button>
+      <div style="flex:1;"></div>
+      <button class="btn-ghost" id="cancel-edit">Annulla</button>
+      <button class="btn-gold" id="save-recipe">Salva ricetta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ NUOVO / MODIFICA PRODOTTO DISPENSA ============ -->
+<div class="overlay" id="dispensa-edit-overlay">
+  <div class="modal">
+    <button class="close-x" id="dispensa-edit-close">×</button>
+    <h2 id="dispensa-edit-title">Nuovo prodotto</h2>
+
+    <div class="field">
+      <label>Nome</label>
+      <input type="text" id="d-name" placeholder="es. Mele, Yogurt bianco, Prosciutto crudo">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Categoria</label>
+        <select id="d-category">
+          <option>Frutta</option>
+          <option>Verdura</option>
+          <option>Salumi</option>
+          <option>Latticini e pronti</option>
+          <option>Altro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Quantità</label>
+        <input type="number" id="d-qty" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label>Unità</label>
+        <input type="text" id="d-unit" placeholder="es. pz, g, ml">
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="ingredients-actions" style="justify-content:flex-start;">
+        <button type="button" class="btn-ghost btn-small" id="dispensa-nutrition-toggle-btn">🍎 Valori nutrizionali</button>
+      </div>
+      <div class="ingredient-nutrition" id="dispensa-nutrition-fields" style="display:none;margin-top:8px;">
+        <div class="mini">Kcal<input type="number" id="d-kcal" min="0"></div>
+        <div class="mini">Proteine (g)<input type="number" id="d-protein" min="0" step="0.1"></div>
+        <div class="mini">Grassi (g)<input type="number" id="d-fat" min="0" step="0.1"></div>
+        <div class="mini">Carb. (g)<input type="number" id="d-carbs" min="0" step="0.1"></div>
+        <div class="mini">Fibre (g)<input type="number" id="d-fiber" min="0" step="0.1"></div>
+        <div class="mini">Zuccheri (g)<input type="number" id="d-sugar" min="0" step="0.1"></div>
+        <div class="mini">Sale (g)<input type="number" id="d-salt" min="0" step="0.01"></div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-soft);font-style:italic;margin-top:6px;">Riferiti alla quantità indicata sopra, non ai 100g.</div>
+    </div>
+
+    <div class="field">
+      <label>Data di scadenza (facoltativa)</label>
+      <input type="date" id="d-expiry">
+    </div>
+
+    <div class="field">
+      <label>Note (facoltative)</label>
+      <textarea id="d-notes" rows="2" placeholder="es. aperto il 20/08"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-danger" id="dispensa-delete-btn" style="display:none;">Elimina prodotto</button>
+      <div style="flex:1;"></div>
+      <button class="btn-gold" id="dispensa-save-btn">Salva prodotto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ IMPORTA RICETTA DA TESTO ============ -->
+<div class="overlay" id="paste-import-overlay">
+  <div class="modal">
+    <button class="close-x" id="paste-import-close">×</button>
+    <h2>Importa ricetta da testo</h2>
+    <p style="font-size:13.5px;color:var(--ink-soft);margin-top:-6px;line-height:1.5;">
+      Incolla qui il testo di una ricetta, oppure il codice sorgente della pagina web che la contiene (tasto destro sulla pagina → "Visualizza sorgente", poi Ctrl/Cmd+A e copia). Se la pagina include dati strutturati il riconoscimento sarà più preciso; in ogni caso, prima di salvare potrai correggere ogni campo.
+    </p>
+    <div class="field">
+      <textarea id="paste-import-text" rows="10" placeholder="Incolla qui il testo o il sorgente della ricetta…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="paste-import-cancel">Annulla</button>
+      <div style="flex:1;"></div>
+      <button class="btn-gold" id="paste-import-analyze">Analizza e compila</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SELEZIONA RICETTA (per la pianificazione) ============ -->
+<div class="overlay" id="recipe-picker-overlay">
+  <div class="modal">
+    <button class="close-x" id="recipe-picker-close">×</button>
+    <h2>Scegli una ricetta</h2>
+    <div class="field">
+      <input type="text" id="recipe-picker-search" placeholder="Cerca per nome o ingrediente…">
+    </div>
+    <div class="recipe-picker-list" id="recipe-picker-list"></div>
+  </div>
+</div>
+
+<!-- ============ SELEZIONA PRODOTTO DISPENSA (per la pianificazione) ============ -->
+<div class="overlay" id="dispensa-picker-overlay">
+  <div class="modal">
+    <button class="close-x" id="dispensa-picker-close">×</button>
+    <h2>Scegli dalla dispensa</h2>
+    <div class="field">
+      <input type="text" id="dispensa-picker-search" placeholder="Cerca prodotto…">
+    </div>
+    <div class="recipe-picker-list" id="dispensa-picker-list"></div>
+  </div>
+</div>
+
+<!-- ============ VIEW MODAL ============ -->
+<div class="overlay" id="view-overlay">
+  <div class="modal">
+    <button class="close-x" id="view-close">×</button>
+    <div class="view-top-row">
+      <div>
+        <span class="cat-tag" id="view-category"></span>
+        <h2 id="view-name" style="margin:0;"></h2>
+      </div>
+      <button class="star" id="view-favorite-btn" style="position:static;font-size:24px;">★</button>
+    </div>
+    <img id="view-photo" class="view-photo" style="display:none;">
+    <div style="font-size:13px;color:var(--ink-soft);" id="view-time"></div>
+    <div id="view-tags" style="margin:4px 0;"></div>
+
+    <div class="last-made-row">
+      <span id="view-last-made-text">Non ancora preparata</span>
+      <button class="btn-ghost btn-small" id="mark-made-btn">Ho preparato questa oggi</button>
+    </div>
+
+    <div class="servings-control">
+      <button id="servings-minus">−</button>
+      <span class="count"><span id="view-servings-count"></span> porzioni</span>
+      <button id="servings-plus">+</button>
+    </div>
+
+    <ul id="view-ingredients"></ul>
+    <div id="view-nutrition" style="display:none;"></div>
+
+    <h3 style="margin-bottom:8px;">Preparazione</h3>
+    <div id="view-steps"></div>
+
+    <div class="view-notes" id="view-notes-block" style="display:none;">
+      <strong style="color:var(--brass);font-style:normal;">Note personali —</strong>
+      <span id="view-notes"></span>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" id="print-recipe-btn">🖨 Stampa</button>
+      <button class="btn-ghost" id="export-recipe-pdf-btn">⬇ Esporta PDF</button>
+      <button class="btn-ghost" id="export-recipe-json-btn">⬇ Esporta ricetta</button>
+      <div class="menu-wrap">
+        <button class="btn-ghost" id="view-schedule-btn">📅 Pianifica</button>
+        <div class="menu-dropdown schedule-dropdown" id="view-schedule-dropdown">
+          <div class="schedule-field">
+            <label>Giorno</label>
+            <select id="schedule-day-select">
+              <option>Lunedì</option>
+              <option>Martedì</option>
+              <option>Mercoledì</option>
+              <option>Giovedì</option>
+              <option>Venerdì</option>
+              <option>Sabato</option>
+              <option>Domenica</option>
+            </select>
+          </div>
+          <div class="schedule-field">
+            <label>Fascia</label>
+            <select id="schedule-mealtype-select"></select>
+          </div>
+          <div class="schedule-field">
+            <label>Orario (facoltativo)</label>
+            <input type="time" id="schedule-time-input">
+          </div>
+          <button class="btn-gold btn-small" id="schedule-confirm-btn">+ Aggiungi alla pianificazione</button>
+          <div class="schedule-status" id="schedule-status" style="display:none;"></div>
+        </div>
+      </div>
+      <button class="btn-gold" id="cook-mode-btn">👩‍🍳 Modalità cucina</button>
+      <div style="flex:1;"></div>
+      <button class="btn-ghost" id="view-edit-btn">Modifica</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GUIDED COOKING MODE ============ -->
+<div class="cook-overlay" id="cook-overlay">
+  <button class="cook-exit" id="cook-exit-btn">Esci ✕</button>
+  <div class="cook-progress" id="cook-progress"></div>
+  <div class="cook-timer" id="cook-timer" style="display:none;"></div>
+  <div class="cook-step-text" id="cook-step-text"></div>
+  <div class="cook-dial" id="cook-dial"></div>
+  <div class="cook-release-row" id="cook-release-row" style="display:none;">
+    <div class="cook-timer cook-timer-small" id="cook-release-timer"></div>
+    <button class="btn-gold" id="cook-release-timer-btn">Avvia timer rilascio</button>
+  </div>
+  <div class="cook-nav">
+    <button class="btn-ghost" id="cook-prev-btn" style="color:#f2e6c9;border-color:#f2e6c9;">← Indietro</button>
+    <button class="btn-gold" id="cook-timer-btn" style="display:none;">Avvia timer</button>
+    <button class="btn-gold" id="cook-next-btn">Avanti →</button>
+  </div>
+</div>
+
+<!-- ============ SHOPPING LIST MODAL ============ -->
+<div class="overlay" id="shopping-overlay">
+  <div class="modal">
+    <button class="close-x" id="shopping-close">×</button>
+    <h2>Lista della spesa</h2>
+    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;" id="shopping-subtitle"></div>
+    <ul class="shopping-list-items" id="shopping-list-items"></ul>
+    <div class="modal-actions">
+      <div style="flex:1;"></div>
+      <button class="btn-ghost" id="export-shopping-pdf-btn">⬇ Esporta PDF</button>
+      <button class="btn-ghost" id="shopping-print-btn">🖨 Stampa lista</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'mc_ricettario_v1';
+  const WEEK_KEY = 'mc_ricettario_settimana_v1';
+  const MEALTYPES_KEY = 'mc_ricettario_pasti_v1';
+  const PANTRY_KEY = 'mc_ricettario_dispensa_v1';
+  const PLAN_SERVINGS_KEY = 'mc_ricettario_porzioni_piano_v1';
+  const LAST_BACKUP_KEY = 'mc_ricettario_ultimo_backup_v1';
+  const PREV_WEEK_KEY = 'mc_ricettario_settimana_precedente_v1';
+  const DISPENSA_ITEMS_KEY = 'mc_ricettario_dispensa_prodotti_v1';
+  const PANTRY_CATEGORY_COLORS = {
+    'Frutta': '#d17b3f', 'Verdura': '#5c8a3a', 'Salumi': '#a13d3d',
+    'Latticini e pronti': '#c9a227', 'Altro': '#3f6e79'
+  };
+  const DAYS = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+  const DEFAULT_MEALTYPES = ['Colazione','Pranzo','Spuntino','Cena'];
+  const TAG_OPTIONS = ['Vegetariano','Vegano','Senza glutine','Senza lattosio','Piccante'];
+
+  let recipes = [];
+  let weekPlan = {}; // { 'Lunedì': [ {id, recipeId, mealType, time}, ... ], ... }
+  let mealTypes = [];
+  let planServings = 4;
+  let previousWeekPlan = null;
+  let dispensaItems = [];
+  let editingDispensaId = null;
+  let editingId = null;
+  let currentViewId = null;
+  let currentServings = 4;
+  let pantryMode = false;
+  let pantryItems = [];
+  let excludeItems = [];
+  let activeTagFilters = new Set();
+  let favoritesOnly = false;
+  let pressureOnly = false;
+
+  // cooking mode state
+  let cookRecipe = null;
+  let cookStepIndex = 0;
+  let cookTimerInterval = null;
+  let cookReleaseTimerInterval = null;
+  let cookTimerRemaining = 0;
+
+  const CATEGORY_COLORS = {
+    'Primi': '#c1440e', 'Secondi': '#8b2635', 'Zuppe & Vellutate': '#5c7a3a',
+    'Impasti & Pane': '#b8892c', 'Salse & Sughi': '#a64b2a', 'Dolci': '#b83a6b',
+    'Infusi & Tisane': '#8a6642', 'Altro': '#3f6e79'
+  };
+
+  // ---------- Storage ----------
+  function loadRecipes(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      recipes = raw ? JSON.parse(raw) : seedData();
+      if(!raw) saveRecipes();
+    }catch(e){ recipes = seedData(); }
+    try{
+      const rawWeek = localStorage.getItem(WEEK_KEY);
+      weekPlan = rawWeek ? JSON.parse(rawWeek) : {};
+    }catch(e){ weekPlan = {}; }
+    try{
+      const rawMeals = localStorage.getItem(MEALTYPES_KEY);
+      mealTypes = rawMeals ? JSON.parse(rawMeals) : DEFAULT_MEALTYPES.slice();
+      if(!Array.isArray(mealTypes) || !mealTypes.length) mealTypes = DEFAULT_MEALTYPES.slice();
+    }catch(e){ mealTypes = DEFAULT_MEALTYPES.slice(); }
+    try{
+      const rawServ = localStorage.getItem(PLAN_SERVINGS_KEY);
+      planServings = rawServ ? (parseInt(rawServ,10) || 4) : 4;
+    }catch(e){ planServings = 4; }
+    try{
+      const rawPantry = localStorage.getItem(PANTRY_KEY);
+      if(rawPantry) pantryInput.value = rawPantry;
+    }catch(e){}
+    try{
+      const rawPrev = localStorage.getItem(PREV_WEEK_KEY);
+      previousWeekPlan = rawPrev ? JSON.parse(rawPrev) : null;
+    }catch(e){ previousWeekPlan = null; }
+    try{
+      const rawDispensa = localStorage.getItem(DISPENSA_ITEMS_KEY);
+      dispensaItems = rawDispensa ? JSON.parse(rawDispensa) : [];
+      if(!Array.isArray(dispensaItems)) dispensaItems = [];
+    }catch(e){ dispensaItems = []; }
+  }
+  function saveRecipes(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes)); }
+  function saveWeek(){ localStorage.setItem(WEEK_KEY, JSON.stringify(weekPlan)); }
+  function saveMealTypes(){ localStorage.setItem(MEALTYPES_KEY, JSON.stringify(mealTypes)); }
+  function savePantry(text){ localStorage.setItem(PANTRY_KEY, text); }
+  function savePlanServings(){ localStorage.setItem(PLAN_SERVINGS_KEY, String(planServings)); }
+  function savePreviousWeek(plan){ localStorage.setItem(PREV_WEEK_KEY, JSON.stringify(plan)); }
+  function saveDispensaItems(){ localStorage.setItem(DISPENSA_ITEMS_KEY, JSON.stringify(dispensaItems)); }
+
+  // Le versioni precedenti salvavano una sola ricetta per giorno (stringa).
+  // La convertiamo in una lista di voci { id, recipeId, mealType, time }.
+  function migrateWeekPlan(){
+    let changed = false;
+    DAYS.forEach(day=>{
+      const v = weekPlan[day];
+      if(typeof v === 'string' && v){
+        weekPlan[day] = [{ id: cryptoId(), recipeId: v, mealType: mealTypes[0], time: '' }];
+        changed = true;
+      }else if(!Array.isArray(v)){
+        weekPlan[day] = [];
+        changed = true;
+      }
+    });
+    if(changed) saveWeek();
+  }
+
+  function seedData(){
+    return [{
+      id: cryptoId(), name: 'Carbonara risottata', category: 'Primi', servings: 3, time: 15,
+      favorite:false, photo:'', lastMade:null, tags:[], timesMade:0, cookerType:'',
+      ingredients: [
+        {name:'Spaghetti', qty:300, unit:'g'}, {name:'Guanciale', qty:120, unit:'g'},
+        {name:'Uova (tuorli)', qty:3, unit:''}, {name:'Pecorino grattugiato', qty:60, unit:'g'},
+        {name:'Acqua', qty:600, unit:'g'}, {name:'Pepe nero', qty:1, unit:'pizzico'}
+      ],
+      steps: [
+        {text:'Rosolare il guanciale a cubetti.', vel:2, temp:100, time:5, mode:'Normale'},
+        {text:'Aggiungere pasta e acqua, cuocere mescolando dolcemente.', vel:1, temp:100, time:9, mode:'Reverse'},
+        {text:'Fuori dal fuoco, mantecare con tuorli e pecorino mescolati.', vel:1, temp:0, time:1, mode:'Reverse'}
+      ],
+      stepsManual: [
+        {text:'In una padella, rosola il guanciale a cubetti fino a renderlo croccante.'},
+        {text:'Lessa gli spaghetti in acqua salata, scolali al dente conservando l\'acqua di cottura.'},
+        {text:'Fuori dal fuoco, versa la pasta nella padella col guanciale e manteca velocemente con i tuorli e il pecorino già mescolati, aggiungendo poca acqua di cottura per legare.'}
+      ],
+      notes: 'Ricetta base — regola il sale con moderazione, il guanciale e il pecorino ne danno già molto.'
+    }];
+  }
+  function cryptoId(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+
+  function migrateRecipe(r){
+    if(r.favorite === undefined) r.favorite = false;
+    if(r.photo === undefined) r.photo = '';
+    if(r.lastMade === undefined) r.lastMade = null;
+    if(!Array.isArray(r.tags)) r.tags = [];
+    if(r.timesMade === undefined) r.timesMade = r.lastMade ? 1 : 0;
+    if(r.cookerType === undefined) r.cookerType = '';
+    if(!Array.isArray(r.steps)) r.steps = [];
+    // Le ricette dalla vecchia versione avevano un secondo elenco di passaggi
+    // "senza robot" parallelo. Lo confluiamo nelle note, una sola volta, poi
+    // rimuoviamo il campo così le versioni future non lo trovano più.
+    if(Array.isArray(r.stepsManual)){
+      if(r.stepsManual.length){
+        const altText = r.stepsManual.map((s,i)=>`${i+1}. ${(s.text||'').trim()}`).filter(l=>l.trim().length>2).join('\n');
+        if(altText){
+          const header = 'Metodo alternativo (dalla versione precedente):';
+          r.notes = (r.notes ? r.notes.trim() + '\n\n' : '') + header + '\n' + altText;
+        }
+      }
+      delete r.stepsManual;
+    }
+    return r;
+  }
+
+  function escapeHtml(s){ const d=document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+  function escapeAttr(s){ return (s ?? '').toString().replace(/"/g,'&quot;'); }
+  function normalize(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+
+  // ---------- List rendering ----------
+  const listEl = document.getElementById('recipe-list');
+  const searchEl = document.getElementById('search');
+  const categoryFilterEl = document.getElementById('category-filter');
+  const favoritesFilterBtn = document.getElementById('favorites-filter-btn');
+
+  function daysSince(dateStr){
+    if(!dateStr) return null;
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+    return diff;
+  }
+  function lastMadeLabel(dateStr){
+    if(!dateStr) return '';
+    const d = daysSince(dateStr);
+    if(d === 0) return 'Preparata oggi';
+    if(d === 1) return 'Preparata ieri';
+    return `Preparata ${d} giorni fa`;
+  }
+
+  function ingredientCovered(recipeIngredientName, pantryList){
+    const target = normalize(recipeIngredientName);
+    return pantryList.some(p=> p && (target.includes(p) || p.includes(target)));
+  }
+  function computeMatch(recipe, pantryList){
+    const missing = recipe.ingredients.filter(ing=>!ingredientCovered(ing.name, pantryList)).map(i=>i.name);
+    return { missing };
+  }
+
+  function recipeHasPressure(r){
+    return (r.steps || []).some(s => !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale')));
+  }
+
+  function renderList(){
+    const q = searchEl.value.trim().toLowerCase();
+    const cat = categoryFilterEl.value;
+    let filtered = recipes.filter(r=>{
+      if(favoritesOnly && !r.favorite) return false;
+      if(pressureOnly && !recipeHasPressure(r)) return false;
+      const matchesCat = !cat || r.category === cat;
+      if(!matchesCat) return false;
+      if(activeTagFilters.size > 0){
+        const rTags = r.tags || [];
+        for(const t of activeTagFilters){ if(!rTags.includes(t)) return false; }
+      }
+      if(excludeItems.length > 0){
+        const hasExcluded = r.ingredients.some(ing=>{
+          const name = normalize(ing.name);
+          return excludeItems.some(ex=> name.includes(ex));
+        });
+        if(hasExcluded) return false;
+      }
+      if(!q) return true;
+      const inName = r.name.toLowerCase().includes(q);
+      const inIngr = r.ingredients.some(i=>i.name.toLowerCase().includes(q));
+      return inName || inIngr;
+    });
+
+    listEl.innerHTML = '';
+
+    if(pantryMode){
+      const scored = filtered.map(r=>({recipe:r, match: computeMatch(r, pantryItems)}));
+      scored.sort((a,b)=> a.match.missing.length - b.match.missing.length);
+      if(scored.length === 0){ listEl.innerHTML = '<div class="empty-state">Nessuna ricetta in questa categoria/ricerca.</div>'; return; }
+      scored.forEach(({recipe:r, match})=>{
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8c6a2f');
+        const ready = match.missing.length === 0;
+        card.innerHTML = `
+          <span class="match-badge ${ready?'ready':'missing'}">${ready?'✓ Puoi farla':`Manca ${match.missing.length} ingr.`}</span>
+          ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
+          <h3>${escapeHtml(r.name)}</h3>
+          <div class="meta"><span>${r.servings} porzioni base</span>${r.time?`<span>· ${r.time} min</span>`:''}</div>
+          ${!ready?`<div class="missing-list"><b>Ti manca:</b> ${match.missing.map(escapeHtml).join(', ')}</div>`:''}
+        `;
+        card.addEventListener('click', ()=> openView(r.id));
+        listEl.appendChild(card);
+      });
+      return;
+    }
+
+    if(filtered.length === 0){ listEl.innerHTML = '<div class="empty-state">Nessuna ricetta trovata. Prova a cercare altro, oppure aggiungine una nuova.</div>'; return; }
+
+    filtered.forEach(r=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8c6a2f');
+      card.innerHTML = `
+        <button class="star ${r.favorite?'active':''}" data-id="${r.id}">★</button>
+        ${r.photo ? `<img class="thumb" src="${r.photo}">` : ''}
+        <span class="cat-tag">${escapeHtml(r.category)}</span>
+        ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
+        <h3>${escapeHtml(r.name)}</h3>
+        <div class="meta">
+          <span>${r.servings} porzioni base</span>
+          ${r.time ? `<span>· ${r.time} min</span>` : ''}
+          <span>· ${r.ingredients.length} ingredienti</span>
+        </div>
+        ${r.lastMade ? `<div class="last-made">${lastMadeLabel(r.lastMade)}</div>` : ''}
+      `;
+      card.querySelector('.star').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        r.favorite = !r.favorite;
+        saveRecipes();
+        renderList();
+      });
+      card.addEventListener('click', ()=> openView(r.id));
+      listEl.appendChild(card);
+    });
+  }
+
+  searchEl.addEventListener('input', renderList);
+  categoryFilterEl.addEventListener('change', renderList);
+  favoritesFilterBtn.addEventListener('click', ()=>{
+    favoritesOnly = !favoritesOnly;
+    favoritesFilterBtn.classList.toggle('btn-gold', favoritesOnly);
+    favoritesFilterBtn.classList.toggle('btn-ghost', !favoritesOnly);
+    renderList();
+  });
+  const pressureFilterBtn = document.getElementById('pressure-filter-btn');
+  pressureFilterBtn.addEventListener('click', ()=>{
+    pressureOnly = !pressureOnly;
+    pressureFilterBtn.classList.toggle('btn-gold', pressureOnly);
+    pressureFilterBtn.classList.toggle('btn-ghost', !pressureOnly);
+    renderList();
+  });
+
+  // ---------- Pantry mode ----------
+  const pantryInput = document.getElementById('pantry-input');
+  const pantrySearchBtn = document.getElementById('pantry-search-btn');
+  const pantryResetBtn = document.getElementById('pantry-reset-btn');
+  pantrySearchBtn.addEventListener('click', ()=>{
+    const raw = pantryInput.value.trim();
+    if(!raw){ alert('Scrivi almeno un ingrediente, separato da virgola.'); return; }
+    pantryItems = raw.split(',').map(s=>normalize(s)).filter(Boolean);
+    pantryMode = true;
+    pantryResetBtn.style.display = 'inline-block';
+    savePantry(pantryInput.value);
+    renderList();
+  });
+  pantryInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') pantrySearchBtn.click(); });
+  pantryInput.addEventListener('input', ()=> savePantry(pantryInput.value));
+  pantryResetBtn.addEventListener('click', ()=>{
+    pantryMode = false; pantryItems = [];
+    pantryResetBtn.style.display = 'none';
+    renderList();
+  });
+
+  // ---------- Escludi ingredienti ----------
+  const excludeInput = document.getElementById('exclude-input');
+  const excludeApplyBtn = document.getElementById('exclude-apply-btn');
+  const excludeClearBtn = document.getElementById('exclude-clear-btn');
+  excludeApplyBtn.addEventListener('click', ()=>{
+    const raw = excludeInput.value.trim();
+    excludeItems = raw ? raw.split(',').map(s=>normalize(s)).filter(Boolean) : [];
+    excludeClearBtn.style.display = excludeItems.length ? 'inline-block' : 'none';
+    renderList();
+  });
+  excludeInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') excludeApplyBtn.click(); });
+  excludeClearBtn.addEventListener('click', ()=>{
+    excludeInput.value = ''; excludeItems = [];
+    excludeClearBtn.style.display = 'none';
+    renderList();
+  });
+
+  // ---------- Filtro per tag dietetici ----------
+  const tagFilterRow = document.getElementById('tag-filter-row');
+  tagFilterRow.innerHTML = TAG_OPTIONS.map(t=>`<button class="tag-filter-chip" data-tag="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('');
+  tagFilterRow.querySelectorAll('.tag-filter-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = btn.dataset.tag;
+      if(activeTagFilters.has(t)) activeTagFilters.delete(t); else activeTagFilters.add(t);
+      btn.classList.toggle('active', activeTagFilters.has(t));
+      renderList();
+    });
+  });
+
+  // ---------- Pannello "Altri filtri" richiudibile ----------
+  const advFiltersToggle = document.getElementById('advanced-filters-toggle');
+  const advFiltersPanel = document.getElementById('advanced-filters-panel');
+  advFiltersToggle.addEventListener('click', ()=>{
+    const opening = advFiltersPanel.style.display === 'none';
+    advFiltersPanel.style.display = opening ? 'block' : 'none';
+    advFiltersToggle.classList.toggle('active', opening);
+  });
+
+  // ---------- Menu "Backup e CSV" ----------
+  const dataMenuBtn = document.getElementById('data-menu-btn');
+  const dataMenuDropdown = document.getElementById('data-menu-dropdown');
+  const backupReminderText = document.getElementById('backup-reminder-text');
+  function updateBackupReminder(){
+    const raw = localStorage.getItem(LAST_BACKUP_KEY);
+    if(!raw){
+      backupReminderText.textContent = 'Nessun backup ancora eseguito';
+      backupReminderText.classList.add('warning');
+      return;
+    }
+    const days = Math.floor((Date.now() - new Date(raw).getTime()) / 86400000);
+    backupReminderText.textContent = days <= 0 ? 'Ultimo backup: oggi' : days === 1 ? 'Ultimo backup: ieri' : `Ultimo backup: ${days} giorni fa`;
+    backupReminderText.classList.toggle('warning', days > 14);
+  }
+  updateBackupReminder();
+  dataMenuBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    dataMenuDropdown.classList.toggle('open');
+    if(dataMenuDropdown.classList.contains('open')) updateBackupReminder();
+  });
+  dataMenuDropdown.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=> dataMenuDropdown.classList.remove('open'));
+  });
+  document.addEventListener('click', (e)=>{
+    if(dataMenuDropdown.classList.contains('open') && !dataMenuDropdown.contains(e.target) && e.target !== dataMenuBtn){
+      dataMenuDropdown.classList.remove('open');
+    }
+  });
+
+  // ---------- Edit modal ----------
+  const editOverlay = document.getElementById('edit-overlay');
+  const editTitle = document.getElementById('edit-title');
+  const fName = document.getElementById('f-name');
+  const fCategory = document.getElementById('f-category');
+  const fServings = document.getElementById('f-servings');
+  const fTime = document.getElementById('f-time');
+  const fCookerType = document.getElementById('f-cooker-type');
+  const fNotes = document.getElementById('f-notes');
+  const fPhoto = document.getElementById('f-photo');
+  const fPhotoPreview = document.getElementById('f-photo-preview');
+  const ingredientsEditor = document.getElementById('ingredients-editor');
+  const stepsEditor = document.getElementById('steps-editor');
+  const deleteBtn = document.getElementById('delete-recipe-btn');
+  const fTagsWrap = document.getElementById('f-tags-wrap');
+  fTagsWrap.innerHTML = TAG_OPTIONS.map(t=>`<label><input type="checkbox" value="${escapeAttr(t)}"> ${escapeHtml(t)}</label>`).join('');
+  let currentPhotoData = '';
+
+  function openEdit(recipe, draft){
+    // "recipe" apre in modifica una ricetta esistente. "draft" (usato per
+    // l'importazione da testo) precompila un modulo di NUOVA ricetta senza
+    // che sia già salvata: editingId resta null.
+    editingId = recipe ? recipe.id : null;
+    const source = recipe || draft || null;
+    editTitle.textContent = recipe ? 'Modifica ricetta' : (draft ? 'Rivedi ricetta importata' : 'Nuova ricetta');
+    deleteBtn.style.display = recipe ? 'inline-block' : 'none';
+
+    fName.value = source ? (source.name || '') : '';
+    fCategory.value = source ? (source.category || 'Primi') : 'Primi';
+    fServings.value = source ? (source.servings || 4) : 4;
+    fTime.value = source ? (source.time || '') : '';
+    fCookerType.value = source ? (source.cookerType || '') : '';
+    fNotes.value = source ? (source.notes || '') : '';
+    const sourceTags = source && source.tags ? source.tags : [];
+    fTagsWrap.querySelectorAll('input[type="checkbox"]').forEach(cb=>{ cb.checked = sourceTags.includes(cb.value); });
+    currentPhotoData = source ? (source.photo || '') : '';
+    fPhoto.value = '';
+    if(currentPhotoData){ fPhotoPreview.src = currentPhotoData; fPhotoPreview.style.display = 'block'; }
+    else{ fPhotoPreview.style.display = 'none'; }
+
+    ingredientsEditor.innerHTML = '';
+    const sourceIngredients = (source && source.ingredients && source.ingredients.length) ? source.ingredients : [{name:'',qty:'',unit:''}];
+    showIngredientNutrition = sourceIngredients.some(i => i.kcal || i.protein || i.fat || i.carbs || i.fiber || i.sugar || i.salt);
+    document.getElementById('nutrition-toggle-btn').classList.toggle('active', showIngredientNutrition);
+    sourceIngredients.forEach(i=>addIngredientRow(i));
+    stepsEditor.innerHTML = '';
+    (source && source.steps && source.steps.length ? source.steps : [{text:'',vel:'',temp:'',time:'',mode:'Normale'}]).forEach(s=>addStepRow(s));
+
+    editOverlay.classList.add('active');
+  }
+
+  fPhoto.addEventListener('change', ()=>{
+    const file = fPhoto.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      currentPhotoData = e.target.result;
+      fPhotoPreview.src = currentPhotoData;
+      fPhotoPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  let showIngredientNutrition = false;
+
+  function addIngredientRow(data){
+    data = data || {name:'',qty:'',unit:'',kcal:'',protein:'',fat:'',carbs:'',fiber:'',sugar:'',salt:''};
+    const hasNutrition = !!(data.kcal || data.protein || data.fat || data.carbs || data.fiber || data.sugar || data.salt);
+    const wrap = document.createElement('div');
+    wrap.className = 'ingredient-block';
+    wrap.innerHTML = `
+      <div class="list-row">
+        <input type="text" class="ing-name" placeholder="Ingrediente" value="${escapeAttr(data.name)}">
+        <input type="number" class="qty ing-qty" placeholder="Qtà" value="${data.qty ?? ''}">
+        <input type="text" class="unit ing-unit" placeholder="unità" value="${escapeAttr(data.unit)}">
+        <button class="remove-row" title="Rimuovi">×</button>
+      </div>
+      <div class="ingredient-nutrition" style="display:${(showIngredientNutrition || hasNutrition) ? 'flex' : 'none'};">
+        <div class="mini">Kcal<input type="number" class="ing-kcal" min="0" value="${data.kcal ?? ''}"></div>
+        <div class="mini">Proteine (g)<input type="number" class="ing-protein" min="0" step="0.1" value="${data.protein ?? ''}"></div>
+        <div class="mini">Grassi (g)<input type="number" class="ing-fat" min="0" step="0.1" value="${data.fat ?? ''}"></div>
+        <div class="mini">Carb. (g)<input type="number" class="ing-carbs" min="0" step="0.1" value="${data.carbs ?? ''}"></div>
+        <div class="mini">Fibre (g)<input type="number" class="ing-fiber" min="0" step="0.1" value="${data.fiber ?? ''}"></div>
+        <div class="mini">Zuccheri (g)<input type="number" class="ing-sugar" min="0" step="0.1" value="${data.sugar ?? ''}"></div>
+        <div class="mini">Sale (g)<input type="number" class="ing-salt" min="0" step="0.01" value="${data.salt ?? ''}"></div>
+      </div>
+    `;
+    wrap.querySelector('.remove-row').addEventListener('click', ()=> wrap.remove());
+    ingredientsEditor.appendChild(wrap);
+  }
+
+  function addStepRow(data){
+    data = data || {text:'',vel:'',temp:'',time:'',mode:'Normale',pressure:'',pressureUnit:'bar',pressureRelease:'Naturale',pressureReleaseMin:'',minLiquid:''};
+    const hasRobotData = !!(data.vel || data.temp || (data.mode && data.mode !== 'Normale'));
+    const hasPressureData = !!(data.pressure || data.minLiquid || data.pressureReleaseMin || (data.pressureRelease && data.pressureRelease !== 'Naturale'));
+    const block = document.createElement('div');
+    block.className = 'step-block';
+    block.innerHTML = `
+      <textarea class="step-text" placeholder="Descrivi il passaggio…" rows="2">${escapeHtml(data.text)}</textarea>
+      <div class="step-row-bottom">
+        <div class="mini">Durata (min)<input type="number" class="step-time" min="0" value="${data.time ?? ''}"></div>
+        <button type="button" class="robot-toggle-btn ${hasRobotData?'active':''}">🤖 Impostazioni robot</button>
+        <button type="button" class="pressure-toggle-btn ${hasPressureData?'active':''}">🍲 Impostazioni pentola a pressione</button>
+        <div style="flex:1;"></div>
+        <button class="remove-row" title="Rimuovi passaggio">×</button>
+      </div>
+      <div class="step-settings" style="display:${hasRobotData?'flex':'none'};">
+        <div class="mini">Velocità<input type="number" class="step-vel" min="0" max="10" value="${data.vel ?? ''}"></div>
+        <div class="mini">Temp. °C<input type="number" class="step-temp" min="0" max="130" value="${data.temp ?? ''}"></div>
+        <div class="mini">Modalità
+          <select class="step-mode">
+            <option ${data.mode==='Normale'?'selected':''}>Normale</option>
+            <option ${data.mode==='Reverse'?'selected':''}>Reverse</option>
+            <option ${data.mode==='Turbo'?'selected':''}>Turbo</option>
+            <option ${data.mode==='Vapore'?'selected':''}>Vapore</option>
+          </select>
+        </div>
+      </div>
+      <div class="step-settings pressure-settings" style="display:${hasPressureData?'flex':'none'};">
+        <div class="mini">Pressione<input type="number" class="step-pressure" min="0" step="0.1" value="${data.pressure ?? ''}"></div>
+        <div class="mini">Unità
+          <select class="step-pressure-unit">
+            <option value="bar" ${(!data.pressureUnit || data.pressureUnit==='bar')?'selected':''}>Bar</option>
+            <option value="psi" ${data.pressureUnit==='psi'?'selected':''}>PSI</option>
+            <option value="kpa" ${data.pressureUnit==='kpa'?'selected':''}>kPa</option>
+          </select>
+        </div>
+        <div class="mini">Rilascio
+          <select class="step-pressure-release">
+            <option ${(!data.pressureRelease || data.pressureRelease==='Naturale')?'selected':''}>Naturale</option>
+            <option ${data.pressureRelease==='Rapido'?'selected':''}>Rapido</option>
+            <option ${data.pressureRelease==='Misto'?'selected':''}>Misto</option>
+          </select>
+        </div>
+        <div class="mini step-release-min-wrap" style="display:${data.pressureRelease==='Rapido'?'none':'flex'};">Durata rilascio (min)<input type="number" class="step-pressure-release-min" min="0" value="${data.pressureReleaseMin ?? ''}"></div>
+        <div class="mini">Liquido minimo (ml)<input type="number" class="step-min-liquid" min="0" value="${data.minLiquid ?? ''}"></div>
+      </div>
+    `;
+    block.querySelector('.remove-row').addEventListener('click', ()=> block.remove());
+    block.querySelector('.robot-toggle-btn').addEventListener('click', (e)=>{
+      const panel = block.querySelector('.step-settings:not(.pressure-settings)');
+      const showing = panel.style.display !== 'none';
+      panel.style.display = showing ? 'none' : 'flex';
+      e.currentTarget.classList.toggle('active', !showing);
+    });
+    block.querySelector('.pressure-toggle-btn').addEventListener('click', (e)=>{
+      const panel = block.querySelector('.pressure-settings');
+      const showing = panel.style.display !== 'none';
+      panel.style.display = showing ? 'none' : 'flex';
+      e.currentTarget.classList.toggle('active', !showing);
+    });
+    block.querySelector('.step-pressure-release').addEventListener('change', (e)=>{
+      const wrap = block.querySelector('.step-release-min-wrap');
+      wrap.style.display = e.target.value === 'Rapido' ? 'none' : 'flex';
+    });
+    stepsEditor.appendChild(block);
+  }
+
+  document.getElementById('new-recipe-btn').addEventListener('click', ()=> openEdit(null));
+  document.getElementById('add-ingredient').addEventListener('click', ()=> addIngredientRow());
+  document.getElementById('nutrition-toggle-btn').addEventListener('click', (e)=>{
+    showIngredientNutrition = !showIngredientNutrition;
+    e.currentTarget.classList.toggle('active', showIngredientNutrition);
+    ingredientsEditor.querySelectorAll('.ingredient-nutrition').forEach(panel=>{
+      panel.style.display = showIngredientNutrition ? 'flex' : 'none';
+    });
+  });
+  document.getElementById('add-step').addEventListener('click', ()=> addStepRow());
+  document.getElementById('edit-close').addEventListener('click', closeEdit);
+  document.getElementById('cancel-edit').addEventListener('click', closeEdit);
+
+  function closeEdit(){ editOverlay.classList.remove('active'); editingId = null; }
+
+  document.getElementById('save-recipe').addEventListener('click', ()=>{
+    const name = fName.value.trim();
+    if(!name){ alert('Serve almeno il nome della ricetta.'); return; }
+    const ingredients = Array.from(ingredientsEditor.querySelectorAll('.ingredient-block')).map(block=>({
+      name: block.querySelector('.ing-name').value.trim(),
+      qty: parseFloat(block.querySelector('.ing-qty').value) || 0,
+      unit: block.querySelector('.ing-unit').value.trim(),
+      kcal: block.querySelector('.ing-kcal').value,
+      protein: block.querySelector('.ing-protein').value,
+      fat: block.querySelector('.ing-fat').value,
+      carbs: block.querySelector('.ing-carbs').value,
+      fiber: block.querySelector('.ing-fiber').value,
+      sugar: block.querySelector('.ing-sugar').value,
+      salt: block.querySelector('.ing-salt').value
+    })).filter(i=>i.name);
+
+    const steps = Array.from(stepsEditor.querySelectorAll('.step-block')).map(block=>({
+      text: block.querySelector('.step-text').value.trim(),
+      vel: block.querySelector('.step-vel').value,
+      temp: block.querySelector('.step-temp').value,
+      time: block.querySelector('.step-time').value,
+      mode: block.querySelector('.step-mode').value,
+      pressure: block.querySelector('.step-pressure').value,
+      pressureUnit: block.querySelector('.step-pressure-unit').value,
+      pressureRelease: block.querySelector('.step-pressure-release').value,
+      pressureReleaseMin: block.querySelector('.step-pressure-release-min').value,
+      minLiquid: block.querySelector('.step-min-liquid').value
+    })).filter(s=>s.text);
+
+    const tags = Array.from(fTagsWrap.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.value);
+
+    let existingExtra = {favorite:false, lastMade:null, timesMade:0};
+    if(editingId){
+      const prev = recipes.find(r=>r.id===editingId);
+      if(prev){ existingExtra = {favorite:prev.favorite, lastMade:prev.lastMade, timesMade:prev.timesMade}; }
+    }
+
+    const recipeData = {
+      id: editingId || cryptoId(), name, category: fCategory.value,
+      servings: parseInt(fServings.value) || 1, time: parseInt(fTime.value) || 0,
+      cookerType: fCookerType.value,
+      ingredients, steps, tags, notes: fNotes.value.trim(),
+      photo: currentPhotoData, favorite: existingExtra.favorite, lastMade: existingExtra.lastMade, timesMade: existingExtra.timesMade
+    };
+
+    if(editingId){
+      const idx = recipes.findIndex(r=>r.id === editingId);
+      if(idx > -1) recipes[idx] = recipeData;
+    }else{
+      recipes.push(recipeData);
+    }
+    saveRecipes(); renderList(); renderPlanningDays(); closeEdit();
+  });
+
+  deleteBtn.addEventListener('click', ()=>{
+    if(!editingId) return;
+    if(confirm('Eliminare definitivamente questa ricetta?')){
+      recipes = recipes.filter(r=>r.id !== editingId);
+      DAYS.forEach(day=>{ weekPlan[day] = (weekPlan[day]||[]).filter(e=>e.recipeId !== editingId); });
+      saveRecipes(); saveWeek(); renderList(); renderPlanningDays(); closeEdit();
+    }
+  });
+
+  // ---------- View modal ----------
+  const viewOverlay = document.getElementById('view-overlay');
+  const viewCategory = document.getElementById('view-category');
+  const viewName = document.getElementById('view-name');
+  const viewTime = document.getElementById('view-time');
+  const viewTags = document.getElementById('view-tags');
+  const viewPhoto = document.getElementById('view-photo');
+  const viewFavoriteBtn = document.getElementById('view-favorite-btn');
+  const viewLastMadeText = document.getElementById('view-last-made-text');
+  const markMadeBtn = document.getElementById('mark-made-btn');
+  const viewServingsCount = document.getElementById('view-servings-count');
+  const viewIngredients = document.getElementById('view-ingredients');
+  const viewSteps = document.getElementById('view-steps');
+  const viewNotesBlock = document.getElementById('view-notes-block');
+  const viewNotes = document.getElementById('view-notes');
+
+  function openView(id){
+    const r = recipes.find(x=>x.id === id);
+    if(!r) return;
+    currentViewId = id;
+    currentServings = r.servings;
+    renderView(r);
+    viewOverlay.classList.add('active');
+  }
+
+  function roundNice(n){
+    const rounded = Math.round(n * 10) / 10;
+    return rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+  }
+
+  const NUTRITION_FIELDS = [
+    {key:'kcal', label:'Kcal', unit:''},
+    {key:'protein', label:'Proteine', unit:'g'},
+    {key:'fat', label:'Grassi', unit:'g'},
+    {key:'carbs', label:'Carboidrati', unit:'g'},
+    {key:'fiber', label:'Fibre', unit:'g'},
+    {key:'sugar', label:'Zuccheri', unit:'g'},
+    {key:'salt', label:'Sale', unit:'g'}
+  ];
+  function computeNutritionTotals(r, scale){
+    const withNutrition = r.ingredients.filter(i => NUTRITION_FIELDS.some(f => i[f.key]));
+    if(!withNutrition.length) return null;
+    const totals = {};
+    NUTRITION_FIELDS.forEach(f=>{
+      totals[f.key] = r.ingredients.reduce((sum,i)=> sum + (parseFloat(i[f.key]) || 0) * scale, 0);
+    });
+    return { totals, withCount: withNutrition.length, totalCount: r.ingredients.length };
+  }
+
+  function renderView(r){
+    viewCategory.textContent = r.category;
+    viewCategory.style.background = CATEGORY_COLORS[r.category] || '#8c6a2f';
+    viewCategory.style.color = '#fff'; viewCategory.style.borderRadius = '20px';
+    viewCategory.style.padding = '3px 10px'; viewCategory.style.fontWeight = '600';
+    viewName.textContent = r.name;
+    viewTime.textContent = r.time ? `Tempo totale: circa ${r.time} minuti` : '';
+    const extraChips = [];
+    if(recipeHasPressure(r)) extraChips.push('<span class="view-tag-chip">🍲 Pentola a pressione</span>');
+    if(r.cookerType) extraChips.push(`<span class="view-tag-chip">${r.cookerType === 'Elettrica' ? '⚡' : '🔥'} ${escapeHtml(r.cookerType)}</span>`);
+    viewTags.innerHTML = (r.tags || []).map(t=>`<span class="view-tag-chip">${escapeHtml(t)}</span>`).join('') + extraChips.join('');
+
+    if(r.photo){ viewPhoto.src = r.photo; viewPhoto.style.display = 'block'; }
+    else{ viewPhoto.style.display = 'none'; }
+
+    viewFavoriteBtn.classList.toggle('active', !!r.favorite);
+    viewFavoriteBtn.style.color = r.favorite ? 'var(--gold-bright)' : 'var(--line)';
+
+    viewLastMadeText.textContent = r.lastMade
+      ? `${lastMadeLabel(r.lastMade)} (${new Date(r.lastMade).toLocaleDateString('it-IT')}) — preparata ${r.timesMade || 1} volt${(r.timesMade||1)===1?'a':'e'}`
+      : 'Non ancora preparata';
+
+    viewServingsCount.textContent = currentServings;
+    const scale = currentServings / (r.servings || 1);
+    viewIngredients.innerHTML = '';
+    r.ingredients.forEach(i=>{
+      const scaledQty = i.qty ? roundNice(i.qty * scale) : '';
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${escapeHtml(i.name)}</span><span class="amt">${scaledQty} ${escapeHtml(i.unit)}</span>`;
+      viewIngredients.appendChild(li);
+    });
+
+    const viewNutrition = document.getElementById('view-nutrition');
+    const nutrition = computeNutritionTotals(r, scale);
+    if(nutrition){
+      const { totals, withCount, totalCount } = nutrition;
+      const perPortion = currentServings ? totals.kcal / currentServings : 0;
+      const rows = NUTRITION_FIELDS
+        .filter(f => totals[f.key] > 0)
+        .map(f => `<div>${f.label}: <b>${roundNice(totals[f.key])}</b>${f.unit}</div>`).join('');
+      const incomplete = withCount < totalCount;
+      viewNutrition.innerHTML = `
+        <div class="nutrition-summary">
+          <h4>🍎 Valori nutrizionali (totale ricetta, ${currentServings} porzion${currentServings===1?'e':'i'})</h4>
+          <div class="nutrition-grid">${rows}</div>
+          ${totals.kcal > 0 ? `<div style="margin-top:8px;font-size:13px;">Circa <b>${roundNice(perPortion)}</b> kcal a porzione</div>` : ''}
+          ${incomplete ? `<div class="nutrition-note">Calcolati solo sugli ingredienti con dati inseriti (${withCount} di ${totalCount}) — il totale reale potrebbe essere più alto.</div>` : ''}
+        </div>
+      `;
+      viewNutrition.style.display = 'block';
+    }else{
+      viewNutrition.innerHTML = '';
+      viewNutrition.style.display = 'none';
+    }
+
+    viewSteps.innerHTML = '';
+    r.steps.forEach((s, idx)=>{
+      const hasRobot = !!(s.vel || s.temp || (s.mode && s.mode !== 'Normale'));
+      const hasTime = !!s.time;
+      const hasPressure = !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale'));
+      const hasReleaseTimer = hasPressure && s.pressureRelease !== 'Rapido' && !!s.pressureReleaseMin;
+      const unitLabel = {bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar';
+      const div = document.createElement('div');
+      div.className = 'view-step';
+      div.innerHTML = `
+        <div class="num">${idx+1}</div>
+        <div class="txt">
+          <div>${escapeHtml(s.text)}</div>
+          ${(hasRobot || hasTime) ? `<div class="step-meta">
+            ${s.vel?`<span>Vel. <b>${escapeHtml(s.vel)}</b></span>`:''}
+            ${s.temp?`<span>${escapeHtml(s.temp)}°C</span>`:''}
+            ${s.mode && s.mode!=='Normale'?`<span>${escapeHtml(s.mode)}</span>`:''}
+            ${hasTime?`<span><b>${escapeHtml(s.time)}</b> min</span><button class="step-timer-btn" data-minutes="${s.time}" data-display-key="${idx}-cook">▶ Timer</button><span class="step-timer-display" data-timer-display="${idx}-cook"></span>`:''}
+          </div>` : ''}
+          ${hasPressure ? `<div class="step-meta">
+            ${s.pressure?`<span>🍲 <b>${escapeHtml(s.pressure)}</b> ${unitLabel}</span>`:''}
+            ${s.pressureRelease?`<span>Rilascio: ${escapeHtml(s.pressureRelease)}</span>`:''}
+            ${s.minLiquid?`<span>Liquido min. <b>${escapeHtml(s.minLiquid)}</b> ml</span>`:''}
+            ${hasReleaseTimer?`<span><b>${escapeHtml(s.pressureReleaseMin)}</b> min rilascio</span><button class="step-timer-btn" data-minutes="${s.pressureReleaseMin}" data-display-key="${idx}-release">▶ Timer rilascio</button><span class="step-timer-display" data-timer-display="${idx}-release"></span>`:''}
+          </div>` : ''}
+        </div>
+      `;
+      viewSteps.appendChild(div);
+    });
+    viewSteps.querySelectorAll('.step-timer-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=> startInlineTimer(btn));
+    });
+
+    if(r.notes){ viewNotesBlock.style.display = 'block'; viewNotes.textContent = r.notes; }
+    else{ viewNotesBlock.style.display = 'none'; }
+  }
+
+  function startInlineTimer(btn){
+    const minutes = parseFloat(btn.dataset.minutes);
+    const key = btn.dataset.displayKey;
+    const display = document.querySelector(`[data-timer-display="${key}"]`);
+    let remaining = Math.round(minutes * 60);
+    btn.disabled = true;
+    const interval = setInterval(()=>{
+      remaining--;
+      const mm = Math.floor(remaining/60).toString().padStart(2,'0');
+      const ss = (remaining%60).toString().padStart(2,'0');
+      display.textContent = ` ${mm}:${ss}`;
+      if(remaining <= 0){
+        clearInterval(interval);
+        display.textContent = ' Fatto!';
+        btn.disabled = false;
+        try{ new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQIAAAAAAA==').play(); }catch(e){}
+      }
+    }, 1000);
+  }
+
+  document.getElementById('servings-minus').addEventListener('click', ()=>{
+    if(currentServings > 1) currentServings--;
+    renderView(recipes.find(x=>x.id === currentViewId));
+  });
+  document.getElementById('servings-plus').addEventListener('click', ()=>{
+    currentServings++;
+    renderView(recipes.find(x=>x.id === currentViewId));
+  });
+
+  document.getElementById('view-close').addEventListener('click', ()=>{
+    viewOverlay.classList.remove('active'); currentViewId = null;
+  });
+  document.getElementById('view-edit-btn').addEventListener('click', ()=>{
+    const r = recipes.find(x=>x.id === currentViewId);
+    viewOverlay.classList.remove('active');
+    openEdit(r);
+  });
+  viewFavoriteBtn.addEventListener('click', ()=>{
+    const r = recipes.find(x=>x.id === currentViewId);
+    if(!r) return;
+    r.favorite = !r.favorite;
+    saveRecipes(); renderView(r); renderList();
+  });
+  markMadeBtn.addEventListener('click', ()=>{
+    const r = recipes.find(x=>x.id === currentViewId);
+    if(!r) return;
+    r.lastMade = new Date().toISOString();
+    r.timesMade = (r.timesMade || 0) + 1;
+    saveRecipes(); renderView(r); renderList();
+  });
+
+  // ---------- Pianifica dalla scheda ricetta ----------
+  const viewScheduleBtn = document.getElementById('view-schedule-btn');
+  const viewScheduleDropdown = document.getElementById('view-schedule-dropdown');
+  const scheduleDaySelect = document.getElementById('schedule-day-select');
+  const scheduleMealtypeSelect = document.getElementById('schedule-mealtype-select');
+  const scheduleTimeInput = document.getElementById('schedule-time-input');
+  const scheduleStatus = document.getElementById('schedule-status');
+
+  viewScheduleBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const opening = !viewScheduleDropdown.classList.contains('open');
+    viewScheduleDropdown.classList.toggle('open');
+    if(opening){
+      scheduleMealtypeSelect.innerHTML = mealTypes.map(mt=>`<option>${escapeHtml(mt)}</option>`).join('');
+      const jsDay = new Date().getDay(); // 0=domenica...6=sabato
+      scheduleDaySelect.selectedIndex = jsDay === 0 ? 6 : jsDay - 1;
+      scheduleTimeInput.value = '';
+      scheduleStatus.style.display = 'none';
+    }
+  });
+  document.addEventListener('click', (e)=>{
+    if(viewScheduleDropdown.classList.contains('open') && !viewScheduleDropdown.contains(e.target) && e.target !== viewScheduleBtn){
+      viewScheduleDropdown.classList.remove('open');
+    }
+  });
+  document.getElementById('schedule-confirm-btn').addEventListener('click', ()=>{
+    if(!currentViewId) return;
+    const day = scheduleDaySelect.value;
+    const mealType = scheduleMealtypeSelect.value;
+    if(!mealType) return;
+    weekPlan[day] = weekPlan[day] || [];
+    weekPlan[day].push({ id: cryptoId(), recipeId: currentViewId, mealType, time: scheduleTimeInput.value || '' });
+    saveWeek();
+    scheduleStatus.textContent = `✓ Aggiunta a ${day}`;
+    scheduleStatus.style.display = 'block';
+  });
+
+  // ---------- Print ----------
+  document.getElementById('print-recipe-btn').addEventListener('click', ()=>{
+    document.body.classList.add('printing-recipe');
+    window.print();
+  });
+  window.addEventListener('afterprint', ()=>{
+    document.body.classList.remove('printing-recipe');
+    document.body.classList.remove('printing-week');
+  });
+
+  document.getElementById('export-recipe-pdf-btn').addEventListener('click', ()=>{
+    const r = recipes.find(x=>x.id === currentViewId);
+    if(!r) return;
+    const scale = currentServings / (r.servings || 1);
+    const metaLine = `${r.category} · ${currentServings} porzioni${r.time ? ' · circa ' + r.time + ' min' : ''}`;
+    const sections = [{
+      heading: null,
+      lines: [metaLine, (r.tags && r.tags.length) ? 'Tag: ' + r.tags.join(', ') : null].filter(Boolean)
+    }];
+    sections.push({
+      heading: 'Ingredienti',
+      lines: r.ingredients.map(i=>{
+        const qty = i.qty ? roundNice(parseFloat(i.qty) * scale) : '';
+        return `- ${[qty, i.unit, i.name].filter(Boolean).join(' ')}`;
+      })
+    });
+    const nutrition = computeNutritionTotals(r, scale);
+    if(nutrition){
+      const { totals, withCount, totalCount } = nutrition;
+      const perPortion = currentServings ? totals.kcal / currentServings : 0;
+      const nutritionLines = NUTRITION_FIELDS
+        .filter(f => totals[f.key] > 0)
+        .map(f => `${f.label}: ${roundNice(totals[f.key])}${f.unit}`);
+      if(totals.kcal > 0) nutritionLines.push(`Circa ${roundNice(perPortion)} kcal a porzione`);
+      if(withCount < totalCount) nutritionLines.push(`(dati inseriti solo su ${withCount} di ${totalCount} ingredienti)`);
+      sections.push({ heading: `Valori nutrizionali (${currentServings} porzioni)`, lines: nutritionLines });
+    }
+    sections.push({
+      heading: 'Preparazione',
+      lines: r.steps.map((s, idx) => `${idx+1}. ${stepToCsvText(s)}`)
+    });
+    if(r.notes){
+      sections.push({ heading: 'Note', lines: r.notes.split('\n') });
+    }
+    const pdfStr = buildPdfFromSections(r.name, sections);
+    const safeName = r.name.replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g,'') || 'ricetta';
+    downloadPdf(pdfStr, `${safeName}.pdf`);
+  });
+
+  document.getElementById('export-recipe-json-btn').addEventListener('click', ()=>{
+    const r = recipes.find(x=>x.id === currentViewId);
+    if(!r) return;
+    const blob = new Blob([JSON.stringify(r, null, 2)], {type:'application/json'});
+    const safeName = r.name.replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g,'') || 'ricetta';
+    saveFileSmart(blob, `${safeName}.json`, 'application/json', '.json', 'Ricetta (JSON)');
+  });
+
+  const importRecipeFileBtn = document.getElementById('import-recipe-file-btn');
+  const importRecipeFileInput = document.getElementById('import-recipe-file-input');
+  importRecipeFileBtn.addEventListener('click', ()=> importRecipeFileInput.click());
+  importRecipeFileInput.addEventListener('change', ()=>{
+    const file = importRecipeFileInput.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        const parsed = JSON.parse(e.target.result);
+        if(Array.isArray(parsed.recipes)){
+          alert('Questo sembra un file di backup completo, non una singola ricetta. Usa "Importa backup" nel menu "📦 Backup e CSV".');
+          return;
+        }
+        if(!parsed || typeof parsed !== 'object' || !parsed.name || !Array.isArray(parsed.ingredients)){
+          alert('Questo file non sembra contenere una ricetta valida.');
+          return;
+        }
+        if(recipes.some(r => r.name.trim().toLowerCase() === String(parsed.name).trim().toLowerCase())){
+          alert(`Hai già una ricetta chiamata "${parsed.name}". Rinominala prima di importarla di nuovo, per evitare doppioni.`);
+          return;
+        }
+        const recipe = migrateRecipe({ ...parsed, id: cryptoId(), favorite: false, lastMade: null, timesMade: 0 });
+        recipes.push(recipe);
+        saveRecipes(); renderList(); renderPlanningDays();
+        alert(`Importata la ricetta "${recipe.name}".`);
+      }catch(err){
+        alert('Non sono riuscito a leggere questo file. Controlla che sia un file di ricetta esportato da qui.');
+      }
+      importRecipeFileInput.value = '';
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+
+  // ---------- Dati pianificazione condivisi (stampa, PDF, lista della spesa) ----------
+  function planEntryName(e){
+    if(e.dispensaItemId){
+      const it = dispensaItems.find(x=>x.id === e.dispensaItemId);
+      return it ? it.name : '(prodotto eliminato)';
+    }
+    const r = recipes.find(x=>x.id === e.recipeId);
+    return r ? r.name : '(ricetta eliminata)';
+  }
+  function computeWeekPlanData(){
+    const days = DAYS.map(day=>{
+      const entries = (weekPlan[day] || []).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+      return { day, entries: entries.map(e=>({ time: e.time || '', mealType: e.mealType, name: planEntryName(e) })) };
+    });
+    const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
+    const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
+    const aggregated = {};
+    plannedRecipes.forEach(r=>{
+      const scale = planServings / (r.servings || 1);
+      r.ingredients.forEach(ing=>{
+        const key = normalize(ing.name) + '|' + normalize(ing.unit);
+        if(!aggregated[key]){ aggregated[key] = {name: ing.name, unit: ing.unit, qty: 0}; }
+        aggregated[key].qty += (parseFloat(ing.qty) || 0) * scale;
+      });
+    });
+    const shoppingItems = Object.values(aggregated).sort((a,b)=>a.name.localeCompare(b.name));
+    return { days, shoppingItems };
+  }
+  function shoppingItemLine(i){
+    return `${i.name}${i.qty ? ' — ' + roundNice(i.qty) : ''}${i.unit ? ' ' + i.unit : ''}`;
+  }
+
+  document.getElementById('print-week-btn').addEventListener('click', ()=>{
+    const printEl = document.getElementById('print-week-content');
+    const { days, shoppingItems } = computeWeekPlanData();
+    const dayBlocks = days.map(({day, entries})=>{
+      const rows = entries.map(e=>
+        `<div>${e.time?`<b>${escapeHtml(e.time)}</b> — `:''}${escapeHtml(e.mealType)}: ${escapeHtml(e.name)}</div>`
+      ).join('') || '<div style="font-style:italic;color:#8a7a63;">Nessuna ricetta</div>';
+      return `<div style="margin-bottom:14px;"><h3 style="margin:0 0 4px;">${escapeHtml(day)}</h3>${rows}</div>`;
+    }).join('');
+    const shoppingRows = shoppingItems.map(i=>`<div>☐ ${escapeHtml(shoppingItemLine(i))}</div>`).join('')
+      || '<div style="font-style:italic;color:#8a7a63;">Nessuna ricetta pianificata</div>';
+
+    printEl.innerHTML = `
+      <h2>Pianificazione settimanale</h2>
+      <p style="font-size:13px;color:#8a7a63;">Per ${planServings} persone</p>
+      ${dayBlocks}
+      <h2 style="margin-top:20px;">Lista della spesa</h2>
+      ${shoppingRows}
+    `;
+    document.body.classList.add('printing-week');
+    window.print();
+  });
+
+  // ---------- Generatore PDF minimale (solo testo, multipagina, nessuna libreria esterna) ----------
+  function pdfSanitizeText(str){
+    const map = {'’':"'", '‘':"'", '“':'"', '”':'"', '–':'-', '—':'-', '…':'...', '☐':'-'};
+    let out = '';
+    for(const ch of String(str)){
+      const code = ch.codePointAt(0);
+      if(code <= 255){ out += ch; }
+      else if(map[ch] !== undefined){ out += map[ch]; }
+      else{ out += '?'; }
+    }
+    return out.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+  }
+
+  function buildPdfFromSections(title, sections){
+    const PAGE_W = 595, PAGE_H = 842;
+    const MARGIN_X = 50, TOP_Y = 792, BOTTOM_Y = 50;
+    const TITLE_SIZE = 18, HEAD_SIZE = 13, TEXT_SIZE = 10.5;
+    const LINE_H = 15, HEAD_GAP = 20, TITLE_GAP = 30;
+
+    const pages = [];
+    let cmds = [];
+    let y = TOP_Y;
+    function ensureSpace(h){
+      if(y - h < BOTTOM_Y){ pages.push(cmds); cmds = []; y = TOP_Y; }
+    }
+    cmds.push({size:TITLE_SIZE, y, text: title});
+    y -= TITLE_GAP;
+
+    sections.forEach(sec=>{
+      if(sec.heading){
+        ensureSpace(HEAD_GAP);
+        cmds.push({size:HEAD_SIZE, y, text: sec.heading});
+        y -= HEAD_GAP;
+      }
+      (sec.lines && sec.lines.length ? sec.lines : []).forEach(line=>{
+        ensureSpace(LINE_H);
+        cmds.push({size:TEXT_SIZE, y, text: line || ' '});
+        y -= LINE_H;
+      });
+      y -= 8;
+    });
+    pages.push(cmds);
+
+    const fontObjId = 3, pagesObjId = 2, catalogObjId = 1;
+    let objId = 4;
+    const pageObjIds = [], contentObjIds = [];
+    pages.forEach(()=>{ pageObjIds.push(objId++); contentObjIds.push(objId++); });
+
+    const objects = [];
+    objects[catalogObjId] = `<< /Type /Catalog /Pages ${pagesObjId} 0 R >>`;
+    objects[pagesObjId] = `<< /Type /Pages /Kids [${pageObjIds.map(n=>n+' 0 R').join(' ')}] /Count ${pages.length} >>`;
+    objects[fontObjId] = `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`;
+
+    pages.forEach((pageCmds, i)=>{
+      const pageId = pageObjIds[i], contentId = contentObjIds[i];
+      objects[pageId] = `<< /Type /Page /Parent ${pagesObjId} 0 R /Resources << /Font << /F1 ${fontObjId} 0 R >> >> /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Contents ${contentId} 0 R >>`;
+      const streamLines = ['BT'];
+      pageCmds.forEach(c=>{
+        streamLines.push(`/F1 ${c.size} Tf`);
+        streamLines.push(`1 0 0 1 ${MARGIN_X} ${c.y.toFixed(2)} Tm`);
+        streamLines.push(`(${pdfSanitizeText(c.text)}) Tj`);
+      });
+      streamLines.push('ET');
+      objects[contentId] = { isStream:true, data: streamLines.join('\n') };
+    });
+
+    let out = '%PDF-1.4\n';
+    const offsets = [0];
+    const totalObjs = objId;
+    for(let n = 1; n < totalObjs; n++){
+      offsets[n] = out.length;
+      const obj = objects[n];
+      if(obj === undefined) continue;
+      if(typeof obj === 'string'){
+        out += `${n} 0 obj\n${obj}\nendobj\n`;
+      }else if(obj.isStream){
+        out += `${n} 0 obj\n<< /Length ${obj.data.length} >>\nstream\n${obj.data}\nendstream\nendobj\n`;
+      }
+    }
+    const xrefStart = out.length;
+    out += `xref\n0 ${totalObjs}\n0000000000 65535 f \n`;
+    for(let n = 1; n < totalObjs; n++){
+      const off = offsets[n] !== undefined ? offsets[n] : 0;
+      out += `${String(off).padStart(10,'0')} 00000 n \n`;
+    }
+    out += `trailer\n<< /Size ${totalObjs} /Root ${catalogObjId} 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+    return out;
+  }
+
+  // ---------- Salvataggio file: finestra "Salva con nome" dove disponibile ----------
+  async function saveFileSmart(blob, filename, mimeType, extension, description){
+    if(window.showSaveFilePicker){
+      try{
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description, accept: { [mimeType]: [extension] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return true;
+      }catch(err){
+        if(err && err.name === 'AbortError') return false; // l'utente ha annullato la finestra di salvataggio
+        // altro errore: prosegue con il metodo di riserva qui sotto
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    return true;
+  }
+
+  function downloadPdf(pdfString, filename){
+    const bytes = new Uint8Array(pdfString.length);
+    for(let i=0;i<pdfString.length;i++){ bytes[i] = pdfString.charCodeAt(i) & 0xFF; }
+    const blob = new Blob([bytes], {type:'application/pdf'});
+    saveFileSmart(blob, filename, 'application/pdf', '.pdf', 'File PDF');
+  }
+
+  document.getElementById('export-week-pdf-btn').addEventListener('click', ()=>{
+    const { days, shoppingItems } = computeWeekPlanData();
+    const sections = [{ heading: `Per ${planServings} persone`, lines: [] }];
+    days.forEach(({day, entries})=>{
+      const lines = entries.length
+        ? entries.map(e => `${e.time ? e.time + ' — ' : ''}${e.mealType}: ${e.name}`)
+        : ['Nessuna ricetta'];
+      sections.push({ heading: day, lines });
+    });
+    sections.push({
+      heading: 'Lista della spesa',
+      lines: shoppingItems.length ? shoppingItems.map(i => `- ${shoppingItemLine(i)}`) : ['Nessuna ricetta pianificata']
+    });
+    const pdfStr = buildPdfFromSections('Pianificazione settimanale', sections);
+    downloadPdf(pdfStr, `pianificazione-settimanale-${new Date().toISOString().slice(0,10)}.pdf`);
+  });
+
+  // ---------- Export / Import backup ----------
+  document.getElementById('export-btn').addEventListener('click', async ()=>{
+    const data = JSON.stringify({ recipes, weekPlan, mealTypes, dispensaItems }, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const saved = await saveFileSmart(blob, `ricettario-backup-${new Date().toISOString().slice(0,10)}.json`, 'application/json', '.json', 'Backup JSON');
+    if(!saved) return;
+    localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString());
+    updateBackupReminder();
+  });
+
+  const importBtn = document.getElementById('import-btn');
+  const importFileInput = document.getElementById('import-file-input');
+  importBtn.addEventListener('click', ()=> importFileInput.click());
+  importFileInput.addEventListener('change', ()=>{
+    const file = importFileInput.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        const parsed = JSON.parse(e.target.result);
+        const incoming = Array.isArray(parsed) ? parsed : (parsed.recipes || []);
+        if(!Array.isArray(incoming)) throw new Error('Formato non valido');
+        const existingIds = new Set(recipes.map(r=>r.id));
+        let added = 0;
+        incoming.forEach(r=>{
+          if(!existingIds.has(r.id)){ recipes.push(migrateRecipe(r)); added++; }
+        });
+        if(Array.isArray(parsed.mealTypes)){
+          parsed.mealTypes.forEach(mt=>{ if(mt && !mealTypes.includes(mt)) mealTypes.push(mt); });
+          saveMealTypes();
+        }
+        if(parsed.weekPlan){ weekPlan = {...weekPlan, ...parsed.weekPlan}; migrateWeekPlan(); saveWeek(); }
+        if(Array.isArray(parsed.dispensaItems)){
+          const existingDispensaIds = new Set(dispensaItems.map(i=>i.id));
+          parsed.dispensaItems.forEach(i=>{ if(i && !existingDispensaIds.has(i.id)) dispensaItems.push(i); });
+          saveDispensaItems();
+        }
+        saveRecipes(); renderList(); renderPlanningDays();
+        alert(`Importate ${added} nuove ricette dal backup.`);
+      }catch(err){
+        alert('File non valido. Assicurati di selezionare un backup esportato da questo ricettario.');
+      }
+      importFileInput.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- Export / Import CSV ----------
+  function csvEscape(val){
+    const s = (val === null || val === undefined) ? '' : String(val);
+    if(/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+    return s;
+  }
+  function toCsvRow(fields){ return fields.map(csvEscape).join(','); }
+
+  function parseCsv(text){
+    const rows = [];
+    let row = [], field = '', inQuotes = false;
+    for(let i=0;i<text.length;i++){
+      const c = text[i];
+      if(inQuotes){
+        if(c === '"'){
+          if(text[i+1] === '"'){ field += '"'; i++; }
+          else inQuotes = false;
+        }else{ field += c; }
+      }else{
+        if(c === '"'){ inQuotes = true; }
+        else if(c === ','){ row.push(field); field = ''; }
+        else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+        else if(c === '\r'){ /* ignorato, gestito da \n */ }
+        else{ field += c; }
+      }
+    }
+    if(field.length || row.length){ row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function ingredientToCsvText(i){
+    return [i.qty, i.unit, i.name].filter(v => v !== '' && v !== undefined && v !== null).join(' ').trim();
+  }
+  function stepToCsvText(s){
+    const parts = [];
+    if(s.time) parts.push(`${s.time} min`);
+    if(s.vel) parts.push(`vel ${s.vel}`);
+    if(s.temp) parts.push(`${s.temp}°C`);
+    if(s.mode && s.mode !== 'Normale') parts.push(s.mode);
+    return parts.length ? `${s.text} (${parts.join(', ')})` : s.text;
+  }
+  function csvStepTextToStep(raw){
+    const m = /^(.*?)\s*\(([^()]*)\)\s*$/.exec(raw.trim());
+    let text = raw.trim(), timeVal = '', velVal = '', tempVal = '', modeVal = 'Normale';
+    if(m){
+      text = m[1].trim();
+      const inner = m[2];
+      const timeMatch = /([\d.,]+)\s*min/i.exec(inner);
+      if(timeMatch) timeVal = timeMatch[1].replace(',','.');
+      const velMatch = /vel\.?\s*([\d.,]+)/i.exec(inner);
+      if(velMatch) velVal = velMatch[1].replace(',','.');
+      const tempMatch = /([\d.,]+)\s*°?C/i.exec(inner);
+      if(tempMatch) tempVal = tempMatch[1].replace(',','.');
+      const modeMatch = /(Reverse|Turbo|Vapore|Normale)/i.exec(inner);
+      if(modeMatch) modeVal = modeMatch[1][0].toUpperCase() + modeMatch[1].slice(1).toLowerCase();
+    }
+    return {text, vel:velVal, temp:tempVal, time:timeVal, mode:modeVal};
+  }
+
+  document.getElementById('export-csv-btn').addEventListener('click', ()=>{
+    const header = ['Nome','Categoria','Porzioni','Tempo (min)','Tag','Ingredienti','Passaggi','Note'];
+    const rows = [header];
+    recipes.forEach(r=>{
+      rows.push([
+        r.name, r.category, r.servings, r.time,
+        (r.tags || []).join(', '),
+        r.ingredients.map(ingredientToCsvText).join(' | '),
+        r.steps.map(stepToCsvText).join(' | '),
+        r.notes || ''
+      ]);
+    });
+    const csvContent = rows.map(toCsvRow).join('\r\n');
+    const blob = new Blob(['\ufeff' + csvContent], {type:'text/csv;charset=utf-8;'});
+    saveFileSmart(blob, `ricette-${new Date().toISOString().slice(0,10)}.csv`, 'text/csv', '.csv', 'File CSV');
+  });
+
+  const importCsvBtn = document.getElementById('import-csv-btn');
+  const importCsvFileInput = document.getElementById('import-csv-file-input');
+  importCsvBtn.addEventListener('click', ()=> importCsvFileInput.click());
+  importCsvFileInput.addEventListener('change', ()=>{
+    const file = importCsvFileInput.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        let text = e.target.result;
+        if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        const allRows = parseCsv(text).filter(r => r.length > 1 || (r.length === 1 && r[0] !== ''));
+        if(allRows.length < 2){ alert('Il file CSV sembra vuoto.'); importCsvFileInput.value = ''; return; }
+
+        const header = allRows[0].map(h => h.trim().toLowerCase());
+        const idx = {
+          name: header.indexOf('nome'),
+          category: header.indexOf('categoria'),
+          servings: header.indexOf('porzioni'),
+          time: header.findIndex(h => h.startsWith('tempo')),
+          tags: header.indexOf('tag'),
+          ingredients: header.indexOf('ingredienti'),
+          steps: header.indexOf('passaggi'),
+          notes: header.indexOf('note')
+        };
+        if(idx.name < 0 || idx.ingredients < 0 || idx.steps < 0){
+          alert('Il file CSV non ha le colonne attese (Nome, Ingredienti, Passaggi…). Usa "Esporta CSV" come riferimento per il formato.');
+          importCsvFileInput.value = '';
+          return;
+        }
+
+        const validCategories = Object.keys(CATEGORY_COLORS);
+        const existingNames = new Set(recipes.map(r => r.name.trim().toLowerCase()));
+        let added = 0, skipped = 0;
+
+        allRows.slice(1).forEach(row=>{
+          const name = (row[idx.name] || '').trim();
+          if(!name) return;
+          if(existingNames.has(name.toLowerCase())){ skipped++; return; }
+
+          const ingredients = (idx.ingredients > -1 ? (row[idx.ingredients] || '') : '')
+            .split('|').map(s=>s.trim()).filter(Boolean).map(line=>{
+              const s = splitIngredientLine(line);
+              return { name: s.name, qty: parseFloat(s.qty) || '', unit: s.unit };
+            });
+          const steps = (idx.steps > -1 ? (row[idx.steps] || '') : '')
+            .split('|').map(s=>s.trim()).filter(Boolean).map(csvStepTextToStep);
+          const tags = idx.tags > -1 ? (row[idx.tags] || '').split(',').map(s=>s.trim()).filter(Boolean) : [];
+          const catRaw = idx.category > -1 ? (row[idx.category] || '').trim() : '';
+
+          recipes.push(migrateRecipe({
+            id: cryptoId(), name,
+            category: validCategories.includes(catRaw) ? catRaw : 'Altro',
+            servings: idx.servings > -1 ? (parseInt(row[idx.servings],10) || 4) : 4,
+            time: idx.time > -1 ? (parseInt(row[idx.time],10) || 0) : 0,
+            ingredients: ingredients.length ? ingredients : [{name:'',qty:'',unit:''}],
+            steps: steps.length ? steps : [{text:'',vel:'',temp:'',time:'',mode:'Normale'}],
+            tags, notes: idx.notes > -1 ? (row[idx.notes] || '').trim() : ''
+          }));
+          existingNames.add(name.toLowerCase());
+          added++;
+        });
+
+        saveRecipes(); renderList(); renderPlanningDays();
+        alert(`Importate ${added} ricette dal CSV.${skipped ? ` Saltate ${skipped} già presenti (stesso nome).` : ''}`);
+      }catch(err){
+        alert('Non sono riuscito a leggere questo file CSV. Controlla che il formato sia corretto.');
+      }
+      importCsvFileInput.value = '';
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+
+  // ---------- Importa ricetta da testo (schema.org/JSON-LD + riconoscimento libero) ----------
+  const pasteImportOverlay = document.getElementById('paste-import-overlay');
+  const pasteImportText = document.getElementById('paste-import-text');
+
+  function iso8601DurationToMinutes(s){
+    if(!s || typeof s !== 'string') return '';
+    const m = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(s.trim());
+    if(!m) return '';
+    const h = parseInt(m[1]||0,10), mi = parseInt(m[2]||0,10);
+    const total = h*60+mi;
+    return total || '';
+  }
+
+  function flattenInstructions(instr){
+    if(!instr) return [];
+    if(typeof instr === 'string') return instr.split(/\r?\n+/).map(s=>s.trim()).filter(Boolean);
+    if(Array.isArray(instr)){
+      let out = [];
+      instr.forEach(item=>{
+        if(typeof item === 'string') out.push(item.trim());
+        else if(item && typeof item === 'object'){
+          if(item.itemListElement) out = out.concat(flattenInstructions(item.itemListElement));
+          else if(item.text) out.push(String(item.text).trim());
+          else if(item.name) out.push(String(item.name).trim());
+        }
+      });
+      return out.filter(Boolean);
+    }
+    return [];
+  }
+
+  function guessCategoryFromText(text){
+    const t = normalize(text||'');
+    if(/dolce|dessert|torta|biscott|crostata/.test(t)) return 'Dolci';
+    if(/tisana|infuso|infusione|\bte\b|the\b|camomilla|karkade|tisane/.test(t)) return 'Infusi & Tisane';
+    if(/zuppa|minestr|vellutat|crema di/.test(t)) return 'Zuppe & Vellutate';
+    if(/pane|impasto|pizza|focaccia|lievit/.test(t)) return 'Impasti & Pane';
+    if(/sugo|salsa|condiment/.test(t)) return 'Salse & Sughi';
+    if(/risotto|pasta|gnocchi|primi/.test(t)) return 'Primi';
+    if(/pollo|manzo|agnello|pesce|carne|secondi/.test(t)) return 'Secondi';
+    return 'Altro';
+  }
+
+  function splitIngredientLine(line){
+    line = line.replace(/^[-•*]\s*/, '').trim();
+    const m = /^([\d]+(?:[.,]\d+)?(?:\s*\/\s*\d+)?)\s*(g|kg|ml|l|cl|cucchiai?|cucchiaini?|tazze?|pizzichi?|pizzico|spicchi?|fette?|foglie|rametti?|filetti?)?\s*(?:di\s+)?(.+)$/i.exec(line);
+    if(m) return { qty: m[1].replace(',', '.'), unit: (m[2]||'').trim(), name: m[3].trim() };
+    return { qty:'', unit:'', name: line };
+  }
+
+  function extractJsonLdRecipe(raw){
+    const blocks = [];
+    const scriptRe = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+    let m;
+    while((m = scriptRe.exec(raw)) !== null){ blocks.push(m[1]); }
+    if(blocks.length === 0) blocks.push(raw); // magari l'utente ha incollato solo il JSON
+
+    for(const block of blocks){
+      try{
+        const data = JSON.parse(block);
+        const candidates = Array.isArray(data) ? data : (data['@graph'] || [data]);
+        for(const c of candidates){
+          const type = c && c['@type'];
+          if(type === 'Recipe' || (Array.isArray(type) && type.includes('Recipe'))) return c;
+        }
+      }catch(e){ /* non era JSON valido, si prova il prossimo blocco */ }
+    }
+    return null;
+  }
+
+  function jsonLdToDraft(c){
+    const ingredients = (c.recipeIngredient || c.ingredients || []).map(line=>{
+      const s = splitIngredientLine(String(line));
+      return { name: s.name, qty: parseFloat(s.qty)||'', unit: s.unit };
+    });
+    const stepsTexts = flattenInstructions(c.recipeInstructions);
+    const steps = stepsTexts.map(t=>({text:t, vel:'', temp:'', time:'', mode:'Normale'}));
+    const totalMin = iso8601DurationToMinutes(c.totalTime) || iso8601DurationToMinutes(c.cookTime) || iso8601DurationToMinutes(c.prepTime) || '';
+    let servings = 4;
+    if(c.recipeYield){
+      const yStr = Array.isArray(c.recipeYield) ? c.recipeYield.join(' ') : String(c.recipeYield);
+      const ym = /(\d+)/.exec(yStr);
+      if(ym) servings = parseInt(ym[1],10);
+    }
+    return {
+      name: c.name || 'Ricetta importata',
+      category: guessCategoryFromText((c.recipeCategory||'') + ' ' + (c.name||'')),
+      servings, time: totalMin,
+      ingredients: ingredients.length ? ingredients : [{name:'',qty:'',unit:''}],
+      steps: steps.length ? steps : [{text:'',vel:'',temp:'',time:'',mode:'Normale'}],
+      notes: 'Importata automaticamente dai dati strutturati della pagina — controlla quantità, categoria e passaggi prima di salvare.'
+    };
+  }
+
+  function heuristicTextToDraft(raw){
+    const lines = raw.split(/\r?\n/).map(l=>l.trim());
+    const nonEmpty = lines.filter(Boolean);
+    const name = nonEmpty.length ? nonEmpty[0].replace(/^#+\s*/,'') : 'Ricetta importata';
+
+    const ingHeaderIdx = lines.findIndex(l=>/^ingredienti\b/i.test(l));
+    const stepHeaderIdx = lines.findIndex((l,i)=> (ingHeaderIdx<0 || i>ingHeaderIdx) && /^(preparazione|procedimento|istruzioni|passaggi|metodo|come si fa)\b/i.test(l));
+
+    let ingredientLines = [], stepLines = [];
+    if(ingHeaderIdx > -1){
+      const end = stepHeaderIdx > -1 ? stepHeaderIdx : lines.length;
+      ingredientLines = lines.slice(ingHeaderIdx+1, end).filter(Boolean);
+    }
+    if(stepHeaderIdx > -1){
+      stepLines = lines.slice(stepHeaderIdx+1).filter(Boolean);
+    }
+    if(ingredientLines.length===0 && stepLines.length===0){
+      stepLines = nonEmpty.slice(1); // ultima spiaggia: tutto dopo il titolo diventa passaggi
+    }
+
+    const ingredients = ingredientLines.map(l=>{
+      const s = splitIngredientLine(l);
+      return {name:s.name, qty: parseFloat(s.qty)||'', unit:s.unit};
+    });
+    const steps = stepLines
+      .map(l=> l.replace(/^\d+[\.\)]\s*/, '').replace(/^[-•*]\s*/,'').trim())
+      .filter(Boolean)
+      .map(t=>({text:t, vel:'', temp:'', time:'', mode:'Normale'}));
+
+    return {
+      name, category: guessCategoryFromText(name), servings: 4, time:'',
+      ingredients: ingredients.length ? ingredients : [{name:'',qty:'',unit:''}],
+      steps: steps.length ? steps : [{text:'',vel:'',temp:'',time:'',mode:'Normale'}],
+      notes: 'Importata automaticamente da testo libero — controlla con attenzione tutti i campi prima di salvare.'
+    };
+  }
+
+  function parseImportedText(raw){
+    const ld = extractJsonLdRecipe(raw);
+    return ld ? jsonLdToDraft(ld) : heuristicTextToDraft(raw);
+  }
+
+  document.getElementById('paste-import-btn').addEventListener('click', ()=>{
+    pasteImportText.value = '';
+    pasteImportOverlay.classList.add('active');
+  });
+  document.getElementById('paste-import-close').addEventListener('click', ()=> pasteImportOverlay.classList.remove('active'));
+  document.getElementById('paste-import-cancel').addEventListener('click', ()=> pasteImportOverlay.classList.remove('active'));
+  document.getElementById('paste-import-analyze').addEventListener('click', ()=>{
+    const raw = pasteImportText.value;
+    if(!raw || !raw.trim()){ alert('Incolla prima il testo o il sorgente della ricetta.'); return; }
+    const draft = parseImportedText(raw);
+    pasteImportOverlay.classList.remove('active');
+    openEdit(null, draft);
+    alert('Ho provato a riconoscere la ricetta automaticamente: controlla e correggi tutti i campi (in particolare quantità e categoria) prima di salvare — il riconoscimento non è perfetto.');
+  });
+
+  // ---------- Guided cooking mode ----------
+  const cookOverlay = document.getElementById('cook-overlay');
+  const cookProgress = document.getElementById('cook-progress');
+  const cookStepText = document.getElementById('cook-step-text');
+  const cookDial = document.getElementById('cook-dial');
+  const cookTimerEl = document.getElementById('cook-timer');
+  const cookTimerBtn = document.getElementById('cook-timer-btn');
+  const cookReleaseRow = document.getElementById('cook-release-row');
+  const cookReleaseTimerEl = document.getElementById('cook-release-timer');
+  const cookReleaseTimerBtn = document.getElementById('cook-release-timer-btn');
+  const cookPrevBtn = document.getElementById('cook-prev-btn');
+  const cookNextBtn = document.getElementById('cook-next-btn');
+
+  let cookSteps = [];
+
+  document.getElementById('cook-mode-btn').addEventListener('click', ()=>{
+    cookRecipe = recipes.find(x=>x.id === currentViewId);
+    if(!cookRecipe) return;
+    cookSteps = cookRecipe.steps || [];
+    if(!cookSteps.length){
+      alert('Questa ricetta non ha ancora passaggi.');
+      return;
+    }
+    cookStepIndex = 0;
+    viewOverlay.classList.remove('active');
+    cookOverlay.classList.add('active');
+    renderCookStep();
+  });
+  document.getElementById('cook-exit-btn').addEventListener('click', exitCookMode);
+
+  function exitCookMode(){
+    clearInterval(cookTimerInterval);
+    cookTimerInterval = null;
+    clearInterval(cookReleaseTimerInterval);
+    cookReleaseTimerInterval = null;
+    cookOverlay.classList.remove('active');
+    cookRecipe = null;
+  }
+
+  function renderCookStep(){
+    clearInterval(cookTimerInterval); cookTimerInterval = null;
+    clearInterval(cookReleaseTimerInterval); cookReleaseTimerInterval = null;
+    cookTimerEl.style.display = 'none';
+    cookReleaseRow.style.display = 'none';
+    cookReleaseTimerEl.textContent = '';
+    const s = cookSteps[cookStepIndex];
+    cookProgress.textContent = `Passaggio ${cookStepIndex+1} di ${cookSteps.length} — ${cookRecipe.name}`;
+    cookStepText.textContent = s.text;
+    const hasRobot = s.vel || s.temp || (s.mode && s.mode !== 'Normale');
+    const hasPressure = !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale'));
+    const unitLabel = {bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar';
+    cookDial.innerHTML = (hasRobot || s.time || hasPressure) ? `
+      ${s.vel?`<span>Velocità <b>${escapeHtml(s.vel)}</b></span>`:''}
+      ${s.temp?`<span>${escapeHtml(s.temp)}°C</span>`:''}
+      ${s.mode && s.mode!=='Normale'?`<span>${escapeHtml(s.mode)}</span>`:''}
+      ${s.time?`<span><b>${escapeHtml(s.time)}</b> min</span>`:''}
+      ${s.pressure?`<span>🍲 <b>${escapeHtml(s.pressure)}</b> ${unitLabel}</span>`:''}
+      ${s.pressureRelease?`<span>Rilascio: ${escapeHtml(s.pressureRelease)}</span>`:''}
+      ${s.minLiquid?`<span>Liquido min. <b>${escapeHtml(s.minLiquid)}</b> ml</span>`:''}
+    ` : '';
+    cookDial.style.display = (hasRobot || s.time || hasPressure) ? 'flex' : 'none';
+    cookTimerBtn.style.display = s.time ? 'inline-block' : 'none';
+    cookTimerBtn.textContent = 'Avvia timer';
+    cookTimerBtn.disabled = false;
+
+    const hasReleaseTimer = hasPressure && s.pressureRelease !== 'Rapido' && !!s.pressureReleaseMin;
+    if(hasReleaseTimer){
+      cookReleaseRow.style.display = 'flex';
+      cookReleaseTimerBtn.textContent = `Avvia timer rilascio (${s.pressureReleaseMin} min)`;
+      cookReleaseTimerBtn.disabled = false;
+    }
+
+    cookPrevBtn.disabled = cookStepIndex === 0;
+    cookNextBtn.textContent = cookStepIndex === cookSteps.length - 1 ? 'Fine ✓' : 'Avanti →';
+  }
+
+  cookPrevBtn.addEventListener('click', ()=>{ if(cookStepIndex>0){ cookStepIndex--; renderCookStep(); }});
+  cookNextBtn.addEventListener('click', ()=>{
+    if(cookStepIndex < cookSteps.length - 1){ cookStepIndex++; renderCookStep(); }
+    else{ exitCookMode(); }
+  });
+  cookTimerBtn.addEventListener('click', ()=>{
+    const s = cookSteps[cookStepIndex];
+    let remaining = Math.round(parseFloat(s.time) * 60);
+    cookTimerEl.style.display = 'block';
+    cookTimerBtn.disabled = true;
+    cookTimerInterval = setInterval(()=>{
+      remaining--;
+      const mm = Math.floor(remaining/60).toString().padStart(2,'0');
+      const ss = (remaining%60).toString().padStart(2,'0');
+      cookTimerEl.textContent = `${mm}:${ss}`;
+      if(remaining <= 0){
+        clearInterval(cookTimerInterval);
+        cookTimerEl.textContent = 'Fatto!';
+        cookTimerBtn.disabled = false;
+        try{ new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQIAAAAAAA==').play(); }catch(e){}
+      }
+    }, 1000);
+  });
+  cookReleaseTimerBtn.addEventListener('click', ()=>{
+    const s = cookSteps[cookStepIndex];
+    let remaining = Math.round(parseFloat(s.pressureReleaseMin) * 60);
+    cookReleaseTimerEl.style.display = 'block';
+    cookReleaseTimerBtn.disabled = true;
+    cookReleaseTimerInterval = setInterval(()=>{
+      remaining--;
+      const mm = Math.floor(remaining/60).toString().padStart(2,'0');
+      const ss = (remaining%60).toString().padStart(2,'0');
+      cookReleaseTimerEl.textContent = `${mm}:${ss}`;
+      if(remaining <= 0){
+        clearInterval(cookReleaseTimerInterval);
+        cookReleaseTimerEl.textContent = 'Fatto!';
+        cookReleaseTimerBtn.disabled = false;
+        try{ new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQIAAAAAAA==').play(); }catch(e){}
+      }
+    }, 1000);
+  });
+
+  // ---------- Vista: Ricettario / Pianificazione ----------
+  function switchView(view){
+    document.getElementById('recipes-view').style.display = view === 'recipes' ? '' : 'none';
+    document.getElementById('planning-view').style.display = view === 'planning' ? '' : 'none';
+    document.getElementById('dispensa-view').style.display = view === 'dispensa' ? '' : 'none';
+    document.getElementById('nav-recipes-btn').classList.toggle('active', view === 'recipes');
+    document.getElementById('nav-planning-btn').classList.toggle('active', view === 'planning');
+    document.getElementById('nav-dispensa-btn').classList.toggle('active', view === 'dispensa');
+    if(view === 'planning') renderPlanningDays();
+    if(view === 'dispensa') renderDispensaList();
+  }
+  document.getElementById('nav-recipes-btn').addEventListener('click', ()=> switchView('recipes'));
+  document.getElementById('nav-planning-btn').addEventListener('click', ()=> switchView('planning'));
+  document.getElementById('nav-dispensa-btn').addEventListener('click', ()=> switchView('dispensa'));
+
+  // ---------- Pianificazione settimanale ----------
+  const planningDaysEl = document.getElementById('planning-days');
+  let selectedPlanDay = null;
+
+  // ---------- Finestra di selezione ricetta (per la pianificazione) ----------
+  const recipePickerOverlay = document.getElementById('recipe-picker-overlay');
+  const recipePickerSearch = document.getElementById('recipe-picker-search');
+  const recipePickerList = document.getElementById('recipe-picker-list');
+  let pickerTargetDay = null, pickerTargetMealType = null, pickerTargetTime = '';
+
+  function renderRecipePickerList(query){
+    const q = query.trim().toLowerCase();
+    const matches = recipes.filter(r => !q || r.name.toLowerCase().includes(q) || r.ingredients.some(i => i.name.toLowerCase().includes(q)))
+      .sort((a,b) => a.name.localeCompare(b.name));
+    recipePickerList.innerHTML = matches.length ? matches.map(r => `
+      <div class="recipe-picker-item" data-id="${r.id}">
+        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.category] || '#8c6a2f'}"></span>
+        <span class="name">${escapeHtml(r.name)}</span>
+        <span class="meta">${escapeHtml(r.category)}${r.time ? ` · ${r.time} min` : ''}${recipeHasPressure(r) ? ' · 🍲' : ''}</span>
+      </div>
+    `).join('') : '<div class="recipe-picker-empty">Nessuna ricetta trovata.</div>';
+    recipePickerList.querySelectorAll('.recipe-picker-item').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        const recipeId = item.dataset.id;
+        weekPlan[pickerTargetDay] = weekPlan[pickerTargetDay] || [];
+        weekPlan[pickerTargetDay].push({ id: cryptoId(), recipeId, mealType: pickerTargetMealType, time: pickerTargetTime || '' });
+        saveWeek();
+        recipePickerOverlay.classList.remove('active');
+        renderPlanningDays();
+      });
+    });
+  }
+
+  function openRecipePicker(day, mealType, timeValue){
+    pickerTargetDay = day;
+    pickerTargetMealType = mealType;
+    pickerTargetTime = timeValue || '';
+    recipePickerSearch.value = '';
+    renderRecipePickerList('');
+    recipePickerOverlay.classList.add('active');
+    recipePickerSearch.focus();
+  }
+
+  recipePickerSearch.addEventListener('input', ()=> renderRecipePickerList(recipePickerSearch.value));
+  document.getElementById('recipe-picker-close').addEventListener('click', ()=> recipePickerOverlay.classList.remove('active'));
+
+  // ---------- Finestra di selezione prodotto dispensa (per la pianificazione) ----------
+  const dispensaPickerOverlay = document.getElementById('dispensa-picker-overlay');
+  const dispensaPickerSearch = document.getElementById('dispensa-picker-search');
+  const dispensaPickerList = document.getElementById('dispensa-picker-list');
+
+  function renderDispensaPickerList(query){
+    const q = query.trim().toLowerCase();
+    const matches = dispensaItems.filter(it => !q || it.name.toLowerCase().includes(q))
+      .sort((a,b) => a.name.localeCompare(b.name));
+    dispensaPickerList.innerHTML = matches.length ? matches.map(it => `
+      <div class="recipe-picker-item" data-id="${it.id}">
+        <span class="cat-dot" style="background:${PANTRY_CATEGORY_COLORS[it.category] || '#8c6a2f'}"></span>
+        <span class="name">${escapeHtml(it.name)}</span>
+        <span class="meta">${escapeHtml(it.category)}${(it.qty || it.unit) ? ` · ${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}` : ''}</span>
+      </div>
+    `).join('') : '<div class="recipe-picker-empty">Nessun prodotto in dispensa. Aggiungine uno dalla vista "🥫 Dispensa".</div>';
+    dispensaPickerList.querySelectorAll('.recipe-picker-item').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        const dispensaItemId = item.dataset.id;
+        weekPlan[pickerTargetDay] = weekPlan[pickerTargetDay] || [];
+        weekPlan[pickerTargetDay].push({ id: cryptoId(), dispensaItemId, mealType: pickerTargetMealType, time: pickerTargetTime || '' });
+        saveWeek();
+        dispensaPickerOverlay.classList.remove('active');
+        renderPlanningDays();
+      });
+    });
+  }
+
+  function openDispensaPicker(day, mealType, timeValue){
+    pickerTargetDay = day;
+    pickerTargetMealType = mealType;
+    pickerTargetTime = timeValue || '';
+    dispensaPickerSearch.value = '';
+    renderDispensaPickerList('');
+    dispensaPickerOverlay.classList.add('active');
+    dispensaPickerSearch.focus();
+  }
+
+  dispensaPickerSearch.addEventListener('input', ()=> renderDispensaPickerList(dispensaPickerSearch.value));
+  document.getElementById('dispensa-picker-close').addEventListener('click', ()=> dispensaPickerOverlay.classList.remove('active'));
+
+  const planServingsInput = document.getElementById('plan-servings-input');
+  planServingsInput.addEventListener('change', ()=>{
+    planServings = parseInt(planServingsInput.value, 10) || 4;
+    planServingsInput.value = planServings;
+    savePlanServings();
+  });
+
+  function renderPlanEntry(e){
+    const nameAttr = e.dispensaItemId
+      ? `data-dispensa-id="${escapeAttr(e.dispensaItemId)}"`
+      : `data-recipe-id="${escapeAttr(e.recipeId)}"`;
+    const badge = e.dispensaItemId ? ' <span title="Dalla dispensa" style="font-size:12px;">🥫</span>' : '';
+    const name = escapeHtml(planEntryName(e)) + badge;
+    return `<div class="plan-entry">
+      ${e.time ? `<span class="plan-entry-time">${escapeHtml(e.time)}</span>` : ''}
+      <span class="plan-entry-name" ${nameAttr}>${name}</span>
+      <button class="icon-btn plan-entry-remove" data-entry-id="${escapeAttr(e.id)}" title="Rimuovi">×</button>
+    </div>`;
+  }
+
+  function renderPlanningDays(){
+    if(!planningDaysEl) return;
+    if(!selectedPlanDay){
+      const jsDay = new Date().getDay(); // 0=domenica...6=sabato
+      selectedPlanDay = DAYS[jsDay === 0 ? 6 : jsDay - 1];
+    }
+
+    const dayTabsEl = document.getElementById('plan-day-tabs');
+    dayTabsEl.innerHTML = DAYS.map(day =>
+      `<button type="button" class="plan-day-tab ${day === selectedPlanDay ? 'active' : ''}" data-day="${escapeAttr(day)}">${escapeHtml(day.slice(0,3))}</button>`
+    ).join('');
+    dayTabsEl.querySelectorAll('.plan-day-tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        selectedPlanDay = btn.dataset.day;
+        renderPlanningDays();
+      });
+    });
+
+    planningDaysEl.innerHTML = '';
+    const day = selectedPlanDay;
+    const dayEntries = weekPlan[day] || [];
+    const card = document.createElement('div');
+    card.className = 'plan-day-card';
+
+    const blocksHtml = mealTypes.map(mt=>{
+      const entries = dayEntries.filter(e=>e.mealType === mt)
+        .slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+      const entriesHtml = entries.length ? entries.map(renderPlanEntry).join('') : `<div class="plan-entry-empty">Nessuna ricetta</div>`;
+      return `<div class="plan-meal-block" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
+        <div class="plan-meal-header">
+          <span class="plan-meal-name">${escapeHtml(mt)}</span>
+          <span class="plan-meal-actions"><button class="icon-btn mealtype-remove-btn" data-mealtype="${escapeAttr(mt)}" title="Rimuovi questa fascia pasto">🗑</button></span>
+        </div>
+        <div class="plan-entry-list">${entriesHtml}</div>
+        <div class="plan-add-row">
+          <input type="time" class="plan-add-time">
+          <button class="btn-ghost btn-small plan-add-btn">🔍 Cerca ricetta…</button>
+          <button class="btn-ghost btn-small plan-add-dispensa-btn">🥫 Dalla dispensa…</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    const orphaned = dayEntries.filter(e=>!mealTypes.includes(e.mealType));
+    const orphanedHtml = orphaned.length ? `<div class="plan-meal-block">
+      <div class="plan-meal-header"><span class="plan-meal-name">Altro</span></div>
+      <div class="plan-entry-list">${orphaned.map(renderPlanEntry).join('')}</div>
+    </div>` : '';
+
+    card.innerHTML = `<h3>${escapeHtml(day)}</h3>${blocksHtml}${orphanedHtml || ''}`;
+    planningDaysEl.appendChild(card);
+
+    planningDaysEl.querySelectorAll('.plan-add-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const block = btn.closest('.plan-meal-block');
+        const day = block.dataset.day, mealType = block.dataset.mealtype;
+        const timeInput = block.querySelector('.plan-add-time');
+        openRecipePicker(day, mealType, timeInput.value);
+      });
+    });
+    planningDaysEl.querySelectorAll('.plan-add-dispensa-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const block = btn.closest('.plan-meal-block');
+        const day = block.dataset.day, mealType = block.dataset.mealtype;
+        const timeInput = block.querySelector('.plan-add-time');
+        openDispensaPicker(day, mealType, timeInput.value);
+      });
+    });
+    planningDaysEl.querySelectorAll('.plan-entry-remove').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const entryId = btn.dataset.entryId;
+        DAYS.forEach(d=>{ weekPlan[d] = (weekPlan[d]||[]).filter(e=>e.id !== entryId); });
+        saveWeek();
+        renderPlanningDays();
+      });
+    });
+    planningDaysEl.querySelectorAll('.plan-entry-name').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        if(el.dataset.dispensaId){
+          const it = dispensaItems.find(x=>x.id === el.dataset.dispensaId);
+          if(!it) return;
+          switchView('dispensa');
+          openDispensaEdit(it);
+          return;
+        }
+        const recipeId = el.dataset.recipeId;
+        if(!recipes.find(r=>r.id === recipeId)) return;
+        switchView('recipes');
+        openView(recipeId);
+      });
+    });
+    planningDaysEl.querySelectorAll('.mealtype-remove-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const mt = btn.dataset.mealtype;
+        if(!confirm(`Rimuovere la fascia "${mt}"? Le ricette già assegnate resteranno visibili sotto "Altro".`)) return;
+        mealTypes = mealTypes.filter(x=>x!==mt);
+        saveMealTypes();
+        renderPlanningDays();
+      });
+    });
+  }
+
+  document.getElementById('plan-day-prev').addEventListener('click', ()=>{
+    const idx = DAYS.indexOf(selectedPlanDay);
+    selectedPlanDay = DAYS[(idx - 1 + DAYS.length) % DAYS.length];
+    renderPlanningDays();
+  });
+  document.getElementById('plan-day-next').addEventListener('click', ()=>{
+    const idx = DAYS.indexOf(selectedPlanDay);
+    selectedPlanDay = DAYS[(idx + 1) % DAYS.length];
+    renderPlanningDays();
+  });
+
+  // ---------- Dispensa ----------
+  function addDays(dateStr, days){
+    const d = new Date(dateStr + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0,10);
+  }
+
+  function renderDispensaList(){
+    const listEl = document.getElementById('dispensa-list');
+    const q = document.getElementById('dispensa-search').value.trim().toLowerCase();
+    const cat = document.getElementById('dispensa-category-filter').value;
+    const today = new Date().toISOString().slice(0,10);
+    const soonLimit = addDays(today, 3);
+
+    const filtered = dispensaItems.filter(it=>{
+      if(cat && it.category !== cat) return false;
+      if(q && !it.name.toLowerCase().includes(q)) return false;
+      return true;
+    }).sort((a,b)=>{
+      if(a.expiry && b.expiry) return a.expiry.localeCompare(b.expiry);
+      if(a.expiry) return -1;
+      if(b.expiry) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    if(!filtered.length){
+      listEl.innerHTML = '<div class="empty-state">Nessun prodotto trovato. Premi "+ Nuovo prodotto" per aggiungerne uno.</div>';
+      return;
+    }
+
+    listEl.innerHTML = '';
+    filtered.forEach(it=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.setProperty('--cat-color', PANTRY_CATEGORY_COLORS[it.category] || '#8c6a2f');
+
+      let expiryHtml = '';
+      if(it.expiry){
+        const isExpired = it.expiry < today;
+        const isSoon = !isExpired && it.expiry <= soonLimit;
+        const cls = isExpired ? 'expired' : isSoon ? 'soon' : '';
+        const label = isExpired ? '⚠️ Scaduto il ' : isSoon ? '⏰ Scade il ' : 'Scade il ';
+        expiryHtml = `<div class="dispensa-expiry ${cls}">${label}${new Date(it.expiry + 'T00:00:00').toLocaleDateString('it-IT')}</div>`;
+      }
+
+      const qtyKcalParts = [];
+      if(it.qty || it.unit) qtyKcalParts.push(`${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}`.trim());
+      if(it.kcal) qtyKcalParts.push(`🍎 ${roundNice(it.kcal)} kcal`);
+      const qtyKcalHtml = qtyKcalParts.length ? `<div class="dispensa-qty">${qtyKcalParts.join(' · ')}</div>` : '';
+
+      card.innerHTML = `
+        <span class="cat-tag">${escapeHtml(it.category)}</span>
+        <h3 style="margin:2px 0 4px;font-size:19px;">${escapeHtml(it.name)}</h3>
+        ${qtyKcalHtml}
+        ${expiryHtml}
+        ${it.notes ? `<div class="dispensa-notes">${escapeHtml(it.notes)}</div>` : ''}
+      `;
+      card.addEventListener('click', ()=> openDispensaEdit(it));
+      listEl.appendChild(card);
+    });
+  }
+
+  function openDispensaEdit(item){
+    editingDispensaId = item ? item.id : null;
+    document.getElementById('dispensa-edit-title').textContent = item ? 'Modifica prodotto' : 'Nuovo prodotto';
+    document.getElementById('dispensa-delete-btn').style.display = item ? 'inline-block' : 'none';
+    document.getElementById('d-name').value = item ? item.name : '';
+    document.getElementById('d-category').value = item ? item.category : 'Frutta';
+    document.getElementById('d-qty').value = item ? (item.qty ?? '') : '';
+    document.getElementById('d-unit').value = item ? (item.unit || '') : '';
+    document.getElementById('d-expiry').value = item ? (item.expiry || '') : '';
+    document.getElementById('d-notes').value = item ? (item.notes || '') : '';
+    document.getElementById('d-kcal').value = item ? (item.kcal ?? '') : '';
+    document.getElementById('d-protein').value = item ? (item.protein ?? '') : '';
+    document.getElementById('d-fat').value = item ? (item.fat ?? '') : '';
+    document.getElementById('d-carbs').value = item ? (item.carbs ?? '') : '';
+    document.getElementById('d-fiber').value = item ? (item.fiber ?? '') : '';
+    document.getElementById('d-sugar').value = item ? (item.sugar ?? '') : '';
+    document.getElementById('d-salt').value = item ? (item.salt ?? '') : '';
+    const hasDispensaNutrition = !!(item && (item.kcal || item.protein || item.fat || item.carbs || item.fiber || item.sugar || item.salt));
+    document.getElementById('dispensa-nutrition-fields').style.display = hasDispensaNutrition ? 'flex' : 'none';
+    document.getElementById('dispensa-nutrition-toggle-btn').classList.toggle('active', hasDispensaNutrition);
+    document.getElementById('dispensa-edit-overlay').classList.add('active');
+  }
+  function closeDispensaEdit(){
+    document.getElementById('dispensa-edit-overlay').classList.remove('active');
+  }
+
+  document.getElementById('new-dispensa-item-btn').addEventListener('click', ()=> openDispensaEdit(null));
+  document.getElementById('dispensa-edit-close').addEventListener('click', closeDispensaEdit);
+  document.getElementById('dispensa-search').addEventListener('input', renderDispensaList);
+  document.getElementById('dispensa-category-filter').addEventListener('change', renderDispensaList);
+  document.getElementById('dispensa-nutrition-toggle-btn').addEventListener('click', (e)=>{
+    const panel = document.getElementById('dispensa-nutrition-fields');
+    const showing = panel.style.display !== 'none';
+    panel.style.display = showing ? 'none' : 'flex';
+    e.currentTarget.classList.toggle('active', !showing);
+  });
+
+  document.getElementById('dispensa-save-btn').addEventListener('click', ()=>{
+    const name = document.getElementById('d-name').value.trim();
+    if(!name){ alert('Scrivi il nome del prodotto.'); return; }
+    const itemData = {
+      id: editingDispensaId || cryptoId(),
+      name,
+      category: document.getElementById('d-category').value,
+      qty: document.getElementById('d-qty').value,
+      unit: document.getElementById('d-unit').value.trim(),
+      expiry: document.getElementById('d-expiry').value || '',
+      notes: document.getElementById('d-notes').value.trim(),
+      kcal: document.getElementById('d-kcal').value,
+      protein: document.getElementById('d-protein').value,
+      fat: document.getElementById('d-fat').value,
+      carbs: document.getElementById('d-carbs').value,
+      fiber: document.getElementById('d-fiber').value,
+      sugar: document.getElementById('d-sugar').value,
+      salt: document.getElementById('d-salt').value
+    };
+    if(editingDispensaId){
+      const idx = dispensaItems.findIndex(i=>i.id === editingDispensaId);
+      if(idx > -1) dispensaItems[idx] = itemData; else dispensaItems.push(itemData);
+    }else{
+      dispensaItems.push(itemData);
+    }
+    saveDispensaItems();
+    renderDispensaList();
+    renderPlanningDays();
+    closeDispensaEdit();
+  });
+
+  document.getElementById('dispensa-delete-btn').addEventListener('click', ()=>{
+    if(!confirm('Eliminare questo prodotto dalla dispensa?')) return;
+    dispensaItems = dispensaItems.filter(i=>i.id !== editingDispensaId);
+    DAYS.forEach(day=>{ weekPlan[day] = (weekPlan[day]||[]).filter(e=>e.dispensaItemId !== editingDispensaId); });
+    saveDispensaItems();
+    saveWeek();
+    renderDispensaList();
+    renderPlanningDays();
+    closeDispensaEdit();
+  });
+
+  document.getElementById('add-mealtype-btn').addEventListener('click', ()=>{
+    const name = prompt('Nome della nuova fascia pasto (es. Aperitivo):');
+    if(!name) return;
+    const trimmed = name.trim();
+    if(!trimmed) return;
+    if(mealTypes.some(mt=>mt.toLowerCase() === trimmed.toLowerCase())){ alert('Questa fascia esiste già.'); return; }
+    mealTypes.push(trimmed);
+    saveMealTypes();
+    renderPlanningDays();
+  });
+
+  document.getElementById('clear-week-btn').addEventListener('click', ()=>{
+    if(!confirm('Svuotare tutta la pianificazione della settimana?')) return;
+    const hasContent = DAYS.some(d => (weekPlan[d] || []).length);
+    if(hasContent){
+      previousWeekPlan = JSON.parse(JSON.stringify(weekPlan));
+      savePreviousWeek(previousWeekPlan);
+    }
+    weekPlan = {}; saveWeek(); renderPlanningDays();
+  });
+
+  document.getElementById('copy-last-week-btn').addEventListener('click', ()=>{
+    const hasPrev = previousWeekPlan && DAYS.some(d => (previousWeekPlan[d] || []).length);
+    if(!hasPrev){
+      alert('Nessuna settimana precedente salvata ancora. Viene creata automaticamente ogni volta che premi "Svuota settimana".');
+      return;
+    }
+    if(!confirm('Questo sostituisce la pianificazione attuale con quella della settimana scorsa. Continuare?')) return;
+    weekPlan = JSON.parse(JSON.stringify(previousWeekPlan));
+    saveWeek();
+    renderPlanningDays();
+  });
+
+  // ---------- Shopping list ----------
+  const shoppingOverlay = document.getElementById('shopping-overlay');
+  const shoppingSubtitle = document.getElementById('shopping-subtitle');
+  const shoppingListItems = document.getElementById('shopping-list-items');
+
+  document.getElementById('generate-shopping-btn').addEventListener('click', ()=>{
+    const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
+    if(allEntries.length === 0){ alert('Assegna almeno una ricetta a un giorno della settimana.'); return; }
+    const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
+    if(plannedRecipes.length === 0){ alert('Nessuna ricetta pianificata da cui generare la lista della spesa (i prodotti dalla dispensa non richiedono acquisti).'); return; }
+
+    const aggregated = {}; // key: normalized name + unit
+    plannedRecipes.forEach(r=>{
+      const scale = planServings / (r.servings || 1);
+      r.ingredients.forEach(ing=>{
+        const key = normalize(ing.name) + '|' + normalize(ing.unit);
+        if(!aggregated[key]){ aggregated[key] = {name: ing.name, unit: ing.unit, qty: 0}; }
+        aggregated[key].qty += (parseFloat(ing.qty) || 0) * scale;
+      });
+    });
+
+    shoppingSubtitle.textContent = `Per ${planServings} persone — ${plannedRecipes.map(r=>r.name).join(', ')}`;
+    shoppingListItems.innerHTML = '';
+    Object.values(aggregated).sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<input type="checkbox"><span>${escapeHtml(item.name)}</span><span class="amt">${item.qty ? roundNice(item.qty) : ''} ${escapeHtml(item.unit)}</span>`;
+      li.querySelector('input').addEventListener('change', (e)=> li.classList.toggle('checked', e.target.checked));
+      shoppingListItems.appendChild(li);
+    });
+    shoppingOverlay.classList.add('active');
+  });
+  document.getElementById('shopping-close').addEventListener('click', ()=> shoppingOverlay.classList.remove('active'));
+  document.getElementById('shopping-print-btn').addEventListener('click', ()=> window.print());
+
+  document.getElementById('export-shopping-pdf-btn').addEventListener('click', ()=>{
+    const items = Array.from(shoppingListItems.querySelectorAll('li')).map(li=>{
+      const name = li.querySelector('span:not(.amt)')?.textContent || '';
+      const amt = li.querySelector('.amt')?.textContent || '';
+      return amt.trim() ? `${name} — ${amt.trim()}` : name;
+    });
+    if(!items.length){ alert('Genera prima la lista della spesa dalla settimana pianificata.'); return; }
+    const sections = [{ heading: null, lines: items.map(t => `- ${t}`) }];
+    const pdfStr = buildPdfFromSections('Lista della spesa', sections);
+    downloadPdf(pdfStr, `lista-della-spesa-${new Date().toISOString().slice(0,10)}.pdf`);
+  });
+
+  // close overlays on backdrop click
+  [editOverlay, viewOverlay, shoppingOverlay, pasteImportOverlay, recipePickerOverlay, dispensaPickerOverlay, document.getElementById('dispensa-edit-overlay')].forEach(ov=>{
+    ov.addEventListener('click', (e)=>{ if(e.target === ov) ov.classList.remove('active'); });
+  });
+
+  // ---------- Init ----------
+  loadRecipes();
+  recipes = recipes.map(migrateRecipe);
+  saveRecipes();
+  migrateWeekPlan();
+  planServingsInput.value = planServings;
+  renderList();
+  switchView('recipes');
+})();
+</script>
+</body>
+</html>
