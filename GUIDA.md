@@ -44,7 +44,7 @@ Apri il file `index.html` con un doppio click, oppure trascinalo in una finestra
 
 ## Importare una ricetta da testo
 
-1. Premi **"📋 Importa ricetta"**
+1. Premi **"📋 Importa ricetta ▾"** e scegli **"Da testo o link"**
 2. Incolla il testo di una ricetta trovata online, in un libro, o altrove — oppure, per un riconoscimento più preciso, il codice sorgente della pagina web che la contiene (tasto destro sulla pagina → "Visualizza sorgente", poi Ctrl/Cmd+A e copia)
 3. Premi **"Analizza e compila"**: il ricettario cerca prima dati strutturati nella pagina (usati da molti siti di ricette) e, se non li trova, prova un riconoscimento più libero dal testo
 4. Si apre il modulo di modifica già precompilato: **controlla e correggi ogni campo** — soprattutto quantità e categoria — prima di premere "Salva ricetta". Il riconoscimento automatico è un aiuto, non è mai perfetto
@@ -54,7 +54,7 @@ Apri il file `index.html` con un doppio click, oppure trascinalo in una finestra
 A differenza del backup e del CSV, che riguardano tutte le ricette insieme, puoi anche scambiare **una ricetta alla volta** come file — comodo per mandarla a qualcuno che usa anche lui questo ricettario:
 
 - Dalla scheda di una ricetta, **"⬇ Esporta ricetta"** scarica un file `.json` con solo quella ricetta
-- Nella toolbar, **"📄 Importa ricetta (file)"** legge un file esportato così e lo aggiunge alle tue ricette
+- **"📋 Importa ricetta ▾" → "Da file (.json)"** legge un file esportato così e lo aggiunge alle tue ricette
 - Chi riceve la ricetta parte "pulito": preferita, cronologia e contatore delle preparazioni non vengono copiati da chi l'ha esportata
 - Se hai già una ricetta con lo stesso nome, l'importazione si ferma per evitare doppioni — rinominala prima di riprovare
 
@@ -103,13 +103,11 @@ Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi 
 
 - Il campo di ricerca cerca sia nel nome della ricetta sia negli ingredienti
 - Il menu a tendina filtra per categoria
-- **"🍲 Solo pentola a pressione"** mostra solo le ricette con almeno un passaggio a pressione
-- **"🤖 Solo robot"** mostra solo le ricette con almeno un passaggio con impostazioni robot (velocità, temperatura o una modalità diversa da Normale)
-- **"🔥 Solo tradizionale"** mostra solo le ricette senza alcuna impostazione robot né pentola a pressione, cioè pensate per fornelli/forno tradizionali
-- Questi tre filtri si possono anche combinare tra loro e con gli altri filtri
-- **"🔍 Altri filtri"** apre un pannello con altre due opzioni, tenute nascoste di default per non affollare la pagina:
+- **"★ Solo preferite"** mostra solo le ricette con la stellina
+- **"🔍 Filtri"** apre un pannello con altre opzioni, tenute nascoste di default per non affollare la pagina — il pulsante mostra tra parentesi quanti filtri sono attivi (es. "🔍 Filtri (2)"):
+  - **Metodo di cottura**: "🍲 Pentola a pressione" (almeno un passaggio a pressione), "🤖 Robot" (almeno un passaggio con velocità, temperatura o una modalità diversa da Normale), "🔥 Tradizionale" (nessuna impostazione robot né pressione) — si possono combinare liberamente tra loro
+  - **"Escludi ingredienti"**, che nasconde le ricette contenenti uno o più ingredienti scritti lì (separati da virgola) — utile per allergie o cose che non vuoi usare in quel momento
   - le "pillole" per il tag dietetico (puoi selezionarne più di una insieme)
-  - il campo **"Escludi ingredienti"**, che nasconde le ricette contenenti uno o più ingredienti scritti lì (separati da virgola) — utile per allergie o cose che non vuoi usare in quel momento
 
 ## Cosa posso cucinare?
 
@@ -170,7 +168,7 @@ Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **
 
 - Dalla vista di una ricetta, **"🖨 Stampa"** per un layout pulito, oppure **"⬇ Esporta PDF"** per scaricarla come file (con ingredienti già scalati alle porzioni che stai visualizzando)
 - Dalla lista della spesa, **"🖨 Stampa lista"** oppure **"⬇ Esporta PDF"** per scaricarla come file invece di passare dalla finestra di stampa del browser (più affidabile su alcuni cellulari)
-- Dalla vista Pianificazione, **"🖨 Stampa settimana"** oppure **"⬇ Esporta PDF settimana"**: entrambe includono il piano di tutti i giorni insieme alla lista della spesa aggregata, ma il PDF si scarica direttamente come file, senza passare dalla finestra di stampa
+- Dalla vista Pianificazione, il menu **"⬇ Esporta ▾"** offre **"🖨 Stampa settimana"** e **"⬇ Esporta PDF settimana"**: entrambe includono il piano di tutti i giorni insieme alla lista della spesa aggregata, ma il PDF si scarica direttamente come file, senza passare dalla finestra di stampa
 - Il PDF è generato interamente dal ricettario stesso (nessun servizio esterno): supporta più pagine e le lettere accentate italiane; eventuali emoji o simboli non standard nel testo vengono sostituiti con "?"
 
 ## Esportare e importare CSV

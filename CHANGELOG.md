@@ -2,6 +2,14 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.6.0] — Riorganizzazione dei menu
+
+### Modificato
+- **Lista ricette**: "📋 Importa ricetta" e "📄 Importa ricetta (file)" sono ora un unico menu a tendina "📋 Importa ricetta ▾", come già "📦 Backup e CSV"
+- **Lista ricette**: i filtri "🍲 Solo pentola a pressione", "🤖 Solo robot" e "🔥 Solo tradizionale" si sono spostati dentro il pannello filtri (rinominato da "🔍 Altri filtri" a "🔍 Filtri"), in una sezione dedicata "Metodo di cottura" con lo stesso stile a "pillola" già usato per i tag dietetici; il pulsante del pannello mostra ora tra parentesi quanti filtri sono attivi
+- **Pianificazione**: "🖨 Stampa settimana" ed "⬇ Esporta PDF settimana" sono ora un unico menu a tendina "⬇ Esporta ▾"
+- Nessuna modifica al funzionamento dei filtri o delle esportazioni: solo alla loro organizzazione, per una toolbar meno affollata
+
 ## [3.5.0] — Controllo ingredienti mancanti dalla Dispensa
 
 ### Aggiunto

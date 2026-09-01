@@ -309,6 +309,7 @@
   .tag-checks input{width:auto;}
   .tag-filter-chip{background:var(--parchment);border:1px solid var(--brass);color:var(--brass);border-radius:14px;padding:5px 13px;font-size:12.5px;}
   .tag-filter-chip.active{background:var(--brass);color:#fff;}
+  .filter-section-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:7px;}
   .view-tag-chip{display:inline-block;background:var(--parchment);border:1px solid var(--brass);color:var(--brass);border-radius:12px;padding:2px 10px;font-size:11.5px;margin-right:6px;}
 
   .shopping-list-items{list-style:none;padding:0;margin:0;}
@@ -363,9 +364,14 @@
   <div class="toolbar">
     <div class="toolbar-group">
       <button class="btn-gold" id="new-recipe-btn">+ Nuova ricetta</button>
-      <button class="btn-ghost" id="paste-import-btn">📋 Importa ricetta</button>
-      <button class="btn-ghost" id="import-recipe-file-btn">📄 Importa ricetta (file)</button>
-      <input type="file" id="import-recipe-file-input" accept=".json,application/json" style="display:none;">
+      <div class="menu-wrap">
+        <button class="btn-ghost" id="import-menu-btn">📋 Importa ricetta ▾</button>
+        <div class="menu-dropdown" id="import-menu-dropdown">
+          <button id="paste-import-btn">📋 Da testo o link</button>
+          <button id="import-recipe-file-btn">📄 Da file (.json)</button>
+          <input type="file" id="import-recipe-file-input" accept=".json,application/json" style="display:none;">
+        </div>
+      </div>
       <div class="menu-wrap">
         <button class="btn-ghost" id="data-menu-btn">📦 Backup e CSV ▾</button>
         <div class="menu-dropdown" id="data-menu-dropdown">
@@ -414,19 +420,24 @@
         <option value="Altro">Altro</option>
       </select>
       <button class="btn-ghost" id="favorites-filter-btn">★ Solo preferite</button>
-      <button class="btn-ghost" id="pressure-filter-btn">🍲 Solo pentola a pressione</button>
-      <button class="btn-ghost" id="robot-filter-btn">🤖 Solo robot</button>
-      <button class="btn-ghost" id="traditional-filter-btn">🔥 Solo tradizionale</button>
-      <button class="btn-ghost" id="advanced-filters-toggle">🔍 Altri filtri ▾</button>
+      <button class="btn-ghost" id="advanced-filters-toggle">🔍 Filtri ▾</button>
     </div>
   </div>
 
   <div class="panel" id="advanced-filters-panel" style="display:none;">
-    <div class="panel-row">
-      <input type="text" id="exclude-input" placeholder="Escludi ingredienti, es. glutine, latticini">
+    <div class="filter-section-label">Metodo di cottura</div>
+    <div class="panel-row" id="method-filter-row" style="margin-bottom:14px;">
+      <button class="tag-filter-chip" id="pressure-filter-btn">🍲 Pentola a pressione</button>
+      <button class="tag-filter-chip" id="robot-filter-btn">🤖 Robot</button>
+      <button class="tag-filter-chip" id="traditional-filter-btn">🔥 Tradizionale</button>
+    </div>
+    <div class="filter-section-label">Escludi ingredienti</div>
+    <div class="panel-row" style="margin-bottom:14px;">
+      <input type="text" id="exclude-input" placeholder="es. glutine, latticini">
       <button class="btn-ghost btn-small" id="exclude-apply-btn">Applica esclusione</button>
       <button class="btn-ghost btn-small" id="exclude-clear-btn" style="display:none;">Rimuovi esclusione</button>
     </div>
+    <div class="filter-section-label">Tag dietetici</div>
     <div class="panel-row" id="tag-filter-row" style="margin-bottom:0;"></div>
   </div>
 
@@ -459,8 +470,13 @@
     <div class="modal-actions" style="border-top:1px solid var(--line);padding-top:16px;margin-top:4px;">
       <button class="btn-ghost" id="clear-week-btn">Svuota settimana</button>
       <button class="btn-ghost" id="copy-last-week-btn">📋 Copia settimana scorsa</button>
-      <button class="btn-ghost" id="print-week-btn">🖨 Stampa settimana</button>
-      <button class="btn-ghost" id="export-week-pdf-btn">⬇ Esporta PDF settimana</button>
+      <div class="menu-wrap">
+        <button class="btn-ghost" id="week-export-menu-btn">⬇ Esporta ▾</button>
+        <div class="menu-dropdown" id="week-export-menu-dropdown">
+          <button id="print-week-btn">🖨 Stampa settimana</button>
+          <button id="export-week-pdf-btn">⬇ Esporta PDF settimana</button>
+        </div>
+      </div>
       <div style="flex:1;"></div>
       <button class="btn-gold" id="generate-shopping-btn">Genera lista della spesa dalla settimana</button>
     </div>
@@ -1166,22 +1182,22 @@
   const pressureFilterBtn = document.getElementById('pressure-filter-btn');
   pressureFilterBtn.addEventListener('click', ()=>{
     pressureOnly = !pressureOnly;
-    pressureFilterBtn.classList.toggle('btn-gold', pressureOnly);
-    pressureFilterBtn.classList.toggle('btn-ghost', !pressureOnly);
+    pressureFilterBtn.classList.toggle('active', pressureOnly);
+    updateFiltersCount();
     renderList();
   });
   const robotFilterBtn = document.getElementById('robot-filter-btn');
   robotFilterBtn.addEventListener('click', ()=>{
     robotOnly = !robotOnly;
-    robotFilterBtn.classList.toggle('btn-gold', robotOnly);
-    robotFilterBtn.classList.toggle('btn-ghost', !robotOnly);
+    robotFilterBtn.classList.toggle('active', robotOnly);
+    updateFiltersCount();
     renderList();
   });
   const traditionalFilterBtn = document.getElementById('traditional-filter-btn');
   traditionalFilterBtn.addEventListener('click', ()=>{
     traditionalOnly = !traditionalOnly;
-    traditionalFilterBtn.classList.toggle('btn-gold', traditionalOnly);
-    traditionalFilterBtn.classList.toggle('btn-ghost', !traditionalOnly);
+    traditionalFilterBtn.classList.toggle('active', traditionalOnly);
+    updateFiltersCount();
     renderList();
   });
 
@@ -1214,12 +1230,14 @@
     const raw = excludeInput.value.trim();
     excludeItems = raw ? raw.split(',').map(s=>normalize(s)).filter(Boolean) : [];
     excludeClearBtn.style.display = excludeItems.length ? 'inline-block' : 'none';
+    updateFiltersCount();
     renderList();
   });
   excludeInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') excludeApplyBtn.click(); });
   excludeClearBtn.addEventListener('click', ()=>{
     excludeInput.value = ''; excludeItems = [];
     excludeClearBtn.style.display = 'none';
+    updateFiltersCount();
     renderList();
   });
 
@@ -1231,17 +1249,54 @@
       const t = btn.dataset.tag;
       if(activeTagFilters.has(t)) activeTagFilters.delete(t); else activeTagFilters.add(t);
       btn.classList.toggle('active', activeTagFilters.has(t));
+      updateFiltersCount();
       renderList();
     });
   });
 
-  // ---------- Pannello "Altri filtri" richiudibile ----------
+  // ---------- Pannello "Filtri" richiudibile ----------
   const advFiltersToggle = document.getElementById('advanced-filters-toggle');
   const advFiltersPanel = document.getElementById('advanced-filters-panel');
+  function updateFiltersCount(){
+    const count = (pressureOnly?1:0) + (robotOnly?1:0) + (traditionalOnly?1:0) + activeTagFilters.size + (excludeItems.length?1:0);
+    advFiltersToggle.textContent = count ? `🔍 Filtri (${count}) ▾` : '🔍 Filtri ▾';
+  }
   advFiltersToggle.addEventListener('click', ()=>{
     const opening = advFiltersPanel.style.display === 'none';
     advFiltersPanel.style.display = opening ? 'block' : 'none';
     advFiltersToggle.classList.toggle('active', opening);
+  });
+
+  // ---------- Menu "Importa ricetta" ----------
+  const importMenuBtn = document.getElementById('import-menu-btn');
+  const importMenuDropdown = document.getElementById('import-menu-dropdown');
+  importMenuBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    importMenuDropdown.classList.toggle('open');
+  });
+  importMenuDropdown.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=> importMenuDropdown.classList.remove('open'));
+  });
+  document.addEventListener('click', (e)=>{
+    if(importMenuDropdown.classList.contains('open') && !importMenuDropdown.contains(e.target) && e.target !== importMenuBtn){
+      importMenuDropdown.classList.remove('open');
+    }
+  });
+
+  // ---------- Menu "Esporta" (settimana) ----------
+  const weekExportMenuBtn = document.getElementById('week-export-menu-btn');
+  const weekExportMenuDropdown = document.getElementById('week-export-menu-dropdown');
+  weekExportMenuBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    weekExportMenuDropdown.classList.toggle('open');
+  });
+  weekExportMenuDropdown.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=> weekExportMenuDropdown.classList.remove('open'));
+  });
+  document.addEventListener('click', (e)=>{
+    if(weekExportMenuDropdown.classList.contains('open') && !weekExportMenuDropdown.contains(e.target) && e.target !== weekExportMenuBtn){
+      weekExportMenuDropdown.classList.remove('open');
+    }
   });
 
   // ---------- Menu "Backup e CSV" ----------

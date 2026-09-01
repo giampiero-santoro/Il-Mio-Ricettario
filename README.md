@@ -33,7 +33,7 @@ Screenshot: aggiungi qui un'immagine dell'interfaccia (es. screenshot.png) e sco
 ## 🚀 Come si usa
 
 1. Apri `index.html` in qualsiasi browser (Chrome, Firefox, Safari, Edge)
-2. Premi **"+ Nuova ricetta"** per scriverne una tua, oppure **"📋 Importa ricetta"** per incollarla da un'altra fonte
+2. Premi **"+ Nuova ricetta"** per scriverne una tua, oppure **"📋 Importa ricetta ▾"** per incollarla da un'altra fonte o importarla da file
 3. Clicca su una ricetta per vederla in dettaglio, scalare le porzioni e seguire i passaggi
 4. Usa il pannello **"Cosa posso cucinare?"** per trovare ricette in base a quello che hai, ed **"Escludi ingredienti"** per filtrare quello che non vuoi usare
 5. Passa alla vista **"📅 Pianificazione"** per organizzare la settimana pasto per pasto e generare la lista della spesa
