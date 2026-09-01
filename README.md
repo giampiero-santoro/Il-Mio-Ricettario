@@ -16,18 +16,18 @@ Screenshot: aggiungi qui un'immagine dell'interfaccia (es. screenshot.png) e sco
 - **Porzioni scalabili**: apri una ricetta e ricalcola automaticamente le quantità con un semplice +/−
 - **Categorie colorate**: Primi, Secondi, Zuppe & Vellutate, Impasti & Pane, Salse & Sughi, Dolci, Infusi & Tisane, Altro
 - **Tag dietetici**: Vegetariano, Vegano, Senza glutine, Senza lattosio, Piccante — assegnabili e filtrabili
-- **Ricerca e filtri**: per nome, ingrediente, categoria, tag dietetici, ed escludendo ingredienti che non vuoi usare
+- **Ricerca e filtri**: per nome, ingrediente, categoria, tag dietetici, metodo di preparazione (pentola a pressione, robot, tradizionale) ed escludendo ingredienti che non vuoi usare
 - **"Cosa posso cucinare?"**: scrivi gli ingredienti che hai in casa (la lista resta salvata per la prossima volta) e vedi subito quali ricette puoi fare
 - **Ricette preferite**: stellina per le ricette del cuore, con filtro dedicato
 - **Cronologia di preparazione**: data dell'ultima volta e contatore di quante volte l'hai preparata
 - **Foto per ricetta**
 - **Modalità cucina guidata**: schermo intero, un passaggio alla volta, con timer integrato
 - **Pianificazione settimanale in una vista dedicata**: più ricette (o prodotti dalla dispensa) per giorno, organizzate in fasce personalizzabili (colazione, pranzo, cena, spuntino o quelle che preferisci) con orario facoltativo per ciascuna
-- **Lista della spesa scalabile**: genera la lista dalla settimana pianificata, con le quantità adattate al numero di persone che indichi
+- **Lista della spesa scalabile**: genera la lista dalla settimana pianificata, con le quantità adattate al numero di persone che indichi; segnala anche gli ingredienti di una ricetta appena pianificata che non risultano in Dispensa, con conferma prima di aggiungerli come promemoria alla lista
 - **Stampa**: una singola ricetta, la lista della spesa, oppure l'intera settimana insieme alla lista della spesa
 - **Backup**: esporta tutto (ricette, pianificazione, fasce pasto) in un file JSON e reimportalo quando vuoi
 - **Importa/esporta CSV**: scarica le tue ricette in un file `.csv` apribile in Excel/Fogli Google, oppure importa ricette da un file CSV con lo stesso formato
-- **Dispensa**: una sezione separata per tenere traccia di frutta, verdura, salumi e latticini/prodotti pronti che hai in casa, con quantità, valori nutrizionali e data di scadenza facoltativi — le scadenze vicine o passate sono evidenziate, e ogni prodotto si può anche pianificare direttamente come pasto nella settimana
+- **Dispensa**: una sezione separata per tenere traccia di tutto quello che hai in casa e può servire per una ricetta — non solo freschi (frutta, verdura, uova, salumi, latticini), ma anche surgelati, pasta e cereali, legumi, farine, conserve, spezie, oli, bevande, snack e altro — con quantità, valori nutrizionali e data di scadenza facoltativi; le scadenze vicine o passate sono evidenziate, e ogni prodotto si può anche pianificare direttamente come pasto nella settimana
 - **Salvataggio locale**: tutti i dati restano nel browser tramite `localStorage`, nessuna connessione richiesta
 
 ## 🚀 Come si usa

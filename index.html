@@ -415,6 +415,8 @@
       </select>
       <button class="btn-ghost" id="favorites-filter-btn">★ Solo preferite</button>
       <button class="btn-ghost" id="pressure-filter-btn">🍲 Solo pentola a pressione</button>
+      <button class="btn-ghost" id="robot-filter-btn">🤖 Solo robot</button>
+      <button class="btn-ghost" id="traditional-filter-btn">🔥 Solo tradizionale</button>
       <button class="btn-ghost" id="advanced-filters-toggle">🔍 Altri filtri ▾</button>
     </div>
   </div>
@@ -476,8 +478,18 @@
           <option value="">Tutte le categorie</option>
           <option value="Frutta">Frutta</option>
           <option value="Verdura">Verdura</option>
+          <option value="Uova">Uova</option>
           <option value="Salumi">Salumi</option>
           <option value="Latticini e pronti">Latticini e pronti</option>
+          <option value="Surgelati">Surgelati</option>
+          <option value="Pasta, riso e cereali">Pasta, riso e cereali</option>
+          <option value="Legumi">Legumi</option>
+          <option value="Farine, zucchero e lieviti">Farine, zucchero e lieviti</option>
+          <option value="Conserve e scatolame">Conserve e scatolame</option>
+          <option value="Spezie e condimenti">Spezie e condimenti</option>
+          <option value="Oli, aceti e grassi">Oli, aceti e grassi</option>
+          <option value="Bevande">Bevande</option>
+          <option value="Snack e dolciumi">Snack e dolciumi</option>
           <option value="Altro">Altro</option>
         </select>
       </div>
@@ -596,8 +608,18 @@
         <select id="d-category">
           <option>Frutta</option>
           <option>Verdura</option>
+          <option>Uova</option>
           <option>Salumi</option>
           <option>Latticini e pronti</option>
+          <option>Surgelati</option>
+          <option>Pasta, riso e cereali</option>
+          <option>Legumi</option>
+          <option>Farine, zucchero e lieviti</option>
+          <option>Conserve e scatolame</option>
+          <option>Spezie e condimenti</option>
+          <option>Oli, aceti e grassi</option>
+          <option>Bevande</option>
+          <option>Snack e dolciumi</option>
           <option>Altro</option>
         </select>
       </div>
@@ -681,10 +703,29 @@
   <div class="modal">
     <button class="close-x" id="dispensa-picker-close">×</button>
     <h2>Scegli dalla dispensa</h2>
-    <div class="field">
-      <input type="text" id="dispensa-picker-search" placeholder="Cerca prodotto…">
+    <div id="dispensa-picker-search-step">
+      <div class="field">
+        <input type="text" id="dispensa-picker-search" placeholder="Cerca prodotto…">
+      </div>
+      <div class="recipe-picker-list" id="dispensa-picker-list"></div>
     </div>
-    <div class="recipe-picker-list" id="dispensa-picker-list"></div>
+    <div id="dispensa-picker-qty-step" style="display:none;">
+      <h3 id="dispensa-picker-qty-name" style="margin:0 0 14px;"></h3>
+      <div class="row">
+        <div class="field">
+          <label>Quantità per questo pasto (facoltativa)</label>
+          <input type="number" id="dispensa-picker-qty" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label>Unità</label>
+          <input type="text" id="dispensa-picker-unit" placeholder="es. pz, g, ml">
+        </div>
+      </div>
+      <div class="ingredients-actions" style="justify-content:space-between;margin-top:6px;">
+        <button type="button" class="btn-ghost btn-small" id="dispensa-picker-back-btn">‹ Indietro</button>
+        <button type="button" class="btn-gold btn-small" id="dispensa-picker-confirm-btn">+ Aggiungi alla pianificazione</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -806,9 +847,13 @@
   const LAST_BACKUP_KEY = 'mc_ricettario_ultimo_backup_v1';
   const PREV_WEEK_KEY = 'mc_ricettario_settimana_precedente_v1';
   const DISPENSA_ITEMS_KEY = 'mc_ricettario_dispensa_prodotti_v1';
+  const SHOPPING_EXTRA_KEY = 'mc_ricettario_spesa_extra_v1';
   const PANTRY_CATEGORY_COLORS = {
-    'Frutta': '#d17b3f', 'Verdura': '#5c8a3a', 'Salumi': '#a13d3d',
-    'Latticini e pronti': '#c9a227', 'Altro': '#3f6e79'
+    'Frutta': '#d17b3f', 'Verdura': '#5c8a3a', 'Uova': '#d9a94a', 'Salumi': '#a13d3d',
+    'Latticini e pronti': '#c9a227', 'Surgelati': '#4f7f8b', 'Pasta, riso e cereali': '#8a6642',
+    'Legumi': '#6b5b3a', 'Farine, zucchero e lieviti': '#a68a5b', 'Conserve e scatolame': '#7a5230',
+    'Spezie e condimenti': '#9c4b1f', 'Oli, aceti e grassi': '#8a7a2e', 'Bevande': '#3f6e9c',
+    'Snack e dolciumi': '#b83a6b', 'Altro': '#3f6e79'
   };
   const DAYS = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
   const DEFAULT_MEALTYPES = ['Colazione','Pranzo','Spuntino','Cena'];
@@ -820,6 +865,7 @@
   let planServings = 4;
   let previousWeekPlan = null;
   let dispensaItems = [];
+  let shoppingExtraItems = []; // ingredienti segnalati mancanti dalla dispensa, promemoria per la spesa: [{id, name, unit}]
   let editingDispensaId = null;
   let editingId = null;
   let currentViewId = null;
@@ -830,6 +876,8 @@
   let activeTagFilters = new Set();
   let favoritesOnly = false;
   let pressureOnly = false;
+  let robotOnly = false;
+  let traditionalOnly = false;
 
   // cooking mode state
   let cookRecipe = null;
@@ -877,6 +925,11 @@
       dispensaItems = rawDispensa ? JSON.parse(rawDispensa) : [];
       if(!Array.isArray(dispensaItems)) dispensaItems = [];
     }catch(e){ dispensaItems = []; }
+    try{
+      const rawShoppingExtra = localStorage.getItem(SHOPPING_EXTRA_KEY);
+      shoppingExtraItems = rawShoppingExtra ? JSON.parse(rawShoppingExtra) : [];
+      if(!Array.isArray(shoppingExtraItems)) shoppingExtraItems = [];
+    }catch(e){ shoppingExtraItems = []; }
   }
   function saveRecipes(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes)); }
   function saveWeek(){ localStorage.setItem(WEEK_KEY, JSON.stringify(weekPlan)); }
@@ -885,6 +938,7 @@
   function savePlanServings(){ localStorage.setItem(PLAN_SERVINGS_KEY, String(planServings)); }
   function savePreviousWeek(plan){ localStorage.setItem(PREV_WEEK_KEY, JSON.stringify(plan)); }
   function saveDispensaItems(){ localStorage.setItem(DISPENSA_ITEMS_KEY, JSON.stringify(dispensaItems)); }
+  function saveShoppingExtra(){ localStorage.setItem(SHOPPING_EXTRA_KEY, JSON.stringify(shoppingExtraItems)); }
 
   // Le versioni precedenti salvavano una sola ricetta per giorno (stringa).
   // La convertiamo in una lista di voci { id, recipeId, mealType, time }.
@@ -983,8 +1037,41 @@
     return { missing };
   }
 
+  // Ingredienti di una ricetta non coperti da quello che c'è nella Dispensa (sezione "🥫 Dispensa")
+  function missingFromDispensa(recipe){
+    const dispensaNames = dispensaItems.map(it => normalize(it.name)).filter(Boolean);
+    return (recipe.ingredients || []).filter(ing => ing.name && !ingredientCovered(ing.name, dispensaNames));
+  }
+
+  // Quando una ricetta viene aggiunta alla pianificazione, segnala gli ingredienti mancanti dalla
+  // Dispensa e, con conferma, li aggiunge al promemoria della lista della spesa.
+  function offerAddMissingToShoppingList(recipe){
+    if(!recipe) return;
+    const missing = missingFromDispensa(recipe);
+    if(!missing.length) return;
+    const elenco = missing.map(i => i.name).join(', ');
+    const ok = confirm(`Questi ingredienti di "${recipe.name}" non risultano in Dispensa:\n${elenco}\n\nAggiungerli alla lista della spesa?`);
+    if(!ok) return;
+    let added = 0;
+    missing.forEach(ing=>{
+      const key = normalize(ing.name) + '|' + normalize(ing.unit);
+      const already = shoppingExtraItems.some(x => (normalize(x.name) + '|' + normalize(x.unit)) === key);
+      if(!already){
+        shoppingExtraItems.push({ id: cryptoId(), name: ing.name, unit: ing.unit || '' });
+        added++;
+      }
+    });
+    if(added) saveShoppingExtra();
+  }
+
   function recipeHasPressure(r){
     return (r.steps || []).some(s => !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale')));
+  }
+  function recipeHasRobot(r){
+    return (r.steps || []).some(s => !!(s.vel || s.temp || (s.mode && s.mode !== 'Normale')));
+  }
+  function recipeIsTraditional(r){
+    return !recipeHasRobot(r) && !recipeHasPressure(r);
   }
 
   function renderList(){
@@ -993,6 +1080,8 @@
     let filtered = recipes.filter(r=>{
       if(favoritesOnly && !r.favorite) return false;
       if(pressureOnly && !recipeHasPressure(r)) return false;
+      if(robotOnly && !recipeHasRobot(r)) return false;
+      if(traditionalOnly && !recipeIsTraditional(r)) return false;
       const matchesCat = !cat || r.category === cat;
       if(!matchesCat) return false;
       if(activeTagFilters.size > 0){
@@ -1079,6 +1168,20 @@
     pressureOnly = !pressureOnly;
     pressureFilterBtn.classList.toggle('btn-gold', pressureOnly);
     pressureFilterBtn.classList.toggle('btn-ghost', !pressureOnly);
+    renderList();
+  });
+  const robotFilterBtn = document.getElementById('robot-filter-btn');
+  robotFilterBtn.addEventListener('click', ()=>{
+    robotOnly = !robotOnly;
+    robotFilterBtn.classList.toggle('btn-gold', robotOnly);
+    robotFilterBtn.classList.toggle('btn-ghost', !robotOnly);
+    renderList();
+  });
+  const traditionalFilterBtn = document.getElementById('traditional-filter-btn');
+  traditionalFilterBtn.addEventListener('click', ()=>{
+    traditionalOnly = !traditionalOnly;
+    traditionalFilterBtn.classList.toggle('btn-gold', traditionalOnly);
+    traditionalFilterBtn.classList.toggle('btn-ghost', !traditionalOnly);
     renderList();
   });
 
@@ -1634,6 +1737,7 @@
     saveWeek();
     scheduleStatus.textContent = `✓ Aggiunta a ${day}`;
     scheduleStatus.style.display = 'block';
+    offerAddMissingToShoppingList(recipes.find(r=>r.id === currentViewId));
   });
 
   // ---------- Print ----------
@@ -1731,18 +1835,14 @@
   function planEntryName(e){
     if(e.dispensaItemId){
       const it = dispensaItems.find(x=>x.id === e.dispensaItemId);
-      return it ? it.name : '(prodotto eliminato)';
+      const base = it ? it.name : '(prodotto eliminato)';
+      const qtyPart = e.qty ? ` (${roundNice(e.qty)}${e.unit ? ' ' + e.unit : ''})` : '';
+      return base + qtyPart;
     }
     const r = recipes.find(x=>x.id === e.recipeId);
     return r ? r.name : '(ricetta eliminata)';
   }
-  function computeWeekPlanData(){
-    const days = DAYS.map(day=>{
-      const entries = (weekPlan[day] || []).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
-      return { day, entries: entries.map(e=>({ time: e.time || '', mealType: e.mealType, name: planEntryName(e) })) };
-    });
-    const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
-    const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
+  function buildAggregatedShoppingItems(plannedRecipes){
     const aggregated = {};
     plannedRecipes.forEach(r=>{
       const scale = planServings / (r.servings || 1);
@@ -1752,10 +1852,27 @@
         aggregated[key].qty += (parseFloat(ing.qty) || 0) * scale;
       });
     });
-    const shoppingItems = Object.values(aggregated).sort((a,b)=>a.name.localeCompare(b.name));
+    const aggregatedNames = new Set(Object.values(aggregated).map(i=>normalize(i.name)));
+    // Promemoria: ingredienti segnalati mancanti dalla Dispensa quando una ricetta è stata pianificata,
+    // aggiunti se non già coperti dagli ingredienti già aggregati dalle ricette di questa settimana.
+    const extras = shoppingExtraItems
+      .filter(x => !aggregatedNames.has(normalize(x.name)))
+      .map(x => ({ name: x.name, unit: '', qty: 0, fromDispensaFlag: true, extraId: x.id }));
+    return Object.values(aggregated).sort((a,b)=>a.name.localeCompare(b.name))
+      .concat(extras.sort((a,b)=>a.name.localeCompare(b.name)));
+  }
+  function computeWeekPlanData(){
+    const days = DAYS.map(day=>{
+      const entries = (weekPlan[day] || []).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+      return { day, entries: entries.map(e=>({ time: e.time || '', mealType: e.mealType, name: planEntryName(e) })) };
+    });
+    const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
+    const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
+    const shoppingItems = buildAggregatedShoppingItems(plannedRecipes);
     return { days, shoppingItems };
   }
   function shoppingItemLine(i){
+    if(i.fromDispensaFlag) return `${i.name} (dalla dispensa)`;
     return `${i.name}${i.qty ? ' — ' + roundNice(i.qty) : ''}${i.unit ? ' ' + i.unit : ''}`;
   }
 
@@ -1795,9 +1912,56 @@
     return out.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
   }
 
+  let pdfMeasureCtx = null;
+  function pdfTextWidth(text, size){
+    if(!pdfMeasureCtx){ pdfMeasureCtx = document.createElement('canvas').getContext('2d'); }
+    pdfMeasureCtx.font = `${size}px Helvetica, Arial, sans-serif`;
+    return pdfMeasureCtx.measureText(text).width;
+  }
+
+  // Spezza una riga di testo su più righe perché stia nella larghezza disponibile.
+  // firstMaxWidth/restMaxWidth possono differire per gestire un rientro delle righe successive
+  // (es. elenchi puntati o passaggi numerati, dove il testo continua allineato sotto il primo).
+  function wrapPdfLineHanging(text, size, firstMaxWidth, restMaxWidth){
+    const str = text == null ? '' : String(text);
+    if(str.trim() === '') return [''];
+    const words = str.split(' ').filter(w => w !== '');
+    const lines = [];
+    let line = '';
+    let maxW = firstMaxWidth;
+    words.forEach(word=>{
+      const candidate = line ? `${line} ${word}` : word;
+      if(pdfTextWidth(candidate, size) <= maxW){
+        line = candidate;
+        return;
+      }
+      if(line){ lines.push(line); maxW = restMaxWidth; }
+      if(pdfTextWidth(word, size) <= maxW){
+        line = word;
+        return;
+      }
+      // parola singola troppo lunga per la riga: la spezza carattere per carattere
+      let piece = '';
+      for(const ch of word){
+        const testPiece = piece + ch;
+        if(pdfTextWidth(testPiece, size) <= maxW || piece === ''){
+          piece = testPiece;
+        }else{
+          lines.push(piece);
+          maxW = restMaxWidth;
+          piece = ch;
+        }
+      }
+      line = piece;
+    });
+    lines.push(line);
+    return lines;
+  }
+
   function buildPdfFromSections(title, sections){
     const PAGE_W = 595, PAGE_H = 842;
     const MARGIN_X = 50, TOP_Y = 792, BOTTOM_Y = 50;
+    const MAX_WIDTH = PAGE_W - MARGIN_X * 2;
     const TITLE_SIZE = 18, HEAD_SIZE = 13, TEXT_SIZE = 10.5;
     const LINE_H = 15, HEAD_GAP = 20, TITLE_GAP = 30;
 
@@ -1807,19 +1971,30 @@
     function ensureSpace(h){
       if(y - h < BOTTOM_Y){ pages.push(cmds); cmds = []; y = TOP_Y; }
     }
-    cmds.push({size:TITLE_SIZE, y, text: title});
-    y -= TITLE_GAP;
+    function pushWrapped(size, lineHeight, text, indentAfterFirst){
+      const indent = indentAfterFirst || 0;
+      const wrapped = wrapPdfLineHanging(text, size, MAX_WIDTH, MAX_WIDTH - indent);
+      wrapped.forEach((piece, idx)=>{
+        ensureSpace(lineHeight);
+        cmds.push({size, y, x: MARGIN_X + (idx > 0 ? indent : 0), text: piece || ' '});
+        y -= lineHeight;
+      });
+    }
+
+    pushWrapped(TITLE_SIZE, TITLE_GAP, title, 0);
 
     sections.forEach(sec=>{
       if(sec.heading){
-        ensureSpace(HEAD_GAP);
-        cmds.push({size:HEAD_SIZE, y, text: sec.heading});
-        y -= HEAD_GAP;
+        pushWrapped(HEAD_SIZE, HEAD_GAP, sec.heading, 0);
       }
       (sec.lines && sec.lines.length ? sec.lines : []).forEach(line=>{
-        ensureSpace(LINE_H);
-        cmds.push({size:TEXT_SIZE, y, text: line || ' '});
-        y -= LINE_H;
+        const str = line || ' ';
+        // rientro delle righe di continuazione allineato al testo dopo un trattino puntato o un numero di passaggio
+        const bulletMatch = /^(-\s+)/.exec(str);
+        const numberMatch = /^(\d+\.\s+)/.exec(str);
+        const prefix = bulletMatch ? bulletMatch[1] : (numberMatch ? numberMatch[1] : '');
+        const indent = prefix ? pdfTextWidth(prefix, TEXT_SIZE) : 0;
+        pushWrapped(TEXT_SIZE, LINE_H, str, indent);
       });
       y -= 8;
     });
@@ -1841,7 +2016,7 @@
       const streamLines = ['BT'];
       pageCmds.forEach(c=>{
         streamLines.push(`/F1 ${c.size} Tf`);
-        streamLines.push(`1 0 0 1 ${MARGIN_X} ${c.y.toFixed(2)} Tm`);
+        streamLines.push(`1 0 0 1 ${(c.x !== undefined ? c.x : MARGIN_X).toFixed(2)} ${c.y.toFixed(2)} Tm`);
         streamLines.push(`(${pdfSanitizeText(c.text)}) Tj`);
       });
       streamLines.push('ET');
@@ -1922,7 +2097,7 @@
 
   // ---------- Export / Import backup ----------
   document.getElementById('export-btn').addEventListener('click', async ()=>{
-    const data = JSON.stringify({ recipes, weekPlan, mealTypes, dispensaItems }, null, 2);
+    const data = JSON.stringify({ recipes, weekPlan, mealTypes, dispensaItems, shoppingExtraItems }, null, 2);
     const blob = new Blob([data], {type:'application/json'});
     const saved = await saveFileSmart(blob, `ricettario-backup-${new Date().toISOString().slice(0,10)}.json`, 'application/json', '.json', 'Backup JSON');
     if(!saved) return;
@@ -1956,6 +2131,11 @@
           const existingDispensaIds = new Set(dispensaItems.map(i=>i.id));
           parsed.dispensaItems.forEach(i=>{ if(i && !existingDispensaIds.has(i.id)) dispensaItems.push(i); });
           saveDispensaItems();
+        }
+        if(Array.isArray(parsed.shoppingExtraItems)){
+          const existingExtraIds = new Set(shoppingExtraItems.map(i=>i.id));
+          parsed.shoppingExtraItems.forEach(i=>{ if(i && !existingExtraIds.has(i.id)) shoppingExtraItems.push(i); });
+          saveShoppingExtra();
         }
         saveRecipes(); renderList(); renderPlanningDays();
         alert(`Importate ${added} nuove ricette dal backup.`);
@@ -2429,6 +2609,7 @@
         saveWeek();
         recipePickerOverlay.classList.remove('active');
         renderPlanningDays();
+        offerAddMissingToShoppingList(recipes.find(r=>r.id === recipeId));
       });
     });
   }
@@ -2450,6 +2631,12 @@
   const dispensaPickerOverlay = document.getElementById('dispensa-picker-overlay');
   const dispensaPickerSearch = document.getElementById('dispensa-picker-search');
   const dispensaPickerList = document.getElementById('dispensa-picker-list');
+  const dispensaPickerSearchStep = document.getElementById('dispensa-picker-search-step');
+  const dispensaPickerQtyStep = document.getElementById('dispensa-picker-qty-step');
+  const dispensaPickerQtyName = document.getElementById('dispensa-picker-qty-name');
+  const dispensaPickerQtyInput = document.getElementById('dispensa-picker-qty');
+  const dispensaPickerUnitInput = document.getElementById('dispensa-picker-unit');
+  let pickerSelectedDispensaItem = null;
 
   function renderDispensaPickerList(query){
     const q = query.trim().toLowerCase();
@@ -2464,14 +2651,27 @@
     `).join('') : '<div class="recipe-picker-empty">Nessun prodotto in dispensa. Aggiungine uno dalla vista "🥫 Dispensa".</div>';
     dispensaPickerList.querySelectorAll('.recipe-picker-item').forEach(item=>{
       item.addEventListener('click', ()=>{
-        const dispensaItemId = item.dataset.id;
-        weekPlan[pickerTargetDay] = weekPlan[pickerTargetDay] || [];
-        weekPlan[pickerTargetDay].push({ id: cryptoId(), dispensaItemId, mealType: pickerTargetMealType, time: pickerTargetTime || '' });
-        saveWeek();
-        dispensaPickerOverlay.classList.remove('active');
-        renderPlanningDays();
+        const it = dispensaItems.find(x=>x.id === item.dataset.id);
+        if(!it) return;
+        showDispensaPickerQtyStep(it);
       });
     });
+  }
+
+  function showDispensaPickerQtyStep(it){
+    pickerSelectedDispensaItem = it;
+    dispensaPickerQtyName.textContent = it.name;
+    dispensaPickerQtyInput.value = it.qty || '';
+    dispensaPickerUnitInput.value = it.unit || '';
+    dispensaPickerSearchStep.style.display = 'none';
+    dispensaPickerQtyStep.style.display = 'block';
+    dispensaPickerQtyInput.focus();
+  }
+
+  function showDispensaPickerSearchStep(){
+    pickerSelectedDispensaItem = null;
+    dispensaPickerQtyStep.style.display = 'none';
+    dispensaPickerSearchStep.style.display = 'block';
   }
 
   function openDispensaPicker(day, mealType, timeValue){
@@ -2480,11 +2680,28 @@
     pickerTargetTime = timeValue || '';
     dispensaPickerSearch.value = '';
     renderDispensaPickerList('');
+    showDispensaPickerSearchStep();
     dispensaPickerOverlay.classList.add('active');
     dispensaPickerSearch.focus();
   }
 
   dispensaPickerSearch.addEventListener('input', ()=> renderDispensaPickerList(dispensaPickerSearch.value));
+  document.getElementById('dispensa-picker-back-btn').addEventListener('click', showDispensaPickerSearchStep);
+  document.getElementById('dispensa-picker-confirm-btn').addEventListener('click', ()=>{
+    if(!pickerSelectedDispensaItem) return;
+    weekPlan[pickerTargetDay] = weekPlan[pickerTargetDay] || [];
+    weekPlan[pickerTargetDay].push({
+      id: cryptoId(),
+      dispensaItemId: pickerSelectedDispensaItem.id,
+      mealType: pickerTargetMealType,
+      time: pickerTargetTime || '',
+      qty: dispensaPickerQtyInput.value,
+      unit: dispensaPickerUnitInput.value.trim()
+    });
+    saveWeek();
+    dispensaPickerOverlay.classList.remove('active');
+    renderPlanningDays();
+  });
   document.getElementById('dispensa-picker-close').addEventListener('click', ()=> dispensaPickerOverlay.classList.remove('active'));
 
   const planServingsInput = document.getElementById('plan-servings-input');
@@ -2577,6 +2794,13 @@
     planningDaysEl.querySelectorAll('.plan-entry-remove').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const entryId = btn.dataset.entryId;
+        let entry = null;
+        for(const d of DAYS){
+          const found = (weekPlan[d] || []).find(e=>e.id === entryId);
+          if(found){ entry = found; break; }
+        }
+        const label = entry ? planEntryName(entry) : 'questo pasto';
+        if(!confirm(`Rimuovere "${label}" dalla pianificazione?`)) return;
         DAYS.forEach(d=>{ weekPlan[d] = (weekPlan[d]||[]).filter(e=>e.id !== entryId); });
         saveWeek();
         renderPlanningDays();
@@ -2800,26 +3024,31 @@
 
   document.getElementById('generate-shopping-btn').addEventListener('click', ()=>{
     const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
-    if(allEntries.length === 0){ alert('Assegna almeno una ricetta a un giorno della settimana.'); return; }
     const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
-    if(plannedRecipes.length === 0){ alert('Nessuna ricetta pianificata da cui generare la lista della spesa (i prodotti dalla dispensa non richiedono acquisti).'); return; }
+    if(plannedRecipes.length === 0 && shoppingExtraItems.length === 0){
+      alert(allEntries.length === 0
+        ? 'Assegna almeno una ricetta a un giorno della settimana.'
+        : 'Nessuna ricetta pianificata da cui generare la lista della spesa (i prodotti dalla dispensa non richiedono acquisti).');
+      return;
+    }
 
-    const aggregated = {}; // key: normalized name + unit
-    plannedRecipes.forEach(r=>{
-      const scale = planServings / (r.servings || 1);
-      r.ingredients.forEach(ing=>{
-        const key = normalize(ing.name) + '|' + normalize(ing.unit);
-        if(!aggregated[key]){ aggregated[key] = {name: ing.name, unit: ing.unit, qty: 0}; }
-        aggregated[key].qty += (parseFloat(ing.qty) || 0) * scale;
-      });
-    });
+    const items = buildAggregatedShoppingItems(plannedRecipes);
 
-    shoppingSubtitle.textContent = `Per ${planServings} persone — ${plannedRecipes.map(r=>r.name).join(', ')}`;
+    shoppingSubtitle.textContent = plannedRecipes.length
+      ? `Per ${planServings} persone — ${plannedRecipes.map(r=>r.name).join(', ')}`
+      : 'Ingredienti segnalati mancanti dalla Dispensa';
     shoppingListItems.innerHTML = '';
-    Object.values(aggregated).sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
+    items.forEach(item=>{
       const li = document.createElement('li');
-      li.innerHTML = `<input type="checkbox"><span>${escapeHtml(item.name)}</span><span class="amt">${item.qty ? roundNice(item.qty) : ''} ${escapeHtml(item.unit)}</span>`;
-      li.querySelector('input').addEventListener('change', (e)=> li.classList.toggle('checked', e.target.checked));
+      const amt = item.fromDispensaFlag ? 'dalla dispensa' : `${item.qty ? roundNice(item.qty) : ''} ${item.unit||''}`.trim();
+      li.innerHTML = `<input type="checkbox"><span>${escapeHtml(item.name)}</span><span class="amt">${escapeHtml(amt)}</span>`;
+      li.querySelector('input').addEventListener('change', (e)=>{
+        li.classList.toggle('checked', e.target.checked);
+        if(e.target.checked && item.fromDispensaFlag){
+          shoppingExtraItems = shoppingExtraItems.filter(x => x.id !== item.extraId);
+          saveShoppingExtra();
+        }
+      });
       shoppingListItems.appendChild(li);
     });
     shoppingOverlay.classList.add('active');

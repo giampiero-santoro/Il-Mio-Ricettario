@@ -2,6 +2,45 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.5.0] — Controllo ingredienti mancanti dalla Dispensa
+
+### Aggiunto
+- Quando aggiungi una ricetta alla pianificazione settimanale (dalla ricerca in Pianificazione o dal pulsante "📅 Pianifica" nella scheda ricetta), il ricettario controlla i suoi ingredienti rispetto ai prodotti presenti in Dispensa
+- Se uno o più ingredienti non risultano in Dispensa, viene mostrato un avviso con l'elenco e chiesta conferma prima di aggiungerli a un promemoria per la lista della spesa
+- Questi ingredienti compaiono, con l'etichetta "dalla dispensa", nella lista della spesa generata dalla settimana, nella stampa e nel PDF — anche se per quella settimana non ripianifichi la stessa ricetta — finché non li spunti nella lista (a quel punto vengono rimossi definitivamente dal promemoria) o non risultano coperti da un'altra ricetta pianificata
+- I promemoria sono inclusi nel backup JSON
+
+## [3.4.0] — Quantità per i pasti dalla Dispensa
+
+### Aggiunto
+- Scegliendo un prodotto della Dispensa da aggiungere come pasto nella Pianificazione, ora viene chiesta una **quantità facoltativa** (precompilata con quella che hai in dispensa, ma modificabile) prima di confermare
+- La quantità, se indicata, compare accanto al nome del prodotto nella vista Pianificazione, nella stampa e nel PDF della settimana
+
+## [3.3.2] — Conferma prima di rimuovere un pasto pianificato
+
+### Aggiunto
+- Rimuovendo un pasto dalla Pianificazione settimanale (il pulsante "×" su una voce già assegnata a un giorno) viene ora chiesta conferma, con il nome della ricetta o del prodotto coinvolto — come già avveniva eliminando una ricetta dal ricettario o un prodotto dalla Dispensa
+
+## [3.3.1] — Correzione: righe troppo lunghe nel PDF
+
+### Corretto
+- Nei PDF (ricetta singola, settimana e lista della spesa) le righe troppo lunghe uscivano dal bordo della pagina invece di andare a capo. Ora il testo viene misurato e spezzato automaticamente per stare nella larghezza della pagina
+- I passaggi numerati e gli elenchi puntati (ingredienti, lista della spesa) mantengono un rientro sulle righe andate a capo, allineato al testo dopo il numero o il trattino, per restare leggibili
+
+## [3.3.0] — Filtri "solo robot" e "solo tradizionale"
+
+### Aggiunto
+- Due nuovi pulsanti filtro nella lista ricette, accanto a "🍲 Solo pentola a pressione": **"🤖 Solo robot"** (almeno un passaggio con velocità, temperatura o una modalità diversa da Normale) e **"🔥 Solo tradizionale"** (nessun passaggio con impostazioni robot o pentola a pressione)
+- I tre filtri per metodo di preparazione si possono combinare liberamente tra loro e con gli altri filtri già presenti (categoria, preferite, tag dietetici, esclusione ingredienti)
+
+## [3.2.0] — Più categorie in Dispensa
+
+### Aggiunto
+- Nuove categorie nella Dispensa, per coprire non solo i freschi ma tutto quello che può servire per una ricetta: **Uova**, **Surgelati**, **Pasta, riso e cereali**, **Legumi**, **Farine, zucchero e lieviti**, **Conserve e scatolame**, **Spezie e condimenti**, **Oli, aceti e grassi**, **Bevande**, **Snack e dolciumi**
+
+### Nota
+- Le categorie esistenti (Frutta, Verdura, Salumi, Latticini e pronti, Altro) restano invariate: i prodotti già inseriti non cambiano categoria e non serve alcuna migrazione
+
 ## [3.1.0] — Valori nutrizionali in Dispensa e pasti dalla Dispensa nella Pianificazione
 
 ### Aggiunto

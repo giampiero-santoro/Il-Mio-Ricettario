@@ -104,6 +104,9 @@ Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi 
 - Il campo di ricerca cerca sia nel nome della ricetta sia negli ingredienti
 - Il menu a tendina filtra per categoria
 - **"🍲 Solo pentola a pressione"** mostra solo le ricette con almeno un passaggio a pressione
+- **"🤖 Solo robot"** mostra solo le ricette con almeno un passaggio con impostazioni robot (velocità, temperatura o una modalità diversa da Normale)
+- **"🔥 Solo tradizionale"** mostra solo le ricette senza alcuna impostazione robot né pentola a pressione, cioè pensate per fornelli/forno tradizionali
+- Questi tre filtri si possono anche combinare tra loro e con gli altri filtri
 - **"🔍 Altri filtri"** apre un pannello con altre due opzioni, tenute nascoste di default per non affollare la pagina:
   - le "pillole" per il tag dietetico (puoi selezionarne più di una insieme)
   - il campo **"Escludi ingredienti"**, che nasconde le ricette contenenti uno o più ingredienti scritti lì (separati da virgola) — utile per allergie o cose che non vuoi usare in quel momento
@@ -141,7 +144,8 @@ Puoi anche saltare la ricerca e pianificare al volo mentre guardi una ricetta: n
 - Ogni giorno è diviso in **fasce pasto** (di base: Colazione, Pranzo, Spuntino, Cena) e ciascuna fascia può contenere più ricette
 - Premi **"+ Aggiungi fascia pasto"** per crearne di nuove (es. "Aperitivo"); il cestino su una fascia la rimuove — le ricette già assegnate a quella fascia restano visibili sotto "Altro", non si perdono
 - Per aggiungere una ricetta: imposta prima l'**orario facoltativo**, poi premi **"🔍 Cerca ricetta…"** — si apre una finestra dove puoi cercare per nome o ingrediente e toccare quella che vuoi, invece di scorrere un elenco lungo
-- Per aggiungere invece un prodotto della Dispensa come pasto (es. uno yogurt a colazione, della frutta come spuntino): imposta l'orario facoltativo e premi **"🥫 Dalla dispensa…"** — si apre una finestra di ricerca sui prodotti che hai in dispensa, allo stesso modo di quella delle ricette
+- Quando aggiungi una ricetta alla pianificazione (da qui o dal pulsante "📅 Pianifica" nella sua scheda), il ricettario controlla i suoi ingredienti rispetto a quello che hai segnato nella Dispensa: se qualcosa manca, te lo segnala e ti chiede conferma prima di aggiungerlo a un promemoria per la lista della spesa
+- Per aggiungere invece un prodotto della Dispensa come pasto (es. uno yogurt a colazione, della frutta come spuntino): imposta l'orario facoltativo e premi **"🥫 Dalla dispensa…"** — si apre una finestra di ricerca sui prodotti che hai in dispensa, allo stesso modo di quella delle ricette. Scelto il prodotto, viene chiesta una **quantità facoltativa** per quel pasto (precompilata con quella che hai in dispensa, ma modificabile): se la indichi, compare accanto al nome nella pianificazione
 - Le voci di ogni fascia si ordinano da sole per orario
 - Clicca sul nome di una voce pianificata per aprirne la scheda: quelle con l'etichetta 🥫 aprono la scheda del prodotto in Dispensa, le altre la scheda della ricetta
 - **"Svuota settimana"** cancella tutta la pianificazione, tutti i giorni compresi (chiede conferma) — prima di farlo, il ricettario salva automaticamente una copia come "settimana scorsa"
@@ -151,14 +155,15 @@ Puoi anche saltare la ricerca e pianificare al volo mentre guardi una ricetta: n
 
 1. Nella vista Pianificazione, imposta **"Per quante persone stai pianificando?"** — le quantità della lista verranno scalate di conseguenza rispetto alle porzioni base di ogni ricetta
 2. Premi **"Genera lista della spesa dalla settimana"**: il ricettario somma gli ingredienti di tutte le ricette pianificate, raggruppandoli per nome e unità. I prodotti aggiunti dalla Dispensa non vengono conteggiati, dato che li hai già in casa
-3. Spunta gli ingredienti man mano che li acquisti
-4. Premi **"🖨 Stampa lista"** per stamparla, oppure **"⬇ Esporta PDF"** per scaricarla come file
+3. Nella lista compaiono anche gli ingredienti segnalati come mancanti dalla Dispensa quando hai pianificato una ricetta (etichetta "dalla dispensa"), anche se per questa settimana non hai ripianificato quella ricetta — restano come promemoria finché non li spunti, oppure finché un ingrediente con lo stesso nome non compare già tra quelli di un'altra ricetta pianificata per la settimana in corso
+4. Spunta gli ingredienti man mano che li acquisti: per quelli con l'etichetta "dalla dispensa", spuntarli li toglie definitivamente dal promemoria
+5. Premi **"🖨 Stampa lista"** per stamparla, oppure **"⬇ Esporta PDF"** per scaricarla come file
 
 ## Backup: esportazione e importazione
 
 Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **"📦 Backup e CSV"** in alto, per non affollare la pagina. In cima al menu trovi anche un promemoria discreto ("Ultimo backup: X giorni fa"), che diventa rosso dopo due settimane senza backup.
 
-- **Esporta backup**: scarica un file `.json` con tutte le ricette, la pianificazione settimanale e le fasce pasto personalizzate. Fallo periodicamente, o prima di cancellare i dati del browser
+- **Esporta backup**: scarica un file `.json` con tutte le ricette, la pianificazione settimanale, le fasce pasto personalizzate e i promemoria di ingredienti mancanti dalla Dispensa. Fallo periodicamente, o prima di cancellare i dati del browser
 - **Importa backup**: seleziona un file `.json` esportato in precedenza per ricaricare i dati. Le ricette già presenti (stesso identificativo) non vengono duplicate
 
 ## Stampa e PDF
@@ -186,7 +191,7 @@ Oltre al backup JSON completo, puoi scambiare le ricette in formato CSV (una rig
 La Dispensa è una sezione separata dal ricettario, per tenere traccia di quello che hai in casa — non ricette, ma prodotti veri e propri come frutta, verdura, salumi, yogurt: premi **"🥫 Dispensa"** in alto per aprirla.
 
 1. Premi **"+ Nuovo prodotto"**
-2. Scrivi il nome e scegli una categoria: Frutta, Verdura, Salumi, Latticini e pronti, oppure Altro
+2. Scrivi il nome e scegli una categoria tra quelle disponibili: dai freschi (Frutta, Verdura, Uova, Salumi, Latticini e pronti) ai Surgelati, fino alla dispensa vera e propria (Pasta/riso e cereali, Legumi, Farine/zucchero e lieviti, Conserve e scatolame, Spezie e condimenti, Oli/aceti e grassi, Bevande, Snack e dolciumi), oppure Altro per tutto il resto
 3. Quantità, unità, data di scadenza e note sono tutte facoltative
 4. Se vuoi, premi **"🍎 Valori nutrizionali"** per aggiungere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale, riferiti alla quantità indicata sopra (non ai 100g) — utile ad esempio per uno yogurt o un affettato già confezionato
 5. Premi **"Salva prodotto"**
@@ -219,4 +224,4 @@ Sì, ma ogni dispositivo/browser avrà il proprio set di dati salvati localmente
 No: funziona meglio con pagine di ricette che includono dati strutturati (la maggior parte dei blog di cucina seri li ha). Con testo libero il riconoscimento è più approssimativo. In ogni caso, controlla sempre i campi prima di salvare.
 
 **Posso aggiungere altre categorie o altri tag dietetici?**
-Le categorie e i tag disponibili sono fissi nel codice. Se vuoi personalizzarli, puoi modificare gli elenchi nel file `index.html` (cerca `CATEGORY_COLORS` per le categorie e `TAG_OPTIONS` per i tag). Le **fasce pasto** della pianificazione, invece, si possono già aggiungere e rimuovere direttamente dall'app, senza toccare il codice.
+Le categorie e i tag disponibili sono fissi nel codice. Se vuoi personalizzarli, puoi modificare gli elenchi nel file `index.html` (cerca `CATEGORY_COLORS` per le categorie delle ricette, `PANTRY_CATEGORY_COLORS` per quelle della Dispensa, e `TAG_OPTIONS` per i tag dietetici). Le **fasce pasto** della pianificazione, invece, si possono già aggiungere e rimuovere direttamente dall'app, senza toccare il codice.
