@@ -16,14 +16,16 @@ Screenshot: aggiungi qui un'immagine dell'interfaccia (es. screenshot.png) e sco
 - **Porzioni scalabili**: apri una ricetta e ricalcola automaticamente le quantità con un semplice +/−
 - **Categorie colorate**: Primi, Secondi, Zuppe & Vellutate, Impasti & Pane, Salse & Sughi, Dolci, Infusi & Tisane, Altro
 - **Tag dietetici**: Vegetariano, Vegano, Senza glutine, Senza lattosio, Piccante — assegnabili e filtrabili
-- **Ricerca e filtri**: per nome, ingrediente, categoria, tag dietetici, metodo di preparazione (pentola a pressione, robot, tradizionale) ed escludendo ingredienti che non vuoi usare
-- **"Cosa posso cucinare?"**: scrivi gli ingredienti che hai in casa (la lista resta salvata per la prossima volta) e vedi subito quali ricette puoi fare
+- **Ricerca, filtri e ordinamento**: per nome, ingrediente, categoria, tag dietetici, metodo di preparazione (pentola a pressione, robot, tradizionale) ed escludendo ingredienti che non vuoi usare; ordina per nome, data di aggiunta, ultima preparata o più preparate
+- **"Cosa posso cucinare?"**: usa automaticamente i prodotti che hai in Dispensa (più eventuali altri ingredienti che scrivi a mano) e mostra subito quali ricette puoi fare
+- **Duplica ricetta**: crea una copia di una ricetta già pronta in modifica, comoda per varianti senza riscrivere tutto da capo
 - **Ricette preferite**: stellina per le ricette del cuore, con filtro dedicato
 - **Cronologia di preparazione**: data dell'ultima volta e contatore di quante volte l'hai preparata
 - **Foto per ricetta**
 - **Modalità cucina guidata**: schermo intero, un passaggio alla volta, con timer integrato
 - **Pianificazione settimanale in una vista dedicata**: più ricette (o prodotti dalla dispensa) per giorno, organizzate in fasce personalizzabili (colazione, pranzo, cena, spuntino o quelle che preferisci) con orario facoltativo per ciascuna
-- **Lista della spesa scalabile**: genera la lista dalla settimana pianificata, con le quantità adattate al numero di persone che indichi; segnala anche gli ingredienti di una ricetta appena pianificata che non risultano in Dispensa, con conferma prima di aggiungerli come promemoria alla lista
+- **Conferma consumo pasto**: segna un pasto pianificato come consumato e prova ad aggiornare automaticamente le quantità in Dispensa, quando l'unità di misura coincide
+- **Lista della spesa scalabile**: genera la lista dalla settimana pianificata, con le quantità adattate al numero di persone che indichi; segnala anche gli ingredienti di una ricetta appena pianificata che non risultano in Dispensa, con conferma prima di aggiungerli come promemoria alla lista; spuntare un ingrediente lo aggiunge (o ne aumenta la quantità) anche in Dispensa
 - **Stampa**: una singola ricetta, la lista della spesa, oppure l'intera settimana insieme alla lista della spesa
 - **Backup**: esporta tutto (ricette, pianificazione, fasce pasto) in un file JSON e reimportalo quando vuoi
 - **Importa/esporta CSV**: scarica le tue ricette in un file `.csv` apribile in Excel/Fogli Google, oppure importa ricette da un file CSV con lo stesso formato
@@ -35,7 +37,7 @@ Screenshot: aggiungi qui un'immagine dell'interfaccia (es. screenshot.png) e sco
 1. Apri `index.html` in qualsiasi browser (Chrome, Firefox, Safari, Edge)
 2. Premi **"+ Nuova ricetta"** per scriverne una tua, oppure **"📋 Importa ricetta ▾"** per incollarla da un'altra fonte o importarla da file
 3. Clicca su una ricetta per vederla in dettaglio, scalare le porzioni e seguire i passaggi
-4. Usa il pannello **"Cosa posso cucinare?"** per trovare ricette in base a quello che hai, ed **"Escludi ingredienti"** per filtrare quello che non vuoi usare
+4. Usa il pannello **"Cosa posso cucinare?"** per trovare ricette in base a quello che hai già in Dispensa (più eventuali altri ingredienti che scrivi a mano), ed **"Escludi ingredienti"** per filtrare quello che non vuoi usare
 5. Passa alla vista **"📅 Pianificazione"** per organizzare la settimana pasto per pasto e generare la lista della spesa
 6. Passa alla vista **"🥫 Dispensa"** per tenere traccia di cosa hai in frigo e in cucina
 7. Prima di cambiare browser o dispositivo, usa **"Esporta backup"** per salvare un file JSON con tutti i tuoi dati

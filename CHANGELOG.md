@@ -2,6 +2,25 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.8.0] — Dispensa unificata, lista della spesa, ordinamento, duplica ricetta
+
+### Aggiunto
+- **"Cosa posso cucinare?"** ora usa automaticamente i prodotti della Dispensa, invece di un elenco scritto a mano separato; il campo di testo resta disponibile per aggiungere altri ingredienti non tracciati in Dispensa. L'elenco si aggiorna da solo quando la Dispensa cambia o quando torni sulla vista Ricette
+- **Lista della spesa → Dispensa**: spuntando un ingrediente comprato viene aggiunto alla Dispensa (o la sua quantità aumentata, se già presente con la stessa unità di misura), con un piccolo avviso che conferma quanti prodotti sono stati aggiornati
+- **Ordinamento della lista ricette**: nuovo menu a tendina con Nome (A-Z/Z-A), Aggiunta di recente, Ultima preparata, Più preparate — di base è per nome
+- **"⧉ Duplica"** nella scheda ricetta: crea una copia (con "(copia)" nel nome) e la apre subito in modifica, senza toccare l'originale
+
+### Modificato
+- Nella scheda ricetta, "🖨 Stampa", "⬇ Esporta PDF" ed "⬇ Esporta ricetta" sono ora un unico menu a tendina "⬇ Esporta ▾", coerente con la riorganizzazione dei menu già fatta altrove
+
+## [3.7.0] — Conferma consumo pasto
+
+### Aggiunto
+- Nuovo pulsante **"✓"** su ogni voce della Pianificazione settimanale, per segnarla come consumata
+- Per i pasti aggiunti **"dalla dispensa"**: se era stata indicata una quantità nella stessa unità di misura del prodotto, viene tolta da quel prodotto in Dispensa
+- Per i pasti da **ricetta**: gli ingredienti (scalati in base a "per quante persone" impostato in Pianificazione) vengono cercati tra i prodotti in Dispensa per nome, e la quantità viene tolta solo dove l'unità di misura coincide esattamente — altrimenti il prodotto resta invariato. In entrambi i casi viene sempre chiesta conferma, mostrando in anticipo cosa cambierà e cosa no
+- Una volta confermato, il segno di spunta resta acceso per quella voce, per evitare di scalare la stessa quantità più di una volta
+
 ## [3.6.0] — Riorganizzazione dei menu
 
 ### Modificato

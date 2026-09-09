@@ -53,7 +53,7 @@ Apri il file `index.html` con un doppio click, oppure trascinalo in una finestra
 
 A differenza del backup e del CSV, che riguardano tutte le ricette insieme, puoi anche scambiare **una ricetta alla volta** come file — comodo per mandarla a qualcuno che usa anche lui questo ricettario:
 
-- Dalla scheda di una ricetta, **"⬇ Esporta ricetta"** scarica un file `.json` con solo quella ricetta
+- Dalla scheda di una ricetta, **"⬇ Esporta ▾" → "⬇ Esporta ricetta (.json)"** scarica un file `.json` con solo quella ricetta
 - **"📋 Importa ricetta ▾" → "Da file (.json)"** legge un file esportato così e lo aggiunge alle tue ricette
 - Chi riceve la ricetta parte "pulito": preferita, cronologia e contatore delle preparazioni non vengono copiati da chi l'ha esportata
 - Se hai già una ricetta con lo stesso nome, l'importazione si ferma per evitare doppioni — rinominala prima di riprovare
@@ -103,6 +103,7 @@ Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi 
 
 - Il campo di ricerca cerca sia nel nome della ricetta sia negli ingredienti
 - Il menu a tendina filtra per categoria
+- Il menu a tendina accanto alla categoria cambia l'ordine della lista: Nome (A-Z o Z-A), Aggiunta di recente, Ultima preparata, Più preparate — di base è per nome (A-Z)
 - **"★ Solo preferite"** mostra solo le ricette con la stellina
 - **"🔍 Filtri"** apre un pannello con altre opzioni, tenute nascoste di default per non affollare la pagina — il pulsante mostra tra parentesi quanti filtri sono attivi (es. "🔍 Filtri (2)"):
   - **Metodo di cottura**: "🍲 Pentola a pressione" (almeno un passaggio a pressione), "🤖 Robot" (almeno un passaggio con velocità, temperatura o una modalità diversa da Normale), "🔥 Tradizionale" (nessuna impostazione robot né pressione) — si possono combinare liberamente tra loro
@@ -111,12 +112,14 @@ Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi 
 
 ## Cosa posso cucinare?
 
-1. Scrivi gli ingredienti che hai disponibili, separati da virgola (es. "uova, guanciale, pecorino") — la lista resta salvata anche se chiudi e riapri il ricettario
-2. Premi **"Trova ricette"**
+Usa automaticamente i prodotti che hai già in **Dispensa** — non serve più riscriverli a mano:
+
+1. Se vuoi, scrivi nel campo anche altri ingredienti che hai ma non sono in Dispensa (es. erbe fresche, avanzi), separati da virgola — la lista resta salvata anche se chiudi e riapri il ricettario
+2. Premi **"Trova ricette"** (funziona anche a campo vuoto, se hai già qualcosa in Dispensa)
 3. Le ricette si ordinano per numero di ingredienti mancanti, con badge verde **"✓ Puoi farla"** o arancione **"Manca X ingr."**
 4. Premi **"Mostra tutte"** per tornare alla visualizzazione normale
 
-Il confronto riconosce varianti semplici (es. "pomodoro" riconosce "pomodori pelati"), ma è un controllo testuale di base.
+Il confronto riconosce varianti semplici (es. "pomodoro" riconosce "pomodori pelati"), ma è un controllo testuale di base. Se aggiorni la Dispensa mentre questa vista è attiva, l'elenco delle ricette si aggiorna da solo.
 
 ## Preferite, cronologia e contatore preparazioni
 
@@ -146,6 +149,10 @@ Puoi anche saltare la ricerca e pianificare al volo mentre guardi una ricetta: n
 - Per aggiungere invece un prodotto della Dispensa come pasto (es. uno yogurt a colazione, della frutta come spuntino): imposta l'orario facoltativo e premi **"🥫 Dalla dispensa…"** — si apre una finestra di ricerca sui prodotti che hai in dispensa, allo stesso modo di quella delle ricette. Scelto il prodotto, viene chiesta una **quantità facoltativa** per quel pasto (precompilata con quella che hai in dispensa, ma modificabile): se la indichi, compare accanto al nome nella pianificazione
 - Le voci di ogni fascia si ordinano da sole per orario
 - Clicca sul nome di una voce pianificata per aprirne la scheda: quelle con l'etichetta 🥫 aprono la scheda del prodotto in Dispensa, le altre la scheda della ricetta
+- **"✓"** su una voce pianificata la segna come consumata e prova ad aggiornare la Dispensa di conseguenza (chiede sempre conferma, mostrando cosa sta per cambiare):
+  - per un pasto aggiunto **"dalla dispensa"**, se avevi indicato una quantità nella stessa unità di misura del prodotto, quella quantità viene tolta dal prodotto
+  - per un pasto da **ricetta**, il ricettario cerca tra i prodotti in Dispensa quelli con un nome simile agli ingredienti (le quantità sono scalate in base a "per quante persone" impostato in Pianificazione) e toglie la quantità usata solo dove l'unità di misura coincide esattamente — altrimenti lascia il prodotto invariato e te lo segnala
+  - una volta confermato, il segno di spunta resta acceso: non si può ripetere né annullare da lì, ma puoi sempre correggere una quantità direttamente dalla scheda del prodotto in Dispensa
 - **"Svuota settimana"** cancella tutta la pianificazione, tutti i giorni compresi (chiede conferma) — prima di farlo, il ricettario salva automaticamente una copia come "settimana scorsa"
 - **"📋 Copia settimana scorsa"** ripristina quella copia al posto della pianificazione attuale (chiede conferma, perché la sovrascrive). Non è legata a un calendario reale: è semplicemente l'ultima pianificazione che avevi prima dell'ultima volta che hai premuto "Svuota settimana"
 
@@ -154,7 +161,7 @@ Puoi anche saltare la ricerca e pianificare al volo mentre guardi una ricetta: n
 1. Nella vista Pianificazione, imposta **"Per quante persone stai pianificando?"** — le quantità della lista verranno scalate di conseguenza rispetto alle porzioni base di ogni ricetta
 2. Premi **"Genera lista della spesa dalla settimana"**: il ricettario somma gli ingredienti di tutte le ricette pianificate, raggruppandoli per nome e unità. I prodotti aggiunti dalla Dispensa non vengono conteggiati, dato che li hai già in casa
 3. Nella lista compaiono anche gli ingredienti segnalati come mancanti dalla Dispensa quando hai pianificato una ricetta (etichetta "dalla dispensa"), anche se per questa settimana non hai ripianificato quella ricetta — restano come promemoria finché non li spunti, oppure finché un ingrediente con lo stesso nome non compare già tra quelli di un'altra ricetta pianificata per la settimana in corso
-4. Spunta gli ingredienti man mano che li acquisti: per quelli con l'etichetta "dalla dispensa", spuntarli li toglie definitivamente dal promemoria
+4. Spunta gli ingredienti man mano che li acquisti: ognuno viene anche aggiunto alla Dispensa (o la sua quantità aumentata, se già presente con la stessa unità di misura) — un piccolo avviso conferma quanti prodotti sono stati aggiornati. Per quelli con l'etichetta "dalla dispensa", spuntarli li toglie anche definitivamente dal promemoria. Togliere la spunta non annulla l'aggiornamento in Dispensa
 5. Premi **"🖨 Stampa lista"** per stamparla, oppure **"⬇ Esporta PDF"** per scaricarla come file
 
 ## Backup: esportazione e importazione
@@ -166,7 +173,7 @@ Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **
 
 ## Stampa e PDF
 
-- Dalla vista di una ricetta, **"🖨 Stampa"** per un layout pulito, oppure **"⬇ Esporta PDF"** per scaricarla come file (con ingredienti già scalati alle porzioni che stai visualizzando)
+- Dalla vista di una ricetta, il menu **"⬇ Esporta ▾"** offre **"🖨 Stampa"** per un layout pulito, oppure **"⬇ Esporta PDF"** per scaricarla come file (con ingredienti già scalati alle porzioni che stai visualizzando)
 - Dalla lista della spesa, **"🖨 Stampa lista"** oppure **"⬇ Esporta PDF"** per scaricarla come file invece di passare dalla finestra di stampa del browser (più affidabile su alcuni cellulari)
 - Dalla vista Pianificazione, il menu **"⬇ Esporta ▾"** offre **"🖨 Stampa settimana"** e **"⬇ Esporta PDF settimana"**: entrambe includono il piano di tutti i giorni insieme alla lista della spesa aggregata, ma il PDF si scarica direttamente come file, senza passare dalla finestra di stampa
 - Il PDF è generato interamente dal ricettario stesso (nessun servizio esterno): supporta più pagine e le lettere accentate italiane; eventuali emoji o simboli non standard nel testo vengono sostituiti con "?"
@@ -182,6 +189,7 @@ Oltre al backup JSON completo, puoi scambiare le ricette in formato CSV (una rig
 ## Modificare ed eliminare
 
 - Dalla vista di una ricetta, **"Modifica"** per aprirla in modalità editing
+- **"⧉ Duplica"** crea una copia della ricetta (con "(copia)" nel nome) e la apre subito in modifica, senza toccare l'originale — comodo per creare varianti, es. una versione vegetariana, senza riscrivere tutto da capo
 - **"Elimina ricetta"** la rimuove definitivamente (chiede conferma) e la toglie automaticamente anche dalla pianificazione settimanale
 
 ## Dispensa
