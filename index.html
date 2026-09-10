@@ -469,9 +469,13 @@
   }
 
   .shopping-list-items{list-style:none;padding:0;margin:0;}
-  .shopping-list-items li{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dotted var(--line);font-size:15px;}
+  .shopping-list-items li{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dotted var(--line);font-size:15px;}
   .shopping-list-items li.checked span{text-decoration:line-through;color:var(--ink-soft);}
   .shopping-list-items li .amt{color:var(--brass);font-weight:600;margin-left:auto;}
+  .shopping-list-items li.covered>span{text-decoration:line-through;color:var(--ink-soft);}
+  .shopping-pantry-note{flex-basis:100%;font-size:12.5px;color:var(--ink-soft);margin:-2px 0 0 30px;}
+  .shopping-subtract-btn{margin-left:8px;background:none;border:none;color:var(--brass);font-weight:600;text-decoration:underline;cursor:pointer;padding:0;font-size:12.5px;}
+  .shopping-subtract-btn:hover{color:var(--ink);}
 
   /* ---------- Animazioni ---------- */
   @keyframes cardIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
@@ -492,23 +496,6 @@
   @media (prefers-reduced-motion: reduce){
     .card,.modal,.menu-dropdown,.plan-day-card{animation:none; transition:none;}
     .card{transition:none;}
-  }
-
-  /* ---------- Print ---------- */
-  @media print{
-    body{background:#fff;padding:0;}
-    .masthead, .panel, .toolbar, footer, .cook-overlay, .view-nav, #planning-view, #dispensa-view{display:none !important;}
-    .book{box-shadow:none;border:none;background:#fff;padding:0;}
-    #recipe-list{display:none;}
-    .overlay{position:static;background:none;padding:0;display:block !important;}
-    .modal{box-shadow:none;border:none;max-width:100%;}
-    #edit-overlay{display:none !important;}
-    body:not(.printing-recipe):not(.printing-week) .overlay{display:none !important;}
-    body.printing-recipe #view-overlay{display:block !important;}
-    body.printing-week .overlay{display:none !important;}
-    #print-week-content{display:none;}
-    body.printing-week #print-week-content{display:block !important;}
-    .close-x, .servings-control, .modal-actions, .step-timer-btn{display:none !important;}
   }
 
 </style>
@@ -649,15 +636,9 @@
     <div class="modal-actions" style="border-top:1px solid var(--line);padding-top:16px;margin-top:4px;">
       <button class="btn-ghost" id="clear-week-btn">Svuota settimana</button>
       <button class="btn-ghost" id="copy-last-week-btn">📋 Copia settimana scorsa</button>
-      <div class="menu-wrap">
-        <button class="btn-ghost" id="week-export-menu-btn">⬇ Esporta ▾</button>
-        <div class="menu-dropdown" id="week-export-menu-dropdown">
-          <button id="print-week-btn">🖨 Stampa settimana</button>
-          <button id="export-week-pdf-btn">⬇ Esporta PDF settimana</button>
-        </div>
-      </div>
+      <button class="btn-ghost" id="export-week-pdf-btn">⬇ Esporta PDF settimana</button>
       <div style="flex:1;"></div>
-      <button class="btn-gold" id="generate-shopping-btn">Genera lista della spesa dalla settimana</button>
+      <button class="btn-gold" id="generate-shopping-btn">🛒 Lista della spesa (settimana)</button>
     </div>
   </div>
 
@@ -695,8 +676,6 @@
   </div>
 
 </div>
-
-<div id="print-week-content" style="display:none;"></div>
 
 <footer>Conservato localmente sul tuo dispositivo · nessun server, nessun account</footer>
 
@@ -965,11 +944,11 @@
       <div class="menu-wrap">
         <button class="btn-ghost" id="view-export-menu-btn">⬇ Esporta ▾</button>
         <div class="menu-dropdown" id="view-export-menu-dropdown">
-          <button id="print-recipe-btn">🖨 Stampa</button>
           <button id="export-recipe-pdf-btn">⬇ Esporta PDF</button>
           <button id="export-recipe-json-btn">⬇ Esporta ricetta (.json)</button>
         </div>
       </div>
+      <button class="btn-ghost" id="recipe-shopping-btn">🛒 Lista della spesa</button>
       <div class="menu-wrap">
         <button class="btn-ghost" id="view-schedule-btn">📅 Pianifica</button>
         <div class="menu-dropdown schedule-dropdown" id="view-schedule-dropdown">
@@ -1033,9 +1012,9 @@
     <div style="font-size:11.5px;color:var(--ink-soft);font-style:italic;margin:-10px 0 14px;">Spuntando un ingrediente lo aggiungi (o ne aumenti la quantità) in Dispensa</div>
     <ul class="shopping-list-items" id="shopping-list-items"></ul>
     <div class="modal-actions">
+      <button class="btn-ghost" id="shopping-subtract-all-btn" title="Sottrae da tutta la lista la quantità già disponibile in Dispensa, dove possibile">🥫 Sottrai tutto</button>
       <div style="flex:1;"></div>
       <button class="btn-ghost" id="export-shopping-pdf-btn">⬇ Esporta PDF</button>
-      <button class="btn-ghost" id="shopping-print-btn">🖨 Stampa lista</button>
     </div>
   </div>
 </div>
@@ -1134,14 +1113,31 @@
       if(!Array.isArray(shoppingExtraItems)) shoppingExtraItems = [];
     }catch(e){ shoppingExtraItems = []; }
   }
-  function saveRecipes(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes)); }
-  function saveWeek(){ localStorage.setItem(WEEK_KEY, JSON.stringify(weekPlan)); }
-  function saveMealTypes(){ localStorage.setItem(MEALTYPES_KEY, JSON.stringify(mealTypes)); }
-  function savePantry(text){ localStorage.setItem(PANTRY_KEY, text); }
-  function savePlanServings(){ localStorage.setItem(PLAN_SERVINGS_KEY, String(planServings)); }
-  function savePreviousWeek(plan){ localStorage.setItem(PREV_WEEK_KEY, JSON.stringify(plan)); }
-  function saveDispensaItems(){ localStorage.setItem(DISPENSA_ITEMS_KEY, JSON.stringify(dispensaItems)); }
-  function saveShoppingExtra(){ localStorage.setItem(SHOPPING_EXTRA_KEY, JSON.stringify(shoppingExtraItems)); }
+  // Salva in localStorage intercettando l'errore di spazio esaurito nel browser: senza questo,
+  // un salvataggio fallito passerebbe inosservato (la modifica resta visibile nell'interfaccia
+  // ma sparisce alla riapertura). Avvisa una sola volta a sessione, per non intasare di avvisi
+  // se lo spazio resta esaurito per più azioni di fila.
+  let storageQuotaWarned = false;
+  function safeStorageSet(key, value){
+    try{
+      localStorage.setItem(key, value);
+      return true;
+    }catch(err){
+      if(!storageQuotaWarned){
+        storageQuotaWarned = true;
+        alert('Spazio di salvataggio esaurito nel browser: questa modifica (e probabilmente altre recenti) NON è stata salvata.\n\nPer liberare spazio: riduci il numero o la qualità delle foto nelle ricette, oppure esporta subito un backup per mettere al sicuro quello che hai già, poi ricarica la pagina.');
+      }
+      return false;
+    }
+  }
+  function saveRecipes(){ return safeStorageSet(STORAGE_KEY, JSON.stringify(recipes)); }
+  function saveWeek(){ return safeStorageSet(WEEK_KEY, JSON.stringify(weekPlan)); }
+  function saveMealTypes(){ return safeStorageSet(MEALTYPES_KEY, JSON.stringify(mealTypes)); }
+  function savePantry(text){ return safeStorageSet(PANTRY_KEY, text); }
+  function savePlanServings(){ return safeStorageSet(PLAN_SERVINGS_KEY, String(planServings)); }
+  function savePreviousWeek(plan){ return safeStorageSet(PREV_WEEK_KEY, JSON.stringify(plan)); }
+  function saveDispensaItems(){ return safeStorageSet(DISPENSA_ITEMS_KEY, JSON.stringify(dispensaItems)); }
+  function saveShoppingExtra(){ return safeStorageSet(SHOPPING_EXTRA_KEY, JSON.stringify(shoppingExtraItems)); }
 
   // Le versioni precedenti salvavano una sola ricetta per giorno (stringa).
   // La convertiamo in una lista di voci { id, recipeId, mealType, time }.
@@ -1287,6 +1283,54 @@
 
   function unitsMatch(a, b){ return normalize(a||'') === normalize(b||''); }
 
+  // Cerca in Dispensa un prodotto che corrisponda a un ingrediente per nome. Prova prima un nome
+  // identico (il più affidabile per agire in automatico, es. sottrarre una quantità); se non c'è,
+  // una corrispondenza più elastica come quella di "Cosa posso cucinare?" — ma solo se il candidato
+  // possibile è unico, per non rischiare di agire per errore su un prodotto simile ma diverso (es.
+  // "Farina 00" invece di "Farina di mais"). Restituisce { match, isApprox, ambiguous }: "match" è
+  // il prodotto trovato (o null), "isApprox" indica se è una corrispondenza elastica e non per nome
+  // esatto, "ambiguous" è l'eventuale elenco di più candidati quando non se ne può scegliere uno solo.
+  function findDispensaMatch(ingredientName){
+    const target = normalize(ingredientName);
+    const exact = dispensaItems.find(it => normalize(it.name) === target);
+    if(exact) return { match: exact, isApprox: false, ambiguous: [] };
+    const fuzzy = dispensaItems.filter(it=>{
+      const p = normalize(it.name);
+      return p && (target.includes(p) || p.includes(target));
+    });
+    if(fuzzy.length === 1) return { match: fuzzy[0], isApprox: true, ambiguous: [] };
+    if(fuzzy.length > 1) return { match: null, isApprox: false, ambiguous: fuzzy };
+    return { match: null, isApprox: false, ambiguous: [] };
+  }
+
+  // Fattori di conversione verso un'unità di base (grammi per il peso, millilitri per il volume),
+  // per confrontare quantità anche quando le unità sono scritte in modo diverso ma equivalenti.
+  const UNIT_BASE_FACTOR = {
+    g:1, gr:1, grammo:1, grammi:1,
+    kg:1000, kilo:1000, kili:1000, chilo:1000, chili:1000, chilogrammo:1000, chilogrammi:1000,
+    mg:0.001, milligrammo:0.001, milligrammi:0.001,
+    ml:1, millilitro:1, millilitri:1,
+    cl:10, centilitro:10, centilitri:10,
+    l:1000, lt:1000, litro:1000, litri:1000,
+  };
+  const UNIT_DIMENSION = {
+    g:'peso', gr:'peso', grammo:'peso', grammi:'peso', kg:'peso', kilo:'peso', kili:'peso',
+    chilo:'peso', chili:'peso', chilogrammo:'peso', chilogrammi:'peso', mg:'peso', milligrammo:'peso', milligrammi:'peso',
+    ml:'volume', millilitro:'volume', millilitri:'volume', cl:'volume', centilitro:'volume', centilitri:'volume',
+    l:'volume', lt:'volume', litro:'volume', litri:'volume',
+  };
+  // Converte una quantità da un'unità nota a un'altra della stessa grandezza (es. kg -> g, l -> ml).
+  // Restituisce null se le due unità non sono equivalenti o non sono tra quelle riconosciute:
+  // in quel caso la conversione resta manuale, non essendo affidabile farla in automatico.
+  function convertQty(qty, fromUnit, toUnit){
+    const from = normalize(fromUnit), to = normalize(toUnit);
+    if(from === to) return qty;
+    const fromFactor = UNIT_BASE_FACTOR[from], toFactor = UNIT_BASE_FACTOR[to];
+    if(fromFactor === undefined || toFactor === undefined) return null;
+    if(UNIT_DIMENSION[from] !== UNIT_DIMENSION[to]) return null;
+    return qty * fromFactor / toFactor;
+  }
+
   // Segna un pasto pianificato come consumato: se possibile, scala la quantità corrispondente
   // in Dispensa. Per i pasti "dalla dispensa" il collegamento è diretto ed esatto; per i pasti da
   // ricetta si cerca un prodotto Dispensa con nome simile e si scala solo se l'unità di misura
@@ -1326,9 +1370,14 @@
     const runningQty = new Map(); // prodotto Dispensa -> quantità via via aggiornata, per gestire più ingredienti che puntano allo stesso prodotto
     const toUpdate = [];
     const skipped = new Set();
+    const ambiguousSkipped = [];
     (recipe.ingredients || []).forEach(ing=>{
       if(!ing.name) return;
-      const match = dispensaItems.find(it => ingredientCovered(ing.name, [normalize(it.name)]));
+      const { match, ambiguous } = findDispensaMatch(ing.name);
+      if(ambiguous.length){
+        ambiguousSkipped.push(`${ing.name} (potrebbe essere: ${ambiguous.map(x=>x.name).join(', ')})`);
+        return;
+      }
       if(!match) return;
       const amount = (parseFloat(ing.qty) || 0) * scale;
       if(!amount) return;
@@ -1352,7 +1401,10 @@
     if(skipped.size){
       msg += `\n\nNon modificati (unità diverse o quantità non indicata in Dispensa): ${Array.from(skipped).join(', ')}.`;
     }
-    if(!toUpdate.length && !skipped.size){
+    if(ambiguousSkipped.length){
+      msg += `\n\nNon modificati (più prodotti simili in Dispensa, verifica tu): ${ambiguousSkipped.join('; ')}.`;
+    }
+    if(!toUpdate.length && !skipped.size && !ambiguousSkipped.length){
       msg += `\n\nNessun ingrediente corrispondente trovato in Dispensa: nessuna modifica.`;
     }
     if(!confirm(msg)) return;
@@ -1592,22 +1644,6 @@
     }
   });
 
-  // ---------- Menu "Esporta" (settimana) ----------
-  const weekExportMenuBtn = document.getElementById('week-export-menu-btn');
-  const weekExportMenuDropdown = document.getElementById('week-export-menu-dropdown');
-  weekExportMenuBtn.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    weekExportMenuDropdown.classList.toggle('open');
-  });
-  weekExportMenuDropdown.querySelectorAll('button').forEach(btn=>{
-    btn.addEventListener('click', ()=> weekExportMenuDropdown.classList.remove('open'));
-  });
-  document.addEventListener('click', (e)=>{
-    if(weekExportMenuDropdown.classList.contains('open') && !weekExportMenuDropdown.contains(e.target) && e.target !== weekExportMenuBtn){
-      weekExportMenuDropdown.classList.remove('open');
-    }
-  });
-
   // ---------- Menu "Esporta" (scheda ricetta) ----------
   const viewExportMenuBtn = document.getElementById('view-export-menu-btn');
   const viewExportMenuDropdown = document.getElementById('view-export-menu-dropdown');
@@ -1705,16 +1741,47 @@
     editOverlay.classList.add('active');
   }
 
-  fPhoto.addEventListener('change', ()=>{
+  // Ridimensiona e comprime una foto prima di salvarla (spazio nel browser limitato, e le foto
+  // fatte con il cellulare sono spesso enormi rispetto a quanto serve mostrarle nel ricettario).
+  // Se qualcosa va storto usa comunque l'immagine originale, per non perdere la foto scelta.
+  function compressPhoto(file, maxDim, quality){
+    return new Promise((resolve)=>{
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        const original = e.target.result;
+        const img = new Image();
+        img.onload = ()=>{
+          let { width, height } = img;
+          if(width <= maxDim && height <= maxDim){
+            resolve(original); // già abbastanza piccola: non serve ricomprimerla
+            return;
+          }
+          const scale = maxDim / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+          try{
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          }catch(err){ resolve(original); }
+        };
+        img.onerror = () => resolve(original);
+        img.src = original;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  }
+
+  fPhoto.addEventListener('change', async ()=>{
     const file = fPhoto.files[0];
     if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (e)=>{
-      currentPhotoData = e.target.result;
-      fPhotoPreview.src = currentPhotoData;
-      fPhotoPreview.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+    const compressed = await compressPhoto(file, 1400, 0.82);
+    if(!compressed) return;
+    currentPhotoData = compressed;
+    fPhotoPreview.src = currentPhotoData;
+    fPhotoPreview.style.display = 'block';
   });
 
   let showIngredientNutrition = false;
@@ -1843,6 +1910,40 @@
       salt: block.querySelector('.ing-salt').value
     })).filter(i=>i.name);
 
+    // Segnala se lo stesso ingrediente (nome e unità) compare più volte nella ricetta — capita
+    // facilmente scrivendo a mano — e offre di unirli in un'unica riga sommando le quantità
+    // (e i valori nutrizionali, già intesi come totali per riga, non per unità di misura).
+    let finalIngredients = ingredients;
+    const dupGroups = {};
+    ingredients.forEach(ing=>{
+      const key = normalize(ing.name) + '|' + normalize(ing.unit);
+      (dupGroups[key] = dupGroups[key] || []).push(ing);
+    });
+    const dupNames = Object.values(dupGroups).filter(g => g.length > 1).map(g => g[0].name);
+    if(dupNames.length){
+      const merge = confirm(`Questo ingrediente compare più volte nella ricetta (stesso nome e unità di misura): ${dupNames.join(', ')}.\n\nVuoi unire le righe sommando le quantità? (Annulla per lasciarle separate)`);
+      if(merge){
+        const seen = new Set();
+        const sumField = (group, f) => {
+          const vals = group.map(g => parseFloat(g[f])).filter(v => !isNaN(v));
+          return vals.length ? String(vals.reduce((a,b)=>a+b, 0)) : '';
+        };
+        finalIngredients = [];
+        ingredients.forEach(ing=>{
+          const key = normalize(ing.name) + '|' + normalize(ing.unit);
+          if(seen.has(key)) return;
+          seen.add(key);
+          const group = dupGroups[key];
+          finalIngredients.push(group.length === 1 ? ing : {
+            name: ing.name, unit: ing.unit,
+            qty: group.reduce((sum,g)=> sum + (parseFloat(g.qty)||0), 0),
+            kcal: sumField(group,'kcal'), protein: sumField(group,'protein'), fat: sumField(group,'fat'),
+            carbs: sumField(group,'carbs'), fiber: sumField(group,'fiber'), sugar: sumField(group,'sugar'), salt: sumField(group,'salt')
+          });
+        });
+      }
+    }
+
     const steps = Array.from(stepsEditor.querySelectorAll('.step-block')).map(block=>({
       text: block.querySelector('.step-text').value.trim(),
       vel: block.querySelector('.step-vel').value,
@@ -1868,7 +1969,7 @@
       id: editingId || cryptoId(), name, category: fCategory.value,
       servings: parseInt(fServings.value) || 1, time: parseInt(fTime.value) || 0,
       cookerType: fCookerType.value,
-      ingredients, steps, tags, notes: fNotes.value.trim(),
+      ingredients: finalIngredients, steps, tags, notes: fNotes.value.trim(),
       photo: currentPhotoData, favorite: existingExtra.favorite, lastMade: existingExtra.lastMade, timesMade: existingExtra.timesMade
     };
 
@@ -2074,6 +2175,13 @@
     viewOverlay.classList.remove('active');
     openEdit(null, { ...r, name: `${r.name} (copia)` }, 'Duplica ricetta');
   });
+  document.getElementById('recipe-shopping-btn').addEventListener('click', ()=>{
+    const r = recipes.find(x=>x.id === currentViewId);
+    if(!r) return;
+    const scale = currentServings / (r.servings || 1);
+    const items = buildAggregatedShoppingItems([{ recipe: r, scale }], false);
+    openShoppingListOverlay(items, `Per ${currentServings} porzion${currentServings===1?'e':'i'} — ${r.name}`);
+  });
   viewFavoriteBtn.addEventListener('click', ()=>{
     const r = recipes.find(x=>x.id === currentViewId);
     if(!r) return;
@@ -2124,16 +2232,6 @@
     scheduleStatus.textContent = `✓ Aggiunta a ${day}`;
     scheduleStatus.style.display = 'block';
     offerAddMissingToShoppingList(recipes.find(r=>r.id === currentViewId));
-  });
-
-  // ---------- Print ----------
-  document.getElementById('print-recipe-btn').addEventListener('click', ()=>{
-    document.body.classList.add('printing-recipe');
-    window.print();
-  });
-  window.addEventListener('afterprint', ()=>{
-    document.body.classList.remove('printing-recipe');
-    document.body.classList.remove('printing-week');
   });
 
   document.getElementById('export-recipe-pdf-btn').addEventListener('click', ()=>{
@@ -2228,24 +2326,30 @@
     const r = recipes.find(x=>x.id === e.recipeId);
     return r ? r.name : '(ricetta eliminata)';
   }
-  function buildAggregatedShoppingItems(plannedRecipes){
+  // Aggrega gli ingredienti di un elenco di { recipe, scale } in un'unica lista per la spesa.
+  // "includeExtras" (facoltativo, di base true) aggiunge anche i promemoria degli ingredienti
+  // segnalati mancanti dalla Dispensa, quando non già coperti dagli ingredienti aggregati.
+  function buildAggregatedShoppingItems(recipeScalePairs, includeExtras){
+    if(includeExtras === undefined) includeExtras = true;
     const aggregated = {};
-    plannedRecipes.forEach(r=>{
-      const scale = planServings / (r.servings || 1);
+    recipeScalePairs.forEach(({recipe:r, scale})=>{
       r.ingredients.forEach(ing=>{
         const key = normalize(ing.name) + '|' + normalize(ing.unit);
         if(!aggregated[key]){ aggregated[key] = {name: ing.name, unit: ing.unit, qty: 0}; }
         aggregated[key].qty += (parseFloat(ing.qty) || 0) * scale;
       });
     });
-    const aggregatedNames = new Set(Object.values(aggregated).map(i=>normalize(i.name)));
-    // Promemoria: ingredienti segnalati mancanti dalla Dispensa quando una ricetta è stata pianificata,
-    // aggiunti se non già coperti dagli ingredienti già aggregati dalle ricette di questa settimana.
-    const extras = shoppingExtraItems
-      .filter(x => !aggregatedNames.has(normalize(x.name)))
-      .map(x => ({ name: x.name, unit: '', qty: 0, fromDispensaFlag: true, extraId: x.id }));
-    return Object.values(aggregated).sort((a,b)=>a.name.localeCompare(b.name))
-      .concat(extras.sort((a,b)=>a.name.localeCompare(b.name)));
+    let items = Object.values(aggregated).sort((a,b)=>a.name.localeCompare(b.name));
+    if(includeExtras){
+      const aggregatedNames = new Set(items.map(i=>normalize(i.name)));
+      // Promemoria: ingredienti segnalati mancanti dalla Dispensa quando una ricetta è stata pianificata,
+      // aggiunti se non già coperti dagli ingredienti già aggregati dalle ricette di questa settimana.
+      const extras = shoppingExtraItems
+        .filter(x => !aggregatedNames.has(normalize(x.name)))
+        .map(x => ({ name: x.name, unit: '', qty: 0, fromDispensaFlag: true, extraId: x.id }));
+      items = items.concat(extras.sort((a,b)=>a.name.localeCompare(b.name)));
+    }
+    return items;
   }
   function computeWeekPlanData(){
     const days = DAYS.map(day=>{
@@ -2254,36 +2358,14 @@
     });
     const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
     const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
-    const shoppingItems = buildAggregatedShoppingItems(plannedRecipes);
+    const pairs = plannedRecipes.map(r=>({ recipe: r, scale: planServings / (r.servings || 1) }));
+    const shoppingItems = buildAggregatedShoppingItems(pairs);
     return { days, shoppingItems };
   }
   function shoppingItemLine(i){
     if(i.fromDispensaFlag) return `${i.name} (dalla dispensa)`;
     return `${i.name}${i.qty ? ' — ' + roundNice(i.qty) : ''}${i.unit ? ' ' + i.unit : ''}`;
   }
-
-  document.getElementById('print-week-btn').addEventListener('click', ()=>{
-    const printEl = document.getElementById('print-week-content');
-    const { days, shoppingItems } = computeWeekPlanData();
-    const dayBlocks = days.map(({day, entries})=>{
-      const rows = entries.map(e=>
-        `<div>${e.time?`<b>${escapeHtml(e.time)}</b> — `:''}${escapeHtml(e.mealType)}: ${escapeHtml(e.name)}</div>`
-      ).join('') || '<div style="font-style:italic;color:#8a7a63;">Nessuna ricetta</div>';
-      return `<div style="margin-bottom:14px;"><h3 style="margin:0 0 4px;">${escapeHtml(day)}</h3>${rows}</div>`;
-    }).join('');
-    const shoppingRows = shoppingItems.map(i=>`<div>☐ ${escapeHtml(shoppingItemLine(i))}</div>`).join('')
-      || '<div style="font-style:italic;color:#8a7a63;">Nessuna ricetta pianificata</div>';
-
-    printEl.innerHTML = `
-      <h2>Pianificazione settimanale</h2>
-      <p style="font-size:13px;color:#8a7a63;">Per ${planServings} persone</p>
-      ${dayBlocks}
-      <h2 style="margin-top:20px;">Lista della spesa</h2>
-      ${shoppingRows}
-    `;
-    document.body.classList.add('printing-week');
-    window.print();
-  });
 
   // ---------- Generatore PDF minimale (solo testo, multipagina, nessuna libreria esterna) ----------
   function pdfSanitizeText(str){
@@ -2487,7 +2569,7 @@
     const blob = new Blob([data], {type:'application/json'});
     const saved = await saveFileSmart(blob, `ricettario-backup-${new Date().toISOString().slice(0,10)}.json`, 'application/json', '.json', 'Backup JSON');
     if(!saved) return;
-    localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString());
+    safeStorageSet(LAST_BACKUP_KEY, new Date().toISOString());
     updateBackupReminder();
   });
 
@@ -3115,6 +3197,21 @@
     </div>`;
   }
 
+  // Genera e apre la lista della spesa per le sole ricette pianificate in un giorno specifico
+  // (i pasti "dalla dispensa" sono esclusi, dato che non richiedono acquisti).
+  function openDayShoppingList(day){
+    const dayRecipes = (weekPlan[day] || [])
+      .map(e => recipes.find(r => r.id === e.recipeId))
+      .filter(Boolean);
+    if(dayRecipes.length === 0){
+      alert(`Nessuna ricetta pianificata per ${day}.`);
+      return;
+    }
+    const pairs = dayRecipes.map(r => ({ recipe: r, scale: planServings / (r.servings || 1) }));
+    const items = buildAggregatedShoppingItems(pairs, false);
+    openShoppingListOverlay(items, `Per ${planServings} persone — ${day}: ${dayRecipes.map(r=>r.name).join(', ')}`);
+  }
+
   function renderPlanningDays(){
     if(!planningDaysEl) return;
     if(!selectedPlanDay){
@@ -3163,8 +3260,15 @@
       <div class="plan-entry-list">${orphaned.map(renderPlanEntry).join('')}</div>
     </div>` : '';
 
-    card.innerHTML = `<h3>${escapeHtml(day)}</h3>${blocksHtml}${orphanedHtml || ''}`;
+    card.innerHTML = `<h3>${escapeHtml(day)}</h3>
+      <div style="text-align:center;margin:-6px 0 14px;"><button type="button" class="btn-ghost btn-small plan-day-shopping-btn">🛒 Lista della spesa del giorno</button></div>
+      ${blocksHtml}${orphanedHtml || ''}`;
     planningDaysEl.appendChild(card);
+
+    const dayShoppingBtn = card.querySelector('.plan-day-shopping-btn');
+    if(dayShoppingBtn){
+      dayShoppingBtn.addEventListener('click', ()=> openDayShoppingList(day));
+    }
 
     planningDaysEl.querySelectorAll('.plan-add-btn').forEach(btn=>{
       btn.addEventListener('click', ()=>{
@@ -3451,21 +3555,10 @@
     return true;
   }
 
-  document.getElementById('generate-shopping-btn').addEventListener('click', ()=>{
-    const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
-    const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
-    if(plannedRecipes.length === 0 && shoppingExtraItems.length === 0){
-      alert(allEntries.length === 0
-        ? 'Assegna almeno una ricetta a un giorno della settimana.'
-        : 'Nessuna ricetta pianificata da cui generare la lista della spesa (i prodotti dalla dispensa non richiedono acquisti).');
-      return;
-    }
-
-    const items = buildAggregatedShoppingItems(plannedRecipes);
-
-    shoppingSubtitle.textContent = plannedRecipes.length
-      ? `Per ${planServings} persone — ${plannedRecipes.map(r=>r.name).join(', ')}`
-      : 'Ingredienti segnalati mancanti dalla Dispensa';
+  // Popola e apre il modal della lista della spesa con un elenco di voci già calcolato
+  // (usata sia dalla lista della settimana, sia da quella di un giorno o di una singola ricetta).
+  function openShoppingListOverlay(items, subtitleText){
+    shoppingSubtitle.textContent = subtitleText;
     let dispensaSyncCount = 0;
     shoppingDispensaSyncNote.style.display = 'none';
     shoppingListItems.innerHTML = '';
@@ -3473,6 +3566,81 @@
       const li = document.createElement('li');
       const amt = item.fromDispensaFlag ? 'dalla dispensa' : `${item.qty ? roundNice(item.qty) : ''} ${item.unit||''}`.trim();
       li.innerHTML = `<input type="checkbox"><span>${escapeHtml(item.name)}</span><span class="amt">${escapeHtml(amt)}</span>`;
+      const amtSpan = li.querySelector('.amt');
+
+      // Controllo incrociato con la Dispensa: se il prodotto risulta già presente, propone di
+      // sottrarre la quantità disponibile da quella ancora da acquistare (con "Annulla" per
+      // tornare indietro in caso di tocco per sbaglio).
+      if(!item.fromDispensaFlag){
+        const { match: dispensaMatch, isApprox, ambiguous: otherMatches } = findDispensaMatch(item.name);
+        const qtyUnitLabel = (val, unit) => unit ? `${roundNice(val)} ${unit}` : roundNice(val);
+        if(dispensaMatch){
+          const dispensaQtyRaw = parseFloat(dispensaMatch.qty) || 0;
+          // Se le unità non sono scritte allo stesso modo, prova a convertirle (es. kg -> g, l -> ml)
+          const dispensaQtyConverted = dispensaQtyRaw > 0 ? convertQty(dispensaQtyRaw, dispensaMatch.unit, item.unit) : null;
+          const canSubtract = dispensaQtyConverted !== null && dispensaQtyConverted > 0;
+          const approxNote = isApprox ? ` (corrispondenza simile: "${dispensaMatch.name}")` : '';
+          const note = document.createElement('div');
+          note.className = 'shopping-pantry-note';
+          const noteText = document.createTextNode('');
+          note.appendChild(noteText);
+          if(canSubtract){
+            const unitLabel = item.unit || '';
+            const originalQty = item.qty;
+            const originalAmtText = amtSpan.textContent;
+            const showSubtractBtn = ()=>{
+              noteText.textContent = `🥫 Ne hai già ${qtyUnitLabel(dispensaQtyConverted, unitLabel)} in Dispensa${approxNote}`;
+              note.querySelectorAll('button').forEach(b=>b.remove());
+              const subtractBtn = document.createElement('button');
+              subtractBtn.type = 'button';
+              subtractBtn.className = 'shopping-subtract-btn shopping-subtract-action';
+              subtractBtn.textContent = 'Sottrai dalla lista';
+              subtractBtn.addEventListener('click', applySubtract);
+              note.appendChild(subtractBtn);
+            };
+            function applySubtract(){
+              const remaining = Math.max(0, Math.round(((parseFloat(item.qty)||0) - dispensaQtyConverted) * 100) / 100);
+              item.qty = remaining;
+              note.querySelectorAll('button').forEach(b=>b.remove());
+              if(remaining > 0){
+                amtSpan.textContent = qtyUnitLabel(remaining, unitLabel);
+                noteText.textContent = `🥫 Sottratti ${qtyUnitLabel(dispensaQtyConverted, unitLabel)} già in Dispensa${approxNote}`;
+              }else{
+                li.classList.add('covered');
+                amtSpan.textContent = 'già in Dispensa';
+                noteText.textContent = `🥫 Ne hai già a sufficienza in Dispensa${approxNote}: non serve comprarne altro`;
+                const cb = li.querySelector('input[type=checkbox]');
+                if(cb) cb.disabled = true;
+              }
+              const undoBtn = document.createElement('button');
+              undoBtn.type = 'button';
+              undoBtn.className = 'shopping-subtract-btn shopping-undo-action';
+              undoBtn.textContent = 'Annulla';
+              undoBtn.addEventListener('click', ()=>{
+                item.qty = originalQty;
+                li.classList.remove('covered');
+                amtSpan.textContent = originalAmtText;
+                const cb = li.querySelector('input[type=checkbox]');
+                if(cb) cb.disabled = false;
+                showSubtractBtn();
+              });
+              note.appendChild(undoBtn);
+            }
+            showSubtractBtn();
+          }else if(dispensaQtyRaw > 0){
+            noteText.textContent = `🥫 Presente in Dispensa (${qtyUnitLabel(dispensaQtyRaw, dispensaMatch.unit)})${approxNote} con un'unità diversa: verifica tu quanto comprarne`;
+          }else{
+            noteText.textContent = `🥫 Presente in Dispensa${approxNote} (quantità non indicata): verifica tu quanto comprarne`;
+          }
+          li.appendChild(note);
+        }else if(otherMatches.length > 0){
+          const note = document.createElement('div');
+          note.className = 'shopping-pantry-note';
+          note.textContent = `🥫 Potresti avere già qualcosa di simile in Dispensa (${otherMatches.map(x=>x.name).join(', ')}): verifica tu`;
+          li.appendChild(note);
+        }
+      }
+
       li.querySelector('input').addEventListener('change', (e)=>{
         li.classList.toggle('checked', e.target.checked);
         if(e.target.checked && !li.dataset.synced){
@@ -3493,9 +3661,30 @@
       shoppingListItems.appendChild(li);
     });
     shoppingOverlay.classList.add('active');
+  }
+
+  document.getElementById('generate-shopping-btn').addEventListener('click', ()=>{
+    const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
+    const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
+    if(plannedRecipes.length === 0 && shoppingExtraItems.length === 0){
+      alert(allEntries.length === 0
+        ? 'Assegna almeno una ricetta a un giorno della settimana.'
+        : 'Nessuna ricetta pianificata da cui generare la lista della spesa (i prodotti dalla dispensa non richiedono acquisti).');
+      return;
+    }
+    const pairs = plannedRecipes.map(r=>({ recipe: r, scale: planServings / (r.servings || 1) }));
+    const items = buildAggregatedShoppingItems(pairs);
+    const subtitle = plannedRecipes.length
+      ? `Per ${planServings} persone — ${plannedRecipes.map(r=>r.name).join(', ')}`
+      : 'Ingredienti segnalati mancanti dalla Dispensa';
+    openShoppingListOverlay(items, subtitle);
   });
   document.getElementById('shopping-close').addEventListener('click', ()=> shoppingOverlay.classList.remove('active'));
-  document.getElementById('shopping-print-btn').addEventListener('click', ()=> window.print());
+  document.getElementById('shopping-subtract-all-btn').addEventListener('click', ()=>{
+    // Applica in un colpo solo tutte le sottrazioni disponibili (una per riga, dove il pulsante
+    // "Sottrai dalla lista" è comparso), senza doverle toccare una per una.
+    shoppingListItems.querySelectorAll('.shopping-subtract-action').forEach(btn => btn.click());
+  });
 
   document.getElementById('export-shopping-pdf-btn').addEventListener('click', ()=>{
     const items = Array.from(shoppingListItems.querySelectorAll('li')).map(li=>{

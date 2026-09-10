@@ -20,7 +20,7 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 14. [Pianificazione settimanale](#pianificazione-settimanale)
 15. [Lista della spesa](#lista-della-spesa)
 16. [Backup: esportazione e importazione](#backup-esportazione-e-importazione)
-17. [Stampa e PDF](#stampa-e-pdf)
+17. [Esportazione PDF](#esportazione-pdf)
 18. [Esportare e importare CSV](#esportare-e-importare-csv)
 19. [Modificare ed eliminare](#modificare-ed-eliminare)
 20. [Dispensa](#dispensa)
@@ -36,8 +36,8 @@ Apri il file `index.html` con un doppio click, oppure trascinalo in una finestra
 
 1. Premi **"+ Nuova ricetta"** in alto
 2. Compila nome, categoria, porzioni base e tempo totale
-3. Se vuoi, seleziona i **tag dietetici** pertinenti e carica una **foto**
-4. Aggiungi gli **ingredienti** uno per uno
+3. Se vuoi, seleziona i **tag dietetici** pertinenti e carica una **foto** — viene ridimensionata e compressa automaticamente prima di essere salvata, per occupare meno spazio nel browser
+4. Aggiungi gli **ingredienti** uno per uno. Se lo stesso ingrediente (nome e unità di misura) finisce per comparire due volte, al momento di salvare il ricettario te lo segnala e propone di unire le righe sommando le quantità
 5. Aggiungi i **passaggi** della preparazione (vedi sotto per le impostazioni robot facoltative)
 6. Scrivi eventuali **note personali**
 7. Premi **"Salva ricetta"**
@@ -151,18 +151,29 @@ Puoi anche saltare la ricerca e pianificare al volo mentre guardi una ricetta: n
 - Clicca sul nome di una voce pianificata per aprirne la scheda: quelle con l'etichetta 🥫 aprono la scheda del prodotto in Dispensa, le altre la scheda della ricetta
 - **"✓"** su una voce pianificata la segna come consumata e prova ad aggiornare la Dispensa di conseguenza (chiede sempre conferma, mostrando cosa sta per cambiare):
   - per un pasto aggiunto **"dalla dispensa"**, se avevi indicato una quantità nella stessa unità di misura del prodotto, quella quantità viene tolta dal prodotto
-  - per un pasto da **ricetta**, il ricettario cerca tra i prodotti in Dispensa quelli con un nome simile agli ingredienti (le quantità sono scalate in base a "per quante persone" impostato in Pianificazione) e toglie la quantità usata solo dove l'unità di misura coincide esattamente — altrimenti lascia il prodotto invariato e te lo segnala
+  - per un pasto da **ricetta**, il ricettario cerca tra i prodotti in Dispensa un nome identico agli ingredienti, oppure — se non c'è — un nome simile ma solo quando è candidato un unico prodotto (le quantità sono scalate in base a "per quante persone" impostato in Pianificazione), e toglie la quantità usata solo dove l'unità di misura coincide esattamente — altrimenti lascia il prodotto invariato e te lo segnala. Se i prodotti con un nome simile sono più di uno (es. "Farina 00" e "Farina integrale" per l'ingrediente "Farina"), non ne tocca nessuno e te li elenca entrambi, per lasciare a te la scelta
   - una volta confermato, il segno di spunta resta acceso: non si può ripetere né annullare da lì, ma puoi sempre correggere una quantità direttamente dalla scheda del prodotto in Dispensa
 - **"Svuota settimana"** cancella tutta la pianificazione, tutti i giorni compresi (chiede conferma) — prima di farlo, il ricettario salva automaticamente una copia come "settimana scorsa"
 - **"📋 Copia settimana scorsa"** ripristina quella copia al posto della pianificazione attuale (chiede conferma, perché la sovrascrive). Non è legata a un calendario reale: è semplicemente l'ultima pianificazione che avevi prima dell'ultima volta che hai premuto "Svuota settimana"
 
 ## Lista della spesa
 
-1. Nella vista Pianificazione, imposta **"Per quante persone stai pianificando?"** — le quantità della lista verranno scalate di conseguenza rispetto alle porzioni base di ogni ricetta
-2. Premi **"Genera lista della spesa dalla settimana"**: il ricettario somma gli ingredienti di tutte le ricette pianificate, raggruppandoli per nome e unità. I prodotti aggiunti dalla Dispensa non vengono conteggiati, dato che li hai già in casa
-3. Nella lista compaiono anche gli ingredienti segnalati come mancanti dalla Dispensa quando hai pianificato una ricetta (etichetta "dalla dispensa"), anche se per questa settimana non hai ripianificato quella ricetta — restano come promemoria finché non li spunti, oppure finché un ingrediente con lo stesso nome non compare già tra quelli di un'altra ricetta pianificata per la settimana in corso
-4. Spunta gli ingredienti man mano che li acquisti: ognuno viene anche aggiunto alla Dispensa (o la sua quantità aumentata, se già presente con la stessa unità di misura) — un piccolo avviso conferma quanti prodotti sono stati aggiornati. Per quelli con l'etichetta "dalla dispensa", spuntarli li toglie anche definitivamente dal promemoria. Togliere la spunta non annulla l'aggiornamento in Dispensa
-5. Premi **"🖨 Stampa lista"** per stamparla, oppure **"⬇ Esporta PDF"** per scaricarla come file
+Puoi generare la lista della spesa a tre livelli diversi, a seconda di cosa ti serve in quel momento:
+
+- **Per l'intera settimana pianificata**: nella vista Pianificazione, imposta prima **"Per quante persone stai pianificando?"** — le quantità verranno scalate di conseguenza rispetto alle porzioni base di ogni ricetta — poi premi **"🛒 Lista della spesa (settimana)"**. Il ricettario somma gli ingredienti di tutte le ricette pianificate nei sette giorni, raggruppandoli per nome e unità. I prodotti aggiunti dalla Dispensa non vengono conteggiati, dato che li hai già in casa. Compaiono anche gli ingredienti segnalati come mancanti dalla Dispensa quando hai pianificato una ricetta (etichetta "dalla dispensa"), anche se per questa settimana non hai ripianificato quella ricetta — restano come promemoria finché non li spunti, oppure finché un ingrediente con lo stesso nome non compare già tra quelli di un'altra ricetta pianificata per la settimana in corso
+- **Per un singolo giorno**: nella vista Pianificazione, apri il giorno che ti interessa con le linguette o le frecce ‹ ›, poi premi **"🛒 Lista della spesa del giorno"** sotto al titolo del giorno. Include solo le ricette assegnate a quel giorno (scalate sempre in base a "per quante persone"), senza i promemoria dalla Dispensa, che non sono legati a un giorno preciso
+- **Per una singola ricetta**: apri la ricetta e premi **"🛒 Lista della spesa"** nella sua scheda. Include solo gli ingredienti di quella ricetta, scalati alle porzioni che stai visualizzando in quel momento (indipendenti da "per quante persone" della Pianificazione)
+
+In tutti e tre i casi si apre la stessa finestra: spunta gli ingredienti man mano che li acquisti ed ognuno viene anche aggiunto alla Dispensa (o la sua quantità aumentata, se già presente con la stessa unità di misura) — un piccolo avviso conferma quanti prodotti sono stati aggiornati. Per quelli con l'etichetta "dalla dispensa" (presenti solo nella lista della settimana), spuntarli li toglie anche definitivamente dal promemoria. Togliere la spunta non annulla l'aggiornamento in Dispensa. Premi **"⬇ Esporta PDF"** per scaricarla come file.
+
+Ogni ingrediente che compare più volte (anche da ricette diverse, se pianifichi più ricette nella stessa lista) viene sommato in un'unica riga, purché il nome e l'unità di misura coincidano esattamente.
+
+**Controllo incrociato con la Dispensa**: se un ingrediente della lista corrisponde a un prodotto che hai già segnato in Dispensa, sotto la riga compare un avviso. Il ricettario cerca prima un prodotto con lo stesso nome; se non lo trova, prova anche una corrispondenza più elastica come quella di "Cosa posso cucinare?" (utile per varianti dello stesso ingrediente, es. "Farina" nella ricetta e "Farina 00" in Dispensa) — ma solo quando è candidato un unico prodotto: se ce ne sono più di uno possibile, ti vengono elencati ma senza sottrazione automatica, per non rischiare di sbagliare
+- Se la quantità in Dispensa è nella stessa unità di misura (oppure in un'unità equivalente convertibile automaticamente: grammi/chilogrammi, millilitri/centilitri/litri) compare **"Sottrai dalla lista"**: un tocco toglie quella quantità da quella da acquistare, così compri solo quello che ti manca davvero. Se quello che hai in Dispensa basta o avanza, la riga si aggiorna con "già in Dispensa" e la casella si disabilita, perché non serve comprarne altro
+- Dopo aver sottratto, compare **"Annulla"** al posto di "Sottrai dalla lista": riporta la riga alla quantità originale, comodo se hai premuto per sbaglio o hai cambiato idea
+- Se l'unità di misura non è convertibile automaticamente (es. "pezzi" contro "grammi") o la quantità in Dispensa non è indicata, compare comunque un avviso che te lo ricorda, ma senza sottrazione automatica: la conversione resta a te
+- **"🥫 Sottrai tutto"**, sopra "⬇ Esporta PDF", applica in un solo tocco tutte le sottrazioni disponibili in quel momento nella lista, senza doverle confermare una per una
+
 
 ## Backup: esportazione e importazione
 
@@ -171,12 +182,13 @@ Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **
 - **Esporta backup**: scarica un file `.json` con tutte le ricette, la pianificazione settimanale, le fasce pasto personalizzate e i promemoria di ingredienti mancanti dalla Dispensa. Fallo periodicamente, o prima di cancellare i dati del browser
 - **Importa backup**: seleziona un file `.json` esportato in precedenza per ricaricare i dati. Le ricette già presenti (stesso identificativo) non vengono duplicate
 
-## Stampa e PDF
+## Esportazione PDF
 
-- Dalla vista di una ricetta, il menu **"⬇ Esporta ▾"** offre **"🖨 Stampa"** per un layout pulito, oppure **"⬇ Esporta PDF"** per scaricarla come file (con ingredienti già scalati alle porzioni che stai visualizzando)
-- Dalla lista della spesa, **"🖨 Stampa lista"** oppure **"⬇ Esporta PDF"** per scaricarla come file invece di passare dalla finestra di stampa del browser (più affidabile su alcuni cellulari)
-- Dalla vista Pianificazione, il menu **"⬇ Esporta ▾"** offre **"🖨 Stampa settimana"** e **"⬇ Esporta PDF settimana"**: entrambe includono il piano di tutti i giorni insieme alla lista della spesa aggregata, ma il PDF si scarica direttamente come file, senza passare dalla finestra di stampa
+- Dalla vista di una ricetta, il menu **"⬇ Esporta ▾"** offre **"⬇ Esporta PDF"** per scaricarla come file (con ingredienti già scalati alle porzioni che stai visualizzando)
+- Dalla lista della spesa (settimana, giorno o singola ricetta), **"⬇ Esporta PDF"** scarica la lista come file
+- Dalla vista Pianificazione, **"⬇ Esporta PDF settimana"** scarica un file con il piano di tutti i giorni insieme alla lista della spesa aggregata
 - Il PDF è generato interamente dal ricettario stesso (nessun servizio esterno): supporta più pagine e le lettere accentate italiane; eventuali emoji o simboli non standard nel testo vengono sostituiti con "?"
+- Non è più disponibile la stampa diretta dal browser (la finestra "Stampa" di sistema): su alcuni dispositivi, in particolare mobile, produceva un foglio vuoto. L'esportazione PDF sostituisce completamente questa funzione ed è più affidabile, perché genera un file scaricabile senza passare dalla finestra di stampa
 
 ## Esportare e importare CSV
 
@@ -215,6 +227,7 @@ Tutto è salvato nel `localStorage` del browser che stai usando:
 - Non serve connessione internet per salvare o leggere i dati
 - I dati **non si sincronizzano** automaticamente tra browser o dispositivi diversi — usa il backup per trasferirli
 - Se cancelli i dati di navigazione del browser (cache, cookie, dati dei siti), tutto viene perso
+- Lo spazio disponibile non è illimitato (di solito qualche MB): le foto delle ricette vengono ridimensionate e compresse automaticamente per occuparne meno. Se nonostante questo lo spazio dovesse esaurirsi, un avviso ti informa che il salvataggio non è andato a buon fine, invece di fallire senza dirtelo — a quel punto conviene esportare subito un backup e liberare un po' di spazio (es. riducendo il numero di foto)
 
 ## Dove vengono salvati e caricati i file
 

@@ -2,16 +2,14 @@
 
 Un ricettario personale, digitale e privato, per organizzare le tue ricette da qualsiasi fonte. Nessun account, nessun server, nessun abbonamento: tutto resta sul tuo dispositivo.
 
-<!--
-Screenshot: aggiungi qui un'immagine dell'interfaccia (es. screenshot.png) e scommenta la riga sotto.
 ![Screenshot del ricettario](screenshot.png)
--->
 
 ## ✨ Caratteristiche
 
 - **Passaggi con impostazioni robot facoltative**: scrivi ogni passaggio in modo normale; se usi un robot da cucina puoi aggiungere velocità, temperatura, tempo e modalità (Normale/Reverse/Turbo/Vapore) solo dove ti serve
 - **Passaggi con impostazioni pentola a pressione facoltative**: pressione (con l'unità che preferisci: Bar, PSI o kPa), tipo di rilascio, durata del rilascio con timer dedicato e liquido minimo richiesto; le ricette che le usano si riconoscono da un'etichetta 🍲 automatica
 - **Valori nutrizionali facoltativi per ingrediente** (Kcal, proteine, grassi, carboidrati, fibre, zuccheri, sale), inseriti manualmente e sommati automaticamente in un riepilogo per porzione che si scala da solo
+- **Ingredienti duplicati**: se lo stesso ingrediente finisce per comparire due volte in una ricetta (stesso nome e unità), il ricettario te lo segnala al salvataggio e propone di unire le righe sommando le quantità
 - **Importa ricette da testo**: incolla il testo o il sorgente di una pagina web e il ricettario prova a riconoscere automaticamente nome, ingredienti e passaggi (usa i dati strutturati della pagina quando disponibili), pronti da correggere prima di salvare
 - **Porzioni scalabili**: apri una ricetta e ricalcola automaticamente le quantità con un semplice +/−
 - **Categorie colorate**: Primi, Secondi, Zuppe & Vellutate, Impasti & Pane, Salse & Sughi, Dolci, Infusi & Tisane, Altro
@@ -21,16 +19,17 @@ Screenshot: aggiungi qui un'immagine dell'interfaccia (es. screenshot.png) e sco
 - **Duplica ricetta**: crea una copia di una ricetta già pronta in modifica, comoda per varianti senza riscrivere tutto da capo
 - **Ricette preferite**: stellina per le ricette del cuore, con filtro dedicato
 - **Cronologia di preparazione**: data dell'ultima volta e contatore di quante volte l'hai preparata
-- **Foto per ricetta**
+- **Foto per ricetta**, ridimensionata e compressa automaticamente per occupare meno spazio
 - **Modalità cucina guidata**: schermo intero, un passaggio alla volta, con timer integrato
 - **Pianificazione settimanale in una vista dedicata**: più ricette (o prodotti dalla dispensa) per giorno, organizzate in fasce personalizzabili (colazione, pranzo, cena, spuntino o quelle che preferisci) con orario facoltativo per ciascuna
-- **Conferma consumo pasto**: segna un pasto pianificato come consumato e prova ad aggiornare automaticamente le quantità in Dispensa, quando l'unità di misura coincide
-- **Lista della spesa scalabile**: genera la lista dalla settimana pianificata, con le quantità adattate al numero di persone che indichi; segnala anche gli ingredienti di una ricetta appena pianificata che non risultano in Dispensa, con conferma prima di aggiungerli come promemoria alla lista; spuntare un ingrediente lo aggiunge (o ne aumenta la quantità) anche in Dispensa
-- **Stampa**: una singola ricetta, la lista della spesa, oppure l'intera settimana insieme alla lista della spesa
+- **Conferma consumo pasto**: segna un pasto pianificato come consumato e prova ad aggiornare automaticamente le quantità in Dispensa, cercando un prodotto con nome identico o, se manca, uno con nome simile ma solo quando è candidato un unico prodotto, e scalando la quantità solo dove l'unità di misura coincide
+- **Lista della spesa scalabile**: genera la lista per l'intera settimana pianificata, per un singolo giorno o per una singola ricetta, con le quantità adattate al numero di persone (o alle porzioni) che indichi e sommate quando lo stesso ingrediente compare più volte; per la settimana segnala anche gli ingredienti di una ricetta appena pianificata che non risultano in Dispensa, con conferma prima di aggiungerli come promemoria alla lista; spuntare un ingrediente lo aggiunge (o ne aumenta la quantità) anche in Dispensa
+- **Controllo incrociato con la Dispensa**: se un ingrediente della lista della spesa è già segnato in Dispensa (anche con un nome simile, es. "Farina" e "Farina 00", quando il prodotto candidato è uno solo) un avviso lo mostra e, quando l'unità di misura coincide o è convertibile automaticamente (g/kg, ml/cl/l), un tocco su "Sottrai dalla lista" — o su "Sottrai tutto" per l'intera lista in una volta — toglie la quantità già disponibile da quella da acquistare (o segnala che non serve comprarne altro, se basta già quella in Dispensa); un "Annulla" permette di tornare indietro
+- **Esportazione PDF**: una singola ricetta, la lista della spesa (settimana, giorno o singola ricetta) oppure l'intera settimana pianificata insieme alla lista della spesa
 - **Backup**: esporta tutto (ricette, pianificazione, fasce pasto) in un file JSON e reimportalo quando vuoi
 - **Importa/esporta CSV**: scarica le tue ricette in un file `.csv` apribile in Excel/Fogli Google, oppure importa ricette da un file CSV con lo stesso formato
 - **Dispensa**: una sezione separata per tenere traccia di tutto quello che hai in casa e può servire per una ricetta — non solo freschi (frutta, verdura, uova, salumi, latticini), ma anche surgelati, pasta e cereali, legumi, farine, conserve, spezie, oli, bevande, snack e altro — con quantità, valori nutrizionali e data di scadenza facoltativi; le scadenze vicine o passate sono evidenziate, e ogni prodotto si può anche pianificare direttamente come pasto nella settimana
-- **Salvataggio locale**: tutti i dati restano nel browser tramite `localStorage`, nessuna connessione richiesta
+- **Salvataggio locale**: tutti i dati restano nel browser tramite `localStorage`, nessuna connessione richiesta; se lo spazio disponibile dovesse esaurirsi, un avviso te lo segnala invece di fallire in silenzio
 
 ## 🚀 Come si usa
 

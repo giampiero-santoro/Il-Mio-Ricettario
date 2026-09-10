@@ -2,6 +2,47 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.12.0] — Robustezza del salvataggio, coerenza dei confronti con la Dispensa, "Annulla", ingredienti duplicati
+
+### Aggiunto
+- **Compressione automatica delle foto**: le foto delle ricette vengono ridimensionate (max 1400 px sul lato lungo) e ricompresse in JPEG prima di essere salvate, per occupare molto meno spazio nel browser (una foto da cellulare passa tipicamente da qualche MB a poche centinaia di KB)
+- **Avviso di spazio esaurito**: se `localStorage` esaurisce lo spazio disponibile e un salvataggio fallisce, ora compare un avviso chiaro (una sola volta a sessione, per non intasare di avvisi) invece che la modifica sparisca in silenzio alla riapertura. Riguarda tutti i salvataggi: ricette, pianificazione, Dispensa, promemoria della lista della spesa
+- **"Annulla" nel controllo incrociato con la Dispensa**: dopo aver premuto "Sottrai dalla lista" su una voce, un link "Annulla" permette di tornare alla quantità originale
+- **Segnalazione di ingredienti duplicati**: se nella stessa ricetta lo stesso ingrediente (nome e unità) compare più volte, il salvataggio lo segnala e propone di unire le righe sommando le quantità (e i valori nutrizionali, già intesi come totali per riga)
+
+### Modificato
+- **Coerenza nella corrispondenza con la Dispensa**: la conferma "pasto consumato" ora usa la stessa logica già introdotta per il controllo incrociato della lista della spesa — un nome identico, oppure uno simile solo se il candidato è unico. Se più prodotti in Dispensa hanno un nome simile a un ingrediente (es. "Farina 00" e "Farina integrale" per "Farina"), non ne sceglie più uno alla cieca: non tocca nessuno dei due e li elenca entrambi nella conferma, lasciando la scelta a te
+- Il controllo incrociato della lista della spesa ora usa la stessa funzione di corrispondenza condivisa con la conferma "pasto consumato", invece di una logica duplicata
+
+## [3.11.0] — Conversione unità, corrispondenza elastica e "Sottrai tutto" nella lista della spesa
+
+### Aggiunto
+- **Conversione automatica tra unità equivalenti** nel controllo incrociato con la Dispensa: se la ricetta richiede "500 g" e in Dispensa risulta "1 kg" (o viceversa, oppure ml/cl/l), la sottrazione ora scatta comunque, invece di richiedere unità scritte in modo identico
+- **Corrispondenza per nome più elastica**: se non c'è un prodotto con lo stesso nome esatto, il controllo incrociato prova anche un confronto più tollerante (lo stesso usato da "Cosa posso cucinare?"), utile per varianti dello stesso ingrediente (es. "Farina" nella ricetta e "Farina 00" in Dispensa). Se i prodotti candidati sono più di uno, vengono solo elencati come promemoria, senza sottrazione automatica, per non rischiare un abbinamento sbagliato
+- **"🥫 Sottrai tutto"** nel modal della lista della spesa: applica in un solo tocco tutte le sottrazioni disponibili in quel momento, invece di doverle confermare una per una
+
+## [3.10.0] — Controllo incrociato con la Dispensa nella lista della spesa
+
+### Aggiunto
+- **Controllo incrociato con la Dispensa**: ogni voce della lista della spesa (settimana, giorno o singola ricetta) che corrisponde a un prodotto già segnato in Dispensa mostra ora un avviso sotto la riga
+- Se l'unità di misura coincide, l'avviso include il pulsante **"Sottrai dalla lista"**: toglie dalla quantità da acquistare quella già disponibile in Dispensa, in modo da comprare solo quello che manca davvero. Se la Dispensa ne contiene già a sufficienza, la riga si aggiorna in "già in Dispensa" e la casella si disabilita
+- Se l'unità di misura è diversa o la quantità in Dispensa non è indicata, l'avviso compare comunque come promemoria, ma senza sottrazione automatica (la conversione tra unità diverse resta manuale)
+
+## [3.9.0] — Lista della spesa per giorno/ricetta, rimossa la stampa diretta
+
+### Aggiunto
+- **Lista della spesa per singola ricetta**: nuovo pulsante **"🛒 Lista della spesa"** nella scheda ricetta, con gli ingredienti scalati alle porzioni che si stanno visualizzando in quel momento
+- **Lista della spesa per singolo giorno**: nuovo pulsante **"🛒 Lista della spesa del giorno"** sotto il titolo di ogni giorno nella vista Pianificazione, con solo le ricette assegnate a quel giorno (scalate in base a "per quante persone")
+- Entrambe riusano lo stesso modal della lista della settimana (spunta ingredienti, sincronizzazione con la Dispensa, esportazione PDF); a differenza della lista settimanale, non includono i promemoria "dalla dispensa", non essendo legati a un giorno o a una ricetta specifica
+
+### Corretto
+- Rimossa la stampa diretta dal browser (pulsanti "🖨 Stampa", "🖨 Stampa settimana", "🖨 Stampa lista" e la relativa finestra di sistema): su alcuni dispositivi, in particolare mobile, produceva un foglio bianco invece del contenuto. L'esportazione PDF, già presente per ricetta/settimana/lista della spesa, resta l'unico modo per ottenere un documento stampabile ed è più affidabile, perché scarica direttamente un file senza passare dalla finestra di stampa del sistema
+
+### Modificato
+- Nella vista Pianificazione, il menu a tendina "⬇ Esporta ▾" della settimana (che conteneva solo "Stampa settimana" ed "Esporta PDF settimana") è tornato un unico pulsante diretto **"⬇ Esporta PDF settimana"**, ora che la stampa non c'è più
+- Nella scheda ricetta, il menu "⬇ Esporta ▾" non include più "🖨 Stampa" (restano "⬇ Esporta PDF" ed "⬇ Esporta ricetta (.json)")
+- Nel modal della lista della spesa non compare più "🖨 Stampa lista" (resta "⬇ Esporta PDF")
+
 ## [3.8.0] — Dispensa unificata, lista della spesa, ordinamento, duplica ricetta
 
 ### Aggiunto
@@ -12,6 +53,7 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
 ### Modificato
 - Nella scheda ricetta, "🖨 Stampa", "⬇ Esporta PDF" ed "⬇ Esporta ricetta" sono ora un unico menu a tendina "⬇ Esporta ▾", coerente con la riorganizzazione dei menu già fatta altrove
+
 
 ## [3.7.0] — Conferma consumo pasto
 
