@@ -42,6 +42,8 @@ Apri il file `index.html` con un doppio click, oppure trascinalo in una finestra
 6. Scrivi eventuali **note personali**
 7. Premi **"Salva ricetta"**
 
+Se chiudi il modulo (con la "×" o toccando fuori) mentre hai scritto qualcosa senza aver ancora salvato, il ricettario chiede conferma prima di buttare via le modifiche — capita anche provando a chiudere la scheda del browser o a navigare altrove. Vale anche per il modulo dei prodotti in Dispensa.
+
 ## Importare una ricetta da testo
 
 1. Premi **"📋 Importa ricetta ▾"** e scegli **"Da testo o link"**
@@ -152,7 +154,7 @@ Puoi anche saltare la ricerca e pianificare al volo mentre guardi una ricetta: n
 - **"✓"** su una voce pianificata la segna come consumata e prova ad aggiornare la Dispensa di conseguenza (chiede sempre conferma, mostrando cosa sta per cambiare):
   - per un pasto aggiunto **"dalla dispensa"**, se avevi indicato una quantità nella stessa unità di misura del prodotto, quella quantità viene tolta dal prodotto
   - per un pasto da **ricetta**, il ricettario cerca tra i prodotti in Dispensa un nome identico agli ingredienti, oppure — se non c'è — un nome simile ma solo quando è candidato un unico prodotto (le quantità sono scalate in base a "per quante persone" impostato in Pianificazione), e toglie la quantità usata solo dove l'unità di misura coincide esattamente — altrimenti lascia il prodotto invariato e te lo segnala. Se i prodotti con un nome simile sono più di uno (es. "Farina 00" e "Farina integrale" per l'ingrediente "Farina"), non ne tocca nessuno e te li elenca entrambi, per lasciare a te la scelta
-  - una volta confermato, il segno di spunta resta acceso: non si può ripetere né annullare da lì, ma puoi sempre correggere una quantità direttamente dalla scheda del prodotto in Dispensa
+  - una volta confermato, il segno di spunta resta acceso e accanto compare **"↺"**: lo tocchi per annullare, il che riporta il pasto a "da consumare" e ripristina in Dispensa (dove il prodotto esiste ancora) quanto era stato tolto
 - **"Svuota settimana"** cancella tutta la pianificazione, tutti i giorni compresi (chiede conferma) — prima di farlo, il ricettario salva automaticamente una copia come "settimana scorsa"
 - **"📋 Copia settimana scorsa"** ripristina quella copia al posto della pianificazione attuale (chiede conferma, perché la sovrascrive). Non è legata a un calendario reale: è semplicemente l'ultima pianificazione che avevi prima dell'ultima volta che hai premuto "Svuota settimana"
 
@@ -180,7 +182,7 @@ Ogni ingrediente che compare più volte (anche da ricette diverse, se pianifichi
 Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **"📦 Backup e CSV"** in alto, per non affollare la pagina. In cima al menu trovi anche un promemoria discreto ("Ultimo backup: X giorni fa"), che diventa rosso dopo due settimane senza backup.
 
 - **Esporta backup**: scarica un file `.json` con tutte le ricette, la pianificazione settimanale, le fasce pasto personalizzate e i promemoria di ingredienti mancanti dalla Dispensa. Fallo periodicamente, o prima di cancellare i dati del browser
-- **Importa backup**: seleziona un file `.json` esportato in precedenza per ricaricare i dati. Le ricette già presenti (stesso identificativo) non vengono duplicate
+- **Importa backup**: seleziona un file `.json` esportato in precedenza per ricaricare i dati. Le ricette e i prodotti Dispensa nuovi (identificativo non già presente) vengono sempre aggiunti; se il backup contiene anche voci già presenti (stesso identificativo — capita importando un backup più recente esportato da un altro dispositivo), ti viene chiesto una volta se sostituirle con la versione dal backup oppure lasciarle come sono. Alla fine un riepilogo ti dice quante ne sono state aggiunte, aggiornate o lasciate invariate
 
 ## Esportazione PDF
 
@@ -195,7 +197,7 @@ Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **
 Oltre al backup JSON completo, puoi scambiare le ricette in formato CSV (una riga per ricetta), comodo per aprirle in Excel o Fogli Google:
 
 - **"⬇ Esporta CSV"** scarica un file `.csv` con tutte le tue ricette: nome, categoria, porzioni, tempo, tag, ingredienti e passaggi sono ciascuno in una colonna. Dentro la stessa cella, più ingredienti o passaggi sono separati da " | "
-- **"⬆ Importa CSV"** legge un file con lo stesso formato (le colonne Nome, Ingredienti e Passaggi sono obbligatorie) e aggiunge le ricette che non hai già (il confronto è per nome)
+- **"⬆ Importa CSV"** legge un file con lo stesso formato (le colonne Nome, Ingredienti e Passaggi sono obbligatorie) e aggiunge le ricette che non hai già (il confronto è per nome). Per quelle che invece corrispondono a un nome già presente, ti viene chiesto una volta se sostituirle con la versione dal CSV o lasciarle come sono — se scegli di sostituirle, foto, preferita e cronologia della ricetta esistente restano invariate, dato che il CSV non le contiene
 - Il riconoscimento di quantità/unità negli ingredienti e delle impostazioni robot nei passaggi è automatico ma approssimativo, soprattutto se modifichi il CSV a mano: controlla sempre le ricette importate
 
 ## Modificare ed eliminare

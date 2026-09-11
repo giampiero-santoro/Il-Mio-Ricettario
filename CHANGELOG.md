@@ -2,6 +2,14 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.13.0] — Import che aggiorna le voci esistenti, avviso modifiche non salvate, Annulla su "consumato", accessibilità
+
+### Aggiunto
+- **Backup e CSV possono aggiornare le voci già esistenti**: prima venivano sempre e solo aggiunte le novità. Ora, se il file importato contiene ricette (o prodotti Dispensa, per il backup) già presenti — stesso identificativo per il backup, stesso nome per il CSV — viene chiesto una volta se sostituirle con la versione importata o lasciarle come sono, con un riepilogo finale di quante sono state aggiunte, aggiornate o lasciate invariate. Utile soprattutto per il backup, dato che è il modo pensato per spostare i dati tra dispositivi: prima, una modifica fatta altrove e poi reimportata non sostituiva mai la versione già presente
+- **Avviso prima di chiudere con modifiche non salvate**: se il modulo di una ricetta o di un prodotto Dispensa ha modifiche non ancora salvate, chiuderlo (con la "×", toccando fuori dal modulo, chiudendo la scheda del browser o navigando altrove) chiede prima conferma, invece di buttare via il lavoro fatto in silenzio
+- **"↺ Annulla" sulla conferma "pasto consumato"**: ora è possibile tornare indietro, ripristinando in Dispensa (dove il prodotto esiste ancora) le quantità che erano state tolte — prima non era possibile, per scelta, tenerla semplice
+- **Etichette di accessibilità**: aggiunto un testo alternativo alle foto delle ricette e un'etichetta ai pulsanti di chiusura "×" dei moduli, per chi naviga con uno screen reader
+
 ## [3.12.0] — Robustezza del salvataggio, coerenza dei confronti con la Dispensa, "Annulla", ingredienti duplicati
 
 ### Aggiunto
