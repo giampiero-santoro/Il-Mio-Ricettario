@@ -4085,17 +4085,28 @@
 
       const qtyKcalParts = [];
       if(it.qty || it.unit) qtyKcalParts.push(`${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}`.trim());
-      if(it.kcal) qtyKcalParts.push(`🍎 ${roundNice(it.kcal)} kcal`);
+      if(it.kcal) qtyKcalParts.push(`🍎 ${roundNice(it.kcal)} kcal (per questa quantità)`);
       const qtyKcalHtml = qtyKcalParts.length ? `<div class="dispensa-qty">${qtyKcalParts.join(' · ')}</div>` : '';
+      const creaInfoHtml = it.creaCodice
+        ? `<button type="button" class="crea-scheda-btn visibile" data-codice="${escapeAttr(it.creaCodice)}" style="margin:2px 0 4px;" title="Tutti i valori nutrizionali CREA per 100 g">ℹ️ Valori per 100 g (CREA)</button>`
+        : '';
 
       card.innerHTML = `
         <span class="cat-tag">${escapeHtml(it.category)}</span>
         <h3 style="margin:2px 0 4px;font-size:19px;">${escapeHtml(it.name)}</h3>
         ${qtyKcalHtml}
+        ${creaInfoHtml}
         ${expiryHtml}
         ${it.notes ? `<div class="dispensa-notes">${escapeHtml(it.notes)}</div>` : ''}
       `;
       card.addEventListener('click', ()=> openDispensaEdit(it));
+      const creaInfoBtn = card.querySelector('.crea-scheda-btn');
+      if (creaInfoBtn) {
+        creaInfoBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          apriSchedaCrea(creaInfoBtn.dataset.codice);
+        });
+      }
       listEl.appendChild(card);
     });
   }
