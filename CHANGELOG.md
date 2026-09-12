@@ -2,6 +2,11 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.15.0] — Valori nutrizionali anche per porzione singola
+
+### Modificato
+- **Valori nutrizionali per porzione**: sia nella scheda ricetta sia nel PDF esportato, ora compare l'intero elenco (Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri, Sale) sia come **totale ricetta** sia come **per 1 porzione**, uno sotto l'altro. Prima il "per porzione" mostrava solo le Kcal in una riga a parte, tutti gli altri valori si vedevano solo come totale
+
 ## [3.14.0] — Metodo di cottura visibile a colpo d'occhio, corretto il riconoscimento di unità e frazioni
 
 ### Aggiunto

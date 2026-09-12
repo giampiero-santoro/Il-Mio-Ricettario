@@ -2682,17 +2682,21 @@
     const nutrition = computeNutritionTotals(r, scale);
     if(nutrition){
       const { totals, withCount, totalCount } = nutrition;
-      const perPortion = currentServings ? totals.kcal / currentServings : 0;
       const rows = NUTRITION_FIELDS
         .filter(f => totals[f.key] > 0)
         .map(f => `<div>${f.label}: <b>${roundNice(totals[f.key])}</b>${f.unit}</div>`).join('');
+      const rowsPerPortion = NUTRITION_FIELDS
+        .filter(f => totals[f.key] > 0)
+        .map(f => `<div>${f.label}: <b>${roundNice(totals[f.key] / (currentServings || 1))}</b>${f.unit}</div>`).join('');
       const incomplete = withCount < totalCount;
       const usaCrea = (r.ingredients || []).some(i => i.creaCodice);
       viewNutrition.innerHTML = `
         <div class="nutrition-summary">
-          <h4>🍎 Valori nutrizionali (totale ricetta, ${currentServings} porzion${currentServings===1?'e':'i'})</h4>
+          <h4>🍎 Valori nutrizionali</h4>
+          <div style="font-size:12px;color:var(--ink-soft);margin-bottom:4px;">Totale ricetta (${currentServings} porzion${currentServings===1?'e':'i'})</div>
           <div class="nutrition-grid">${rows}</div>
-          ${totals.kcal > 0 ? `<div style="margin-top:8px;font-size:13px;">Circa <b>${roundNice(perPortion)}</b> kcal a porzione</div>` : ''}
+          <div style="font-size:12px;color:var(--ink-soft);margin:10px 0 4px;">Per 1 porzione</div>
+          <div class="nutrition-grid">${rowsPerPortion}</div>
           ${incomplete ? `<div class="nutrition-note">Calcolati solo sugli ingredienti con dati inseriti (${withCount} di ${totalCount}) — il totale reale potrebbe essere più alto.</div>` : ''}
           ${usaCrea ? `<div class="nutrition-note" style="opacity:.7;margin-top:6px;">Alcuni valori: banca dati <a href="https://www.alimentinutrizione.it" target="_blank" rel="noopener" style="color:var(--gold-deep);">CREA</a>, per 100 g di parte edibile.</div>` : ''}
         </div>
@@ -2861,13 +2865,15 @@
     const nutrition = computeNutritionTotals(r, scale);
     if(nutrition){
       const { totals, withCount, totalCount } = nutrition;
-      const perPortion = currentServings ? totals.kcal / currentServings : 0;
       const nutritionLines = NUTRITION_FIELDS
         .filter(f => totals[f.key] > 0)
         .map(f => `${f.label}: ${roundNice(totals[f.key])}${f.unit}`);
-      if(totals.kcal > 0) nutritionLines.push(`Circa ${roundNice(perPortion)} kcal a porzione`);
       if(withCount < totalCount) nutritionLines.push(`(dati inseriti solo su ${withCount} di ${totalCount} ingredienti)`);
-      sections.push({ heading: `Valori nutrizionali (${currentServings} porzioni)`, lines: nutritionLines });
+      sections.push({ heading: `Valori nutrizionali - totale ricetta (${currentServings} porzioni)`, lines: nutritionLines });
+      const perPortionLines = NUTRITION_FIELDS
+        .filter(f => totals[f.key] > 0)
+        .map(f => `${f.label}: ${roundNice(totals[f.key] / (currentServings || 1))}${f.unit}`);
+      sections.push({ heading: 'Valori nutrizionali - per 1 porzione', lines: perPortionLines });
     }
     sections.push({
       heading: 'Preparazione',
