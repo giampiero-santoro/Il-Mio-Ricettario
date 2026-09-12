@@ -740,21 +740,25 @@
         </div>
         <select id="dispensa-category-filter">
           <option value="">Tutte le categorie</option>
+          <option value="Alimenti Etnici">Alimenti Etnici</option>
+          <option value="Bevande alcoliche">Bevande alcoliche</option>
+          <option value="Carni fresche">Carni fresche</option>
+          <option value="Carni trasformate e conservate">Carni trasformate e conservate</option>
+          <option value="Cereali e derivati">Cereali e derivati</option>
+          <option value="Dolci">Dolci</option>
+          <option value="Fast-food a base di carne">Fast-food a base di carne</option>
+          <option value="Formaggi e latticini">Formaggi e latticini</option>
+          <option value="Frattaglie">Frattaglie</option>
           <option value="Frutta">Frutta</option>
-          <option value="Verdura">Verdura</option>
-          <option value="Uova">Uova</option>
-          <option value="Salumi">Salumi</option>
-          <option value="Latticini e pronti">Latticini e pronti</option>
-          <option value="Surgelati">Surgelati</option>
-          <option value="Pasta, riso e cereali">Pasta, riso e cereali</option>
+          <option value="Frutta secca a guscio e semi oleaginosi">Frutta secca a guscio e semi oleaginosi</option>
+          <option value="Latte e yogurt">Latte e yogurt</option>
           <option value="Legumi">Legumi</option>
-          <option value="Farine, zucchero e lieviti">Farine, zucchero e lieviti</option>
-          <option value="Conserve e scatolame">Conserve e scatolame</option>
-          <option value="Spezie e condimenti">Spezie e condimenti</option>
-          <option value="Oli, aceti e grassi">Oli, aceti e grassi</option>
-          <option value="Bevande">Bevande</option>
-          <option value="Snack e dolciumi">Snack e dolciumi</option>
-          <option value="Altro">Altro</option>
+          <option value="Oli e grassi">Oli e grassi</option>
+          <option value="Prodotti della pesca">Prodotti della pesca</option>
+          <option value="Prodotti vari">Prodotti vari</option>
+          <option value="Ricette Italiane">Ricette Italiane</option>
+          <option value="Uova">Uova</option>
+          <option value="Verdure e ortaggi">Verdure e ortaggi</option>
         </select>
       </div>
     </div>
@@ -907,25 +911,54 @@
       <input type="text" id="d-name" placeholder="es. Mele, Yogurt bianco, Prosciutto crudo">
     </div>
 
+    <div class="field">
+      <div class="ingredients-actions" style="justify-content:flex-start;">
+        <button type="button" class="btn-ghost btn-small" id="off-scan-open-btn">📷 Scansiona codice a barre</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
+        <input type="text" id="off-barcode-input" placeholder="…oppure incolla qui il codice a barre (EAN/UPC)" inputmode="numeric" style="flex:1;">
+        <button type="button" class="btn-ghost btn-small" id="off-barcode-search-btn">Cerca</button>
+      </div>
+      <div style="margin-top:8px;">
+        <input type="text" id="off-text-search" placeholder="🔎 Cerca su Open Food Facts (es. nutella, pasta barilla)…" autocomplete="off">
+      </div>
+      <div id="off-preview" style="display:none;align-items:center;gap:10px;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--parchment-light);">
+        <img id="off-preview-img" src="" alt="" style="width:44px;height:44px;object-fit:contain;border-radius:4px;">
+        <div style="flex:1;font-size:13px;">
+          <div id="off-preview-nome" style="font-family:'Cormorant Garamond',serif;font-size:16px;"></div>
+          <div id="off-preview-marca" style="color:var(--ink-soft);"></div>
+        </div>
+        <span id="off-preview-nutriscore" class="cat-tag" style="display:none;"></span>
+      </div>
+      <div id="off-status" style="font-size:12px;color:var(--ink-soft);margin-top:6px;"></div>
+      <div style="font-size:11px;color:var(--ink-soft);font-style:italic;margin-top:4px;">
+        Dati prodotto da Open Food Facts (banca dati collaborativa): compilano nome, categoria, quantità e valori nutrizionali — controlla e completa a mano ciò che manca.
+      </div>
+    </div>
+
     <div class="row">
       <div class="field">
         <label>Categoria</label>
         <select id="d-category">
+          <option>Alimenti Etnici</option>
+          <option>Bevande alcoliche</option>
+          <option>Carni fresche</option>
+          <option>Carni trasformate e conservate</option>
+          <option>Cereali e derivati</option>
+          <option>Dolci</option>
+          <option>Fast-food a base di carne</option>
+          <option>Formaggi e latticini</option>
+          <option>Frattaglie</option>
           <option>Frutta</option>
-          <option>Verdura</option>
-          <option>Uova</option>
-          <option>Salumi</option>
-          <option>Latticini e pronti</option>
-          <option>Surgelati</option>
-          <option>Pasta, riso e cereali</option>
+          <option>Frutta secca a guscio e semi oleaginosi</option>
+          <option>Latte e yogurt</option>
           <option>Legumi</option>
-          <option>Farine, zucchero e lieviti</option>
-          <option>Conserve e scatolame</option>
-          <option>Spezie e condimenti</option>
-          <option>Oli, aceti e grassi</option>
-          <option>Bevande</option>
-          <option>Snack e dolciumi</option>
-          <option>Altro</option>
+          <option>Oli e grassi</option>
+          <option>Prodotti della pesca</option>
+          <option>Prodotti vari</option>
+          <option>Ricette Italiane</option>
+          <option>Uova</option>
+          <option>Verdure e ortaggi</option>
         </select>
       </div>
       <div class="field">
@@ -937,6 +970,7 @@
         <input type="text" id="d-unit" placeholder="es. pz, g, ml">
       </div>
     </div>
+
 
     <div class="field">
       <div class="ingredients-actions" style="justify-content:flex-start;">
@@ -1075,6 +1109,20 @@
   </div>
 </div>
 
+<!-- ============ SCANNER CODICE A BARRE (Open Food Facts) ============ -->
+<div class="overlay" id="off-scanner-overlay">
+  <div class="modal">
+    <button class="close-x" id="off-scanner-close" aria-label="Chiudi">×</button>
+    <h2>Scansiona codice a barre</h2>
+    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">
+      Inquadra il codice a barre della confezione. Serve l'autorizzazione
+      del browser a usare la fotocamera.
+    </div>
+    <div id="off-scanner-reader" style="width:100%;"></div>
+    <div id="off-scanner-status" style="font-size:13px;color:var(--ink-soft);margin-top:10px;"></div>
+  </div>
+</div>
+
 <!-- ============ VIEW MODAL ============ -->
 <div class="overlay" id="view-overlay">
   <div class="modal">
@@ -1194,6 +1242,7 @@
 <!-- Banca dati nutrizionale CREA: deve caricarsi PRIMA dello script principale,
      perché quest'ultimo usa l'oggetto CreaDB e la funzione attachCreaAutocomplete. -->
 <script src="js/crea-nutrition.js"></script>
+<script src="js/off-integration.js"></script>
 <script>
 (function(){
   const STORAGE_KEY = 'mc_ricettario_v1';
@@ -1205,27 +1254,18 @@
   const PREV_WEEK_KEY = 'mc_ricettario_settimana_precedente_v1';
   const DISPENSA_ITEMS_KEY = 'mc_ricettario_dispensa_prodotti_v1';
   const SHOPPING_EXTRA_KEY = 'mc_ricettario_spesa_extra_v1';
+  // Dispensa usa direttamente le 19 categorie ufficiali CREA (le stesse
+  // della vista "CREA Alimenti"): niente più mappatura fra due elenchi
+  // diversi, un prodotto collegato a CREA eredita la categoria così com'è.
   const PANTRY_CATEGORY_COLORS = {
-    'Frutta': '#d17b3f', 'Verdura': '#5c8a3a', 'Uova': '#d9a94a', 'Salumi': '#a13d3d',
-    'Latticini e pronti': '#c9a227', 'Surgelati': '#4f7f8b', 'Pasta, riso e cereali': '#8a6642',
-    'Legumi': '#6b5b3a', 'Farine, zucchero e lieviti': '#a68a5b', 'Conserve e scatolame': '#7a5230',
-    'Spezie e condimenti': '#9c4b1f', 'Oli, aceti e grassi': '#8a7a2e', 'Bevande': '#3f6e9c',
-    'Snack e dolciumi': '#b83a6b', 'Altro': '#3f6e79'
+    'Alimenti Etnici': '#7a4fa0', 'Bevande alcoliche': '#3f6e9c', 'Carni fresche': '#8b2635',
+    'Carni trasformate e conservate': '#a13d3d', 'Cereali e derivati': '#8a6642', 'Dolci': '#b83a6b',
+    'Fast-food a base di carne': '#cf7a2c', 'Formaggi e latticini': '#c9a227', 'Frattaglie': '#6b3f3f',
+    'Frutta': '#d17b3f', 'Frutta secca a guscio e semi oleaginosi': '#a68a5b', 'Latte e yogurt': '#d9c27a',
+    'Legumi': '#6b5b3a', 'Oli e grassi': '#8a7a2e', 'Prodotti della pesca': '#3f7f8b',
+    'Prodotti vari': '#3f6e79', 'Ricette Italiane': '#9c4b1f', 'Uova': '#d9a94a',
+    'Verdure e ortaggi': '#5c8a3a'
   };
-  // Mappa (euristica) dalle 19 categorie del dataset CREA alle 15 categorie
-  // di Dispensa: solo un default suggerito, resta modificabile come qualsiasi
-  // altro campo del prodotto.
-  const CREA_TO_PANTRY_CATEGORY = {
-    'Frutta': 'Frutta', 'Verdure e ortaggi': 'Verdura', 'Uova': 'Uova',
-    'Carni trasformate e conservate': 'Salumi', 'Formaggi e latticini': 'Latticini e pronti',
-    'Latte e yogurt': 'Latticini e pronti', 'Cereali e derivati': 'Pasta, riso e cereali',
-    'Legumi': 'Legumi', 'Frutta secca a guscio e semi oleaginosi': 'Snack e dolciumi',
-    'Oli e grassi': 'Oli, aceti e grassi', 'Dolci': 'Snack e dolciumi',
-    'Bevande alcoliche': 'Bevande',
-  };
-  function mappaCategoriaCreaDispensa(categoriaCrea) {
-    return CREA_TO_PANTRY_CATEGORY[categoriaCrea] || 'Altro';
-  }
   const DAYS = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
   const DEFAULT_MEALTYPES = ['Colazione','Pranzo','Spuntino','Cena'];
   const TAG_OPTIONS = ['Vegetariano','Vegano','Senza glutine','Senza lattosio','Piccante'];
@@ -2055,7 +2095,7 @@
       dCreaSchedaBtn.classList.add('visibile');
       const nomeInput = document.getElementById('d-name');
       if (!nomeInput.value.trim()) nomeInput.value = alimento.nome;
-      document.getElementById('d-category').value = mappaCategoriaCreaDispensa(alimento.categoria || '');
+      document.getElementById('d-category').value = alimento.categoria || 'Prodotti vari';
       const valori = CreaDB.scale(alimento, grammi);
       document.getElementById('d-kcal').value = valori.kcal ?? '';
       document.getElementById('d-protein').value = valori.proteine ?? '';
@@ -2073,6 +2113,169 @@
     if (dispensaCreaCodiceCorrente && typeof apriSchedaCrea === 'function') {
       apriSchedaCrea(dispensaCreaCodiceCorrente);
     }
+  });
+
+  // ---------- Open Food Facts: ricerca testo + barcode per il form Dispensa ----------
+  // Stessa filosofia della ricerca CREA: un modo IN PIÙ per compilare la
+  // stessa scheda prodotto già esistente (nome, categoria, quantità,
+  // valori nutrizionali) — non un inventario separato.
+  let dispensaOffBarcodeCorrente = '';
+  let dispensaOffImmagineCorrente = '';
+  let dispensaOffNutriscoreCorrente = '';
+
+  const offTextSearch = document.getElementById('off-text-search');
+  const offBarcodeInput = document.getElementById('off-barcode-input');
+  const offBarcodeSearchBtn = document.getElementById('off-barcode-search-btn');
+  const offStatus = document.getElementById('off-status');
+  const offPreview = document.getElementById('off-preview');
+  const offPreviewImg = document.getElementById('off-preview-img');
+  const offPreviewNome = document.getElementById('off-preview-nome');
+  const offPreviewMarca = document.getElementById('off-preview-marca');
+  const offPreviewNutriscore = document.getElementById('off-preview-nutriscore');
+
+  const NUTRISCORE_COLORI = { A: '#2e7d32', B: '#8bc34a', C: '#fbc02d', D: '#f57c00', E: '#c62828' };
+
+  function applicaProdottoOff(prodotto){
+    const nomeInput = document.getElementById('d-name');
+    if (!nomeInput.value.trim()) nomeInput.value = prodotto.nome || '';
+    if (prodotto.categoria) document.getElementById('d-category').value = prodotto.categoria;
+
+    const qtyInput = document.getElementById('d-qty');
+    const unitInput = document.getElementById('d-unit');
+    if (!qtyInput.value.trim()) {
+      const qta = OffIntegration.parseQuantita(prodotto.quantitaTesto);
+      if (qta && qta.numero) {
+        qtyInput.value = qta.numero;
+        if (qta.unita && !unitInput.value.trim()) unitInput.value = qta.unita;
+      }
+    }
+
+    const grammi = stimaGrammiIngrediente(qtyInput.value, unitInput.value);
+    if (grammi !== null) {
+      const fattore = grammi / 100;
+      const scala = (v) => (v === null || v === undefined) ? '' : Math.round(v * fattore * 100) / 100;
+      document.getElementById('d-kcal').value = scala(prodotto.kcal100);
+      document.getElementById('d-protein').value = scala(prodotto.proteine100);
+      document.getElementById('d-fat').value = scala(prodotto.grassi100);
+      document.getElementById('d-carbs').value = scala(prodotto.carboidrati100);
+      document.getElementById('d-fiber').value = scala(prodotto.fibre100);
+      document.getElementById('d-sugar').value = scala(prodotto.zuccheri100);
+      document.getElementById('d-salt').value = scala(prodotto.sale100);
+      document.getElementById('dispensa-nutrition-fields').style.display = 'flex';
+      document.getElementById('dispensa-nutrition-toggle-btn').classList.add('active');
+    } else {
+      offStatus.textContent = 'Prodotto trovato, ma senza una quantità in grammi/kg riconoscibile: inserisci tu la quantità per calcolare i valori nutrizionali, oppure completali a mano.';
+    }
+
+    dispensaOffBarcodeCorrente = prodotto.barcode || '';
+    dispensaOffImmagineCorrente = prodotto.immagine || '';
+    dispensaOffNutriscoreCorrente = prodotto.nutriscore || '';
+
+    if (prodotto.nome || prodotto.immagine) {
+      offPreviewImg.src = prodotto.immagine || '';
+      offPreviewImg.style.display = prodotto.immagine ? '' : 'none';
+      offPreviewNome.textContent = prodotto.nome || '(senza nome)';
+      offPreviewMarca.textContent = prodotto.marca || '';
+      if (prodotto.nutriscore && NUTRISCORE_COLORI[prodotto.nutriscore]) {
+        offPreviewNutriscore.textContent = 'Nutri-Score ' + prodotto.nutriscore;
+        offPreviewNutriscore.style.background = NUTRISCORE_COLORI[prodotto.nutriscore];
+        offPreviewNutriscore.style.display = 'inline-block';
+      } else {
+        offPreviewNutriscore.style.display = 'none';
+      }
+      offPreview.style.display = 'flex';
+    }
+    formDirty = true;
+  }
+
+  if (typeof attachOffAutocomplete === 'function') {
+    attachOffAutocomplete(offTextSearch, (prodotto) => {
+      offStatus.textContent = '';
+      applicaProdottoOff(prodotto);
+    }, (err) => {
+      offStatus.textContent = 'Errore nella ricerca su Open Food Facts (verifica la connessione).';
+      console.error(err);
+    });
+  }
+
+  function cercaOffPerBarcode(barcode){
+    if (!barcode) return;
+    offStatus.textContent = 'Ricerca in corso…';
+    offBarcodeSearchBtn.disabled = true;
+    OffIntegration.cercaDaBarcode(barcode)
+      .then(prodotto => {
+        if (!prodotto) {
+          offStatus.textContent = `Nessun prodotto trovato su Open Food Facts per il codice ${barcode}: puoi compilare a mano.`;
+          return;
+        }
+        applicaProdottoOff(prodotto);
+        offStatus.textContent = 'Prodotto trovato ✅';
+      })
+      .catch(err => {
+        offStatus.textContent = 'Errore nella ricerca su Open Food Facts (verifica la connessione).';
+        console.error(err);
+      })
+      .finally(() => { offBarcodeSearchBtn.disabled = false; });
+  }
+  offBarcodeSearchBtn.addEventListener('click', () => cercaOffPerBarcode(offBarcodeInput.value.trim()));
+  offBarcodeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); cercaOffPerBarcode(offBarcodeInput.value.trim()); }
+  });
+
+  // ---------- Scanner da fotocamera (html5-qrcode, caricato solo se usato) ----------
+  const offScannerOverlay = document.getElementById('off-scanner-overlay');
+  const offScannerStatus = document.getElementById('off-scanner-status');
+  let html5QrcodeCaricato = false;
+  let html5QrcodeScannerAttivo = null;
+
+  function caricaHtml5Qrcode(){
+    if (html5QrcodeCaricato) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/html5-qrcode';
+      script.onload = () => { html5QrcodeCaricato = true; resolve(); };
+      script.onerror = () => reject(new Error('Impossibile caricare html5-qrcode (verifica la connessione)'));
+      document.head.appendChild(script);
+    });
+  }
+
+  function fermaScanner(){
+    if (html5QrcodeScannerAttivo) {
+      html5QrcodeScannerAttivo.stop().catch(() => {}).finally(() => {
+        html5QrcodeScannerAttivo.clear();
+        html5QrcodeScannerAttivo = null;
+      });
+    }
+  }
+
+  document.getElementById('off-scan-open-btn').addEventListener('click', () => {
+    offScannerOverlay.classList.add('active');
+    offScannerStatus.textContent = 'Caricamento dello scanner…';
+    caricaHtml5Qrcode().then(() => {
+      offScannerStatus.textContent = '';
+      html5QrcodeScannerAttivo = new Html5Qrcode('off-scanner-reader');
+      html5QrcodeScannerAttivo.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+          fermaScanner();
+          offScannerOverlay.classList.remove('active');
+          offBarcodeInput.value = decodedText;
+          cercaOffPerBarcode(decodedText);
+        },
+        () => { /* nessuna corrispondenza in questo frame: normale, si ignora */ }
+      ).catch(err => {
+        offScannerStatus.textContent = 'Fotocamera non disponibile o permesso negato: usa il campo codice a barre qui sotto.';
+        console.error(err);
+      });
+    }).catch(err => {
+      offScannerStatus.textContent = err.message;
+      console.error(err);
+    });
+  });
+  document.getElementById('off-scanner-close').addEventListener('click', () => {
+    fermaScanner();
+    offScannerOverlay.classList.remove('active');
   });
 
   // ---------- Vista "CREA Alimenti" (consultazione banca dati, tutti i 900) ----------
@@ -4122,9 +4325,17 @@
       const creaInfoHtml = it.creaCodice
         ? `<button type="button" class="crea-scheda-btn visibile" data-codice="${escapeAttr(it.creaCodice)}" style="margin:2px 0 4px;" title="Tutti i valori nutrizionali CREA per 100 g">ℹ️ Valori per 100 g (CREA)</button>`
         : '';
+      const nutriscoreColori = { A:'#2e7d32', B:'#8bc34a', C:'#fbc02d', D:'#f57c00', E:'#c62828' };
+      const offBadgeHtml = it.offNutriscore && nutriscoreColori[it.offNutriscore]
+        ? `<span class="cat-tag" style="background:${nutriscoreColori[it.offNutriscore]};margin-left:6px;">Nutri-Score ${escapeHtml(it.offNutriscore)}</span>`
+        : '';
+      const offImgHtml = it.offImmagine
+        ? `<img src="${escapeAttr(it.offImmagine)}" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:4px;float:right;margin:0 0 6px 8px;">`
+        : '';
 
       card.innerHTML = `
-        <span class="cat-tag">${escapeHtml(it.category)}</span>
+        ${offImgHtml}
+        <span class="cat-tag">${escapeHtml(it.category)}</span>${offBadgeHtml}
         <h3 style="margin:2px 0 4px;font-size:19px;">${escapeHtml(it.name)}</h3>
         ${qtyKcalHtml}
         ${creaInfoHtml}
@@ -4167,6 +4378,32 @@
     dispensaCreaCodiceCorrente = (item && item.creaCodice) || '';
     document.getElementById('d-crea-search').value = '';
     document.getElementById('d-crea-scheda-btn').classList.toggle('visibile', !!dispensaCreaCodiceCorrente);
+
+    dispensaOffBarcodeCorrente = (item && item.offBarcode) || '';
+    dispensaOffImmagineCorrente = (item && item.offImmagine) || '';
+    dispensaOffNutriscoreCorrente = (item && item.offNutriscore) || '';
+    document.getElementById('off-text-search').value = '';
+    document.getElementById('off-barcode-input').value = '';
+    document.getElementById('off-status').textContent = '';
+    const offPreviewEl = document.getElementById('off-preview');
+    if (dispensaOffImmagineCorrente || dispensaOffBarcodeCorrente) {
+      document.getElementById('off-preview-img').src = dispensaOffImmagineCorrente || '';
+      document.getElementById('off-preview-img').style.display = dispensaOffImmagineCorrente ? '' : 'none';
+      document.getElementById('off-preview-nome').textContent = item ? item.name : '';
+      document.getElementById('off-preview-marca').textContent = '';
+      const nsEl = document.getElementById('off-preview-nutriscore');
+      if (dispensaOffNutriscoreCorrente && NUTRISCORE_COLORI[dispensaOffNutriscoreCorrente]) {
+        nsEl.textContent = 'Nutri-Score ' + dispensaOffNutriscoreCorrente;
+        nsEl.style.background = NUTRISCORE_COLORI[dispensaOffNutriscoreCorrente];
+        nsEl.style.display = 'inline-block';
+      } else {
+        nsEl.style.display = 'none';
+      }
+      offPreviewEl.style.display = 'flex';
+    } else {
+      offPreviewEl.style.display = 'none';
+    }
+
     document.getElementById('dispensa-edit-overlay').classList.add('active');
     formDirty = false;
   }
@@ -4210,7 +4447,10 @@
       fiber: document.getElementById('d-fiber').value,
       sugar: document.getElementById('d-sugar').value,
       salt: document.getElementById('d-salt').value,
-      creaCodice: dispensaCreaCodiceCorrente
+      creaCodice: dispensaCreaCodiceCorrente,
+      offBarcode: dispensaOffBarcodeCorrente,
+      offImmagine: dispensaOffImmagineCorrente,
+      offNutriscore: dispensaOffNutriscoreCorrente
     };
     if(editingDispensaId){
       const idx = dispensaItems.findIndex(i=>i.id === editingDispensaId);
