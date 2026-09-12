@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.14.0] — Metodo di cottura visibile a colpo d'occhio, corretto il riconoscimento di unità e frazioni
+
+### Aggiunto
+- **Badge del metodo di cottura sempre visibile**: prima solo la pentola a pressione aveva un'icona sulla card e nella scheda ricetta; ora compaiono anche **🤖 Robot** e **🔥 Tradizionale** (una ricetta senza passaggi robot né pentola mostra sempre "Tradizionale", così il metodo si capisce sempre al primo sguardo, anche nella vista "Cosa posso cucinare?"). Una ricetta che usa sia il robot sia la pentola a pressione mostra entrambe le icone insieme
+
+### Corretto
+- **Unità di misura testuali interpretate male durante l'importazione**: nel riconoscimento automatico da testo incollato/JSON-LD e nell'import CSV, unità al singolare come "cucchiaio", "cucchiaino", "tazza", "fetta", "spicchio", "rametto", "filetto" (e "cucchiaini" al plurale) venivano tagliate a metà, lasciando una lettera o sillaba incollata al nome dell'ingrediente (es. "1 cucchiaio di vaniglia" diventava nome ingrediente "o di vaniglia"). Riguardava anche il backup/ripristino CSV: esportare e reimportare una propria ricetta con queste unità la corrompeva silenziosamente
+- **Quantità frazionarie tagliate**: quantità scritte come "1/2", "1/4", "3/4" venivano interpretate come solo la parte intera (es. "1/2 cucchiaino" diventava 1 invece di 0,5, raddoppiando l'ingrediente). Ora vengono convertite correttamente in decimale
+
 ## [3.13.0] — Import che aggiorna le voci esistenti, avviso modifiche non salvate, Annulla su "consumato", accessibilità
 
 ### Aggiunto

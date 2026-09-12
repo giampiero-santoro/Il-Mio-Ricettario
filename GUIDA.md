@@ -81,7 +81,7 @@ Come per il robot, se in un passaggio usi la pentola a pressione premi **"🍲 I
 
 Nel modulo di modifica trovi anche, accanto a porzioni e tempo, un campo facoltativo **"Tipo pentola a pressione"** (Elettrica / A fornello) valido per l'intera ricetta.
 
-Le ricette con almeno un passaggio a pressione mostrano automaticamente un'etichetta **🍲** nella lista e nella scheda — non serve spuntare nulla a mano.
+Le ricette mostrano automaticamente un'etichetta del metodo di cottura, nella lista e nella scheda, dedotta dai passaggi — non serve spuntare nulla a mano: **🍲** se c'è almeno un passaggio a pressione, **🤖** se c'è almeno un passaggio con impostazioni robot, **🔥 Tradizionale** se non ne ha nessuno dei due. Una ricetta che usa entrambi i metodi mostra sia 🍲 sia 🤖.
 
 ## Valori nutrizionali (facoltativi)
 

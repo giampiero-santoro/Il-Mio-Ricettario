@@ -219,7 +219,7 @@
     border-radius:20px;padding:3px 10px;margin-bottom:8px;font-weight:600;
     box-shadow:0 2px 5px rgba(44,29,13,.18);
   }
-  .card .pressure-badge{
+  .card .pressure-badge, .card .robot-badge, .card .traditional-badge{
     display:inline-block;font-size:14px;margin-left:6px;margin-bottom:8px;vertical-align:middle;
   }
   .dispensa-qty{font-size:13px;color:var(--ink-soft);}
@@ -1684,6 +1684,8 @@
         card.innerHTML = `
           <span class="match-badge ${ready?'ready':'missing'}">${ready?'✓ Puoi farla':`Manca ${match.missing.length} ingr.`}</span>
           ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
+          ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
+          ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot né pentola a pressione">🔥</span>' : ''}
           <h3>${escapeHtml(r.name)}</h3>
           <div class="meta"><span>${r.servings} porzioni base</span>${r.time?`<span>· ${r.time} min</span>`:''}</div>
           ${!ready?`<div class="missing-list"><b>Ti manca:</b> ${match.missing.map(escapeHtml).join(', ')}</div>`:''}
@@ -1707,6 +1709,8 @@
         ${r.photo ? `<img class="thumb" src="${r.photo}" alt="${escapeAttr(r.name)}">` : ''}
         <span class="cat-tag">${escapeHtml(r.category)}</span>
         ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
+        ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
+        ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot né pentola a pressione">🔥</span>' : ''}
         <h3>${escapeHtml(r.name)}</h3>
         <div class="meta">
           <span>${r.servings} porzioni base</span>
@@ -2649,6 +2653,8 @@
     viewTime.textContent = r.time ? `Tempo totale: circa ${r.time} minuti` : '';
     const extraChips = [];
     if(recipeHasPressure(r)) extraChips.push('<span class="view-tag-chip">🍲 Pentola a pressione</span>');
+    if(recipeHasRobot(r)) extraChips.push('<span class="view-tag-chip">🤖 Robot da cucina</span>');
+    if(recipeIsTraditional(r)) extraChips.push('<span class="view-tag-chip">🔥 Tradizionale</span>');
     if(r.cookerType) extraChips.push(`<span class="view-tag-chip">${r.cookerType === 'Elettrica' ? '⚡' : '🔥'} ${escapeHtml(r.cookerType)}</span>`);
     viewTags.innerHTML = (r.tags || []).map(t=>`<span class="view-tag-chip">${escapeHtml(t)}</span>`).join('') + extraChips.join('');
 
@@ -3476,9 +3482,29 @@
 
   function splitIngredientLine(line){
     line = line.replace(/^[-•*]\s*/, '').trim();
-    const m = /^([\d]+(?:[.,]\d+)?(?:\s*\/\s*\d+)?)\s*(g|kg|ml|l|cl|cucchiai?|cucchiaini?|tazze?|pizzichi?|pizzico|spicchi?|fette?|foglie|rametti?|filetti?)?\s*(?:di\s+)?(.+)$/i.exec(line);
+    // Nota: le unità sono elencate per forma esatta (singolare/plurale), non con scorciatoie
+    // tipo "cucchiai?" — quelle scorciatoie intercettavano solo un prefisso di parole come
+    // "cucchiaino"/"cucchiaio"/"tazza"/"spicchio", lasciando la lettera avanzata incollata al
+    // nome (es. "cucchiaio di vaniglia" diventava nome "o di vaniglia"). Le forme che sono
+    // prefisso di un'altra (es. "cucchiai" dentro "cucchiaio"/"cucchiaino"/"cucchiaini") vanno
+    // elencate DOPO quelle più lunghe, altrimenti l'alternanza regex si ferma alla più corta.
+    const UNIT = 'g|kg|ml|l|cl|cucchiaini|cucchiaino|cucchiaio|cucchiai|tazze|tazza|pizzichi|pizzico|spicchio|spicchi|fette|fetta|foglie|foglia|rametti|rametto|filetti|filetto';
+    const m = new RegExp(`^([\\d]+(?:[.,]\\d+)?(?:\\s*\\/\\s*\\d+)?)\\s*(${UNIT})?\\s*(?:di\\s+)?(.+)$`, 'i').exec(line);
     if(m) return { qty: m[1].replace(',', '.'), unit: (m[2]||'').trim(), name: m[3].trim() };
     return { qty:'', unit:'', name: line };
+  }
+  // Converte una quantità testuale (anche frazionaria, es. "1/2") in numero decimale.
+  // parseFloat() da solo si ferma al carattere "/" e restituirebbe 1 invece di 0.5.
+  function parseQtyValue(str){
+    if(str === undefined || str === null || str === '') return '';
+    const frac = /^(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)$/.exec(String(str).trim());
+    if(frac){
+      const n = parseFloat(frac[1].replace(',', '.'));
+      const d = parseFloat(frac[2].replace(',', '.'));
+      return d ? Math.round((n / d) * 1000) / 1000 : '';
+    }
+    const n = parseFloat(str);
+    return isNaN(n) ? '' : n;
   }
 
   function extractJsonLdRecipe(raw){
