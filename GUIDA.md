@@ -210,7 +210,7 @@ La Dispensa è una sezione separata dal ricettario, per tenere traccia di quello
 1. Premi **"+ Nuovo prodotto"**
 2. Scrivi il nome e scegli una categoria tra quelle disponibili: dai freschi (Frutta, Verdura, Uova, Salumi, Latticini e pronti) ai Surgelati, fino alla dispensa vera e propria (Pasta/riso e cereali, Legumi, Farine/zucchero e lieviti, Conserve e scatolame, Spezie e condimenti, Oli/aceti e grassi, Bevande, Snack e dolciumi), oppure Altro per tutto il resto
 3. Quantità, unità, data di scadenza e note sono tutte facoltative
-4. Se vuoi, premi **"🍎 Valori nutrizionali"** per aggiungere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale, riferiti a **100 g di prodotto** (non alla quantità che hai in dispensa in quel momento) — coerente con l'etichetta nutrizionale che trovi sulla confezione. Puoi scriverli a mano oppure usare **"🔎 Cerca su CREA"** per compilarli da soli scegliendo l'alimento più vicino dalla banca dati ufficiale CREA; dopo la scelta compare anche un pulsante **"ℹ️"** con la scheda nutrizionale completa di quell'alimento (tutte le proprietà misurate, non solo le 7 di sopra)
+4. Se vuoi, premi **"🍎 Valori nutrizionali"** per aggiungere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale, riferiti a **100 g di prodotto** (non alla quantità che hai in dispensa in quel momento) — coerente con l'etichetta nutrizionale che trovi sulla confezione. Puoi scriverli a mano, usare **"🔎 Cerca su CREA"** per un alimento generico dalla banca dati ufficiale CREA (con scheda **"ℹ️"** di approfondimento), oppure — per un prodotto confezionato specifico — usare **"📷 Scansiona codice a barre"** o **"🔎 Cerca su Open Food Facts"**: nome, categoria e valori nutrizionali si compilano da soli dalla banca dati collaborativa Open Food Facts, insieme a marca, immagine e Nutri-Score quando disponibili. Se il prodotto non si trova, resta comunque possibile compilare tutto a mano
 5. Premi **"Salva prodotto"**
 
 Nell'elenco, i prodotti si ordinano da soli mettendo prima quelli con la scadenza più vicina: le scadenze già passate sono evidenziate in rosso, quelle entro 3 giorni in arancione. Se hai inserito i valori nutrizionali, compaiono tutti (Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri, Sale) nella card, sempre per 100 g di prodotto. Cerca per nome o filtra per categoria con i controlli in alto. Clicca su un prodotto per modificarlo o eliminarlo.
@@ -218,6 +218,8 @@ Nell'elenco, i prodotti si ordinano da soli mettendo prima quelli con la scadenz
 Un prodotto della Dispensa si può anche pianificare direttamente come pasto nella Pianificazione settimanale (vedi sezione successiva) — comodo per cose semplici come uno yogurt a colazione o della frutta come spuntino, senza dover creare una ricetta apposta.
 
 I prodotti della Dispensa sono inclusi nel backup JSON, insieme alle ricette e alla pianificazione.
+
+Lo scanner da fotocamera richiede l'autorizzazione del browser e funziona solo in pagine servite in HTTPS (GitHub Pages lo è di default) — se la fotocamera non è disponibile, resta sempre utilizzabile il campo per incollare il codice a barre a mano.
 
 ## Salvataggio dei dati
 

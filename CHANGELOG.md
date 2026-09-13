@@ -2,6 +2,16 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.20.0] — Ricerca prodotto da Open Food Facts in Dispensa
+
+### Aggiunto
+- **Scansione codice a barre da fotocamera** (libreria `html5-qrcode`, caricata solo quando la usi) e **campo per incollare il codice a barre a mano**, nel form "Nuovo prodotto" della Dispensa
+- **Ricerca testuale su Open Food Facts** (banca dati collaborativa di prodotti confezionati), con anteprima di nome, marca, immagine e Nutri-Score
+- Nome, categoria e valori nutrizionali per 100 g si compilano da soli nello stesso form già esistente — nessun secondo inventario, stessa scheda prodotto di sempre
+
+### Nota tecnica
+- Lo User-Agent personalizzato richiesto da Open Food Facts non è impostabile da JavaScript nel browser (limite di sicurezza dei browser stessi): le richieste usano lo User-Agent reale del browser
+
 ## [3.19.0] — Valori nutrizionali Dispensa per 100 g invece che per la quantità in giacenza
 
 ### Modificato
