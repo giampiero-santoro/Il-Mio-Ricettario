@@ -2,6 +2,12 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.19.0] — Valori nutrizionali Dispensa per 100 g invece che per la quantità in giacenza
+
+### Modificato
+- **Valori nutrizionali della Dispensa ora per 100 g di prodotto**, non più per la quantità che hai in dispensa in quel momento: coerente con l'etichetta nutrizionale stampata sulle confezioni, e non cambia più ogni volta che consumi parte del prodotto. La ricerca "🔎 Cerca su CREA" ora compila i 7 valori direttamente dalla banca dati (senza più richiedere di inserire prima la quantità in grammi/kg per poterli calcolare)
+- **La card del prodotto in Dispensa mostra tutti e 7 i valori** (Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri, Sale) invece della sola Kcal
+
 ## [3.18.0] — Frazioni da cucina per cucchiai, cucchiaini, pizzichi, pezzi...
 
 ### Aggiunto

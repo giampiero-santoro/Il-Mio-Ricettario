@@ -296,7 +296,6 @@
   .add-row-btn{font-size:13px;background:transparent;border:1px dashed var(--brass);color:var(--brass);padding:6px 12px;border-radius:6px;}
   .add-row-btn:hover{background:rgba(140,106,47,0.10);}
   .ingredients-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  #nutrition-toggle-btn.active{background:var(--brass);color:#fff;}
   #dispensa-nutrition-toggle-btn.active{background:var(--brass);color:#fff;}
   .ingredient-block{margin-bottom:8px;}
   .ingredient-nutrition{
@@ -881,7 +880,6 @@
       <div id="ingredients-editor"></div>
       <div class="ingredients-actions">
         <button class="add-row-btn" id="add-ingredient">+ Aggiungi ingrediente</button>
-        <button type="button" class="btn-ghost btn-small" id="nutrition-toggle-btn">🍎 Valori nutrizionali</button>
       </div>
     </div>
 
@@ -965,7 +963,7 @@
         <div class="mini">Zuccheri (g)<input type="number" id="d-sugar" min="0" step="0.1"></div>
         <div class="mini">Sale (g)<input type="number" id="d-salt" min="0" step="0.01"></div>
       </div>
-      <div style="font-size:12px;color:var(--ink-soft);font-style:italic;margin-top:6px;">Riferiti alla quantità indicata sopra, non ai 100g.</div>
+      <div style="font-size:12px;color:var(--ink-soft);font-style:italic;margin-top:6px;">Riferiti a 100 g di prodotto (non alla quantità che hai in dispensa).</div>
     </div>
 
     <div class="field">
@@ -2066,34 +2064,27 @@
   });
 
   // ---------- Ricerca CREA nel form "Nuovo prodotto" Dispensa ----------
-  // Stessa logica delle righe ingrediente: i valori nutrizionali della
-  // Dispensa sono riferiti alla quantità indicata (non ai 100g), quindi
-  // si scala allo stesso modo con stimaGrammiIngrediente().
+  // A differenza degli ingredienti di una ricetta, qui i valori nutrizionali
+  // sono un dato di riferimento del PRODOTTO (per 100 g), indipendente da
+  // quanto ne hai in dispensa in questo momento: niente più scaling sulla
+  // quantità, si prendono i valori CREA così come sono.
   const dCreaSearchInput = document.getElementById('d-crea-search');
   const dCreaSchedaBtn = document.getElementById('d-crea-scheda-btn');
   if (typeof attachCreaAutocomplete === 'function') {
     attachCreaAutocomplete(dCreaSearchInput, (alimento) => {
       if (typeof CreaDB === 'undefined' || !CreaDB.isReady()) return;
-      const qtyInput = document.getElementById('d-qty');
-      const unitInput = document.getElementById('d-unit');
-      const grammi = stimaGrammiIngrediente(qtyInput.value, unitInput.value);
-      if (grammi === null) {
-        alert('Per precompilare i valori CREA serve la quantità in grammi (o kg) qui sopra. Inserisci prima la quantità, oppure copia i valori manualmente.');
-        return;
-      }
       dispensaCreaCodiceCorrente = alimento.codice;
       dCreaSchedaBtn.classList.add('visibile');
       const nomeInput = document.getElementById('d-name');
       if (!nomeInput.value.trim()) nomeInput.value = alimento.nome;
       document.getElementById('d-category').value = mappaCategoriaCreaDispensa(alimento.categoria || '');
-      const valori = CreaDB.scale(alimento, grammi);
-      document.getElementById('d-kcal').value = valori.kcal ?? '';
-      document.getElementById('d-protein').value = valori.proteine ?? '';
-      document.getElementById('d-fat').value = valori.grassi ?? '';
-      document.getElementById('d-carbs').value = valori.carboidrati ?? '';
-      document.getElementById('d-fiber').value = valori.fibre ?? '';
-      document.getElementById('d-sugar').value = valori.zuccheri ?? '';
-      document.getElementById('d-salt').value = valori.sale ?? '';
+      document.getElementById('d-kcal').value = alimento.kcal ?? '';
+      document.getElementById('d-protein').value = alimento.proteine ?? '';
+      document.getElementById('d-fat').value = alimento.grassi ?? '';
+      document.getElementById('d-carbs').value = alimento.carboidrati ?? '';
+      document.getElementById('d-fiber').value = alimento.fibre ?? '';
+      document.getElementById('d-sugar').value = alimento.zuccheri ?? '';
+      document.getElementById('d-salt').value = alimento.sale ?? '';
       document.getElementById('dispensa-nutrition-fields').style.display = 'flex';
       document.getElementById('dispensa-nutrition-toggle-btn').classList.add('active');
       formDirty = true;
@@ -2305,8 +2296,6 @@
 
     ingredientsEditor.innerHTML = '';
     const sourceIngredients = (source && source.ingredients && source.ingredients.length) ? source.ingredients : [{name:'',qty:'',unit:''}];
-    showIngredientNutrition = sourceIngredients.some(i => i.kcal || i.protein || i.fat || i.carbs || i.fiber || i.sugar || i.salt);
-    document.getElementById('nutrition-toggle-btn').classList.toggle('active', showIngredientNutrition);
     sourceIngredients.forEach(i=>addIngredientRow(i));
     stepsEditor.innerHTML = '';
     (source && source.steps && source.steps.length ? source.steps : [{text:'',vel:'',temp:'',time:'',mode:'Normale'}]).forEach(s=>addStepRow(s));
@@ -2358,14 +2347,10 @@
     fPhotoPreview.style.display = 'block';
   });
 
-  let showIngredientNutrition = false;
-
   function addIngredientRow(data){
-    data = data || {name:'',qty:'',unit:'',kcal:'',protein:'',fat:'',carbs:'',fiber:'',sugar:'',salt:''};
-    const hasNutrition = !!(data.kcal || data.protein || data.fat || data.carbs || data.fiber || data.sugar || data.salt);
+    data = data || {name:'',qty:'',unit:''};
     const wrap = document.createElement('div');
     wrap.className = 'ingredient-block';
-    if (data.creaCodice) wrap.dataset.creaCodice = data.creaCodice;
     wrap.innerHTML = `
       <div class="list-row">
         <input type="text" class="ing-name" placeholder="Ingrediente" value="${escapeAttr(data.name)}">
@@ -2373,60 +2358,8 @@
         <input type="text" class="unit ing-unit" placeholder="unità" value="${escapeAttr(data.unit)}">
         <button class="remove-row" title="Rimuovi">×</button>
       </div>
-      <div class="ingredient-nutrition" style="display:${(showIngredientNutrition || hasNutrition) ? 'flex' : 'none'};">
-        <div class="mini" style="flex:2 1 220px;">🔎 Cerca su CREA
-          <div style="display:flex;gap:6px;align-items:center;">
-            <input type="text" class="ing-crea-search" placeholder="es. farina, pomodoro, parmigiano…" autocomplete="off" style="flex:1;">
-            <button type="button" class="crea-scheda-btn ${data.creaCodice ? 'visibile' : ''}" title="Scheda nutrizionale completa CREA">ℹ️</button>
-          </div>
-        </div>
-        <div class="mini">Kcal<input type="number" class="ing-kcal" min="0" value="${data.kcal ?? ''}"></div>
-        <div class="mini">Proteine (g)<input type="number" class="ing-protein" min="0" step="0.1" value="${data.protein ?? ''}"></div>
-        <div class="mini">Grassi (g)<input type="number" class="ing-fat" min="0" step="0.1" value="${data.fat ?? ''}"></div>
-        <div class="mini">Carb. (g)<input type="number" class="ing-carbs" min="0" step="0.1" value="${data.carbs ?? ''}"></div>
-        <div class="mini">Fibre (g)<input type="number" class="ing-fiber" min="0" step="0.1" value="${data.fiber ?? ''}"></div>
-        <div class="mini">Zuccheri (g)<input type="number" class="ing-sugar" min="0" step="0.1" value="${data.sugar ?? ''}"></div>
-        <div class="mini">Sale (g)<input type="number" class="ing-salt" min="0" step="0.01" value="${data.salt ?? ''}"></div>
-      </div>
     `;
     wrap.querySelector('.remove-row').addEventListener('click', ()=> wrap.remove());
-
-    // Ricerca CREA per questo ingrediente: precompila i campi nutrizionali sopra
-    // scalando i valori (per 100 g nella fonte) alla quantità già inserita nella
-    // riga, quando la quantità è espressa in grammi o chilogrammi. Restano comunque
-    // campi modificabili a mano, come tutti gli altri.
-    const creaSearchInput = wrap.querySelector('.ing-crea-search');
-    const creaSchedaBtn = wrap.querySelector('.crea-scheda-btn');
-    if (typeof attachCreaAutocomplete === 'function') {
-      attachCreaAutocomplete(creaSearchInput, (alimento) => {
-        if (typeof CreaDB === 'undefined' || !CreaDB.isReady()) return;
-        const qtyInput = wrap.querySelector('.ing-qty');
-        const unitInput = wrap.querySelector('.ing-unit');
-        const grammi = stimaGrammiIngrediente(qtyInput.value, unitInput.value);
-        if (grammi === null) {
-          alert('Per precompilare i valori CREA serve la quantità in grammi (o kg) nella riga dell\'ingrediente. Inserisci prima la quantità, oppure copia i valori manualmente.');
-          return;
-        }
-        wrap.dataset.creaCodice = alimento.codice;
-        creaSchedaBtn.classList.add('visibile');
-        const valori = CreaDB.scale(alimento, grammi);
-        wrap.querySelector('.ing-kcal').value = valori.kcal ?? '';
-        wrap.querySelector('.ing-protein').value = valori.proteine ?? '';
-        wrap.querySelector('.ing-fat').value = valori.grassi ?? '';
-        wrap.querySelector('.ing-carbs').value = valori.carboidrati ?? '';
-        wrap.querySelector('.ing-fiber').value = valori.fibre ?? '';
-        wrap.querySelector('.ing-sugar').value = valori.zuccheri ?? '';
-        wrap.querySelector('.ing-salt').value = valori.sale ?? '';
-        wrap.querySelector('.ingredient-nutrition').style.display = 'flex';
-        formDirty = true;
-      });
-    }
-    creaSchedaBtn.addEventListener('click', () => {
-      if (wrap.dataset.creaCodice && typeof apriSchedaCrea === 'function') {
-        apriSchedaCrea(wrap.dataset.creaCodice);
-      }
-    });
-
     ingredientsEditor.appendChild(wrap);
   }
 
@@ -2499,13 +2432,6 @@
 
   document.getElementById('new-recipe-btn').addEventListener('click', ()=> openEdit(null));
   document.getElementById('add-ingredient').addEventListener('click', ()=> addIngredientRow());
-  document.getElementById('nutrition-toggle-btn').addEventListener('click', (e)=>{
-    showIngredientNutrition = !showIngredientNutrition;
-    e.currentTarget.classList.toggle('active', showIngredientNutrition);
-    ingredientsEditor.querySelectorAll('.ingredient-nutrition').forEach(panel=>{
-      panel.style.display = showIngredientNutrition ? 'flex' : 'none';
-    });
-  });
   document.getElementById('add-step').addEventListener('click', ()=> addStepRow());
   document.getElementById('edit-close').addEventListener('click', confirmCloseEdit);
   document.getElementById('cancel-edit').addEventListener('click', confirmCloseEdit);
@@ -2532,20 +2458,11 @@
     const ingredients = Array.from(ingredientsEditor.querySelectorAll('.ingredient-block')).map(block=>({
       name: block.querySelector('.ing-name').value.trim(),
       qty: parseFloat(block.querySelector('.ing-qty').value) || 0,
-      unit: block.querySelector('.ing-unit').value.trim(),
-      kcal: block.querySelector('.ing-kcal').value,
-      protein: block.querySelector('.ing-protein').value,
-      fat: block.querySelector('.ing-fat').value,
-      carbs: block.querySelector('.ing-carbs').value,
-      fiber: block.querySelector('.ing-fiber').value,
-      sugar: block.querySelector('.ing-sugar').value,
-      salt: block.querySelector('.ing-salt').value,
-      creaCodice: block.dataset.creaCodice || ''
+      unit: block.querySelector('.ing-unit').value.trim()
     })).filter(i=>i.name);
 
     // Segnala se lo stesso ingrediente (nome e unità) compare più volte nella ricetta — capita
-    // facilmente scrivendo a mano — e offre di unirli in un'unica riga sommando le quantità
-    // (e i valori nutrizionali, già intesi come totali per riga, non per unità di misura).
+    // facilmente scrivendo a mano — e offre di unirli in un'unica riga sommando le quantità.
     let finalIngredients = ingredients;
     const dupGroups = {};
     ingredients.forEach(ing=>{
@@ -2557,10 +2474,6 @@
       const merge = confirm(`Questo ingrediente compare più volte nella ricetta (stesso nome e unità di misura): ${dupNames.join(', ')}.\n\nVuoi unire le righe sommando le quantità? (Annulla per lasciarle separate)`);
       if(merge){
         const seen = new Set();
-        const sumField = (group, f) => {
-          const vals = group.map(g => parseFloat(g[f])).filter(v => !isNaN(v));
-          return vals.length ? String(vals.reduce((a,b)=>a+b, 0)) : '';
-        };
         finalIngredients = [];
         ingredients.forEach(ing=>{
           const key = normalize(ing.name) + '|' + normalize(ing.unit);
@@ -2569,9 +2482,7 @@
           const group = dupGroups[key];
           finalIngredients.push(group.length === 1 ? ing : {
             name: ing.name, unit: ing.unit,
-            qty: group.reduce((sum,g)=> sum + (parseFloat(g.qty)||0), 0),
-            kcal: sumField(group,'kcal'), protein: sumField(group,'protein'), fat: sumField(group,'fat'),
-            carbs: sumField(group,'carbs'), fiber: sumField(group,'fiber'), sugar: sumField(group,'sugar'), salt: sumField(group,'salt')
+            qty: group.reduce((sum,g)=> sum + (parseFloat(g.qty)||0), 0)
           });
         });
       }
@@ -2683,23 +2594,26 @@
   }
   function plural(n, one, many){ return n === 1 ? one : many; }
 
+  // I valori nutrizionali per ricetta NON si calcolano più sommando i singoli
+  // ingredienti crudi: la cottura altera in modo non prevedibile acqua, grassi
+  // e altri valori (es. la pasta assorbe acqua, un fritto assorbe olio), quindi
+  // una somma "a crudo" darebbe un numero preciso ma sbagliato. I valori
+  // nutrizionali compaiono quindi SOLO per le ricette importate da "CREA Menù",
+  // dove sono quelli misurati da CREA sul piatto finito (non calcolati da noi).
   const NUTRITION_FIELDS = [
     {key:'kcal', label:'Kcal', unit:''},
-    {key:'protein', label:'Proteine', unit:'g'},
-    {key:'fat', label:'Grassi', unit:'g'},
-    {key:'carbs', label:'Carboidrati', unit:'g'},
-    {key:'fiber', label:'Fibre', unit:'g'},
-    {key:'sugar', label:'Zuccheri', unit:'g'},
-    {key:'salt', label:'Sale', unit:'g'}
+    {key:'proteine', label:'Proteine', unit:'g'},
+    {key:'grassi', label:'Grassi', unit:'g'},
+    {key:'carboidrati', label:'Carboidrati', unit:'g'},
+    {key:'fibre', label:'Fibre', unit:'g'},
+    {key:'zuccheri', label:'Zuccheri', unit:'g'},
+    {key:'sale', label:'Sale', unit:'g'}
   ];
-  function computeNutritionTotals(r, scale){
-    const withNutrition = r.ingredients.filter(i => NUTRITION_FIELDS.some(f => i[f.key]));
-    if(!withNutrition.length) return null;
-    const totals = {};
-    NUTRITION_FIELDS.forEach(f=>{
-      totals[f.key] = r.ingredients.reduce((sum,i)=> sum + (parseFloat(i[f.key]) || 0) * scale, 0);
-    });
-    return { totals, withCount: withNutrition.length, totalCount: r.ingredients.length };
+  /** Ritorna i valori ufficiali CREA del piatto (per 100 g), solo se la
+   * ricetta è stata importata da CREA Menù; altrimenti null (niente da
+   * mostrare — non si inventa un totale sommando gli ingredienti crudi). */
+  function getNutrizioneCrea(r){
+    return (r && r.nutrizioneCrea) || null;
   }
 
   function renderView(r){
@@ -2737,26 +2651,19 @@
     });
 
     const viewNutrition = document.getElementById('view-nutrition');
-    const nutrition = computeNutritionTotals(r, scale);
-    if(nutrition){
-      const { totals, withCount, totalCount } = nutrition;
+    const nutrizioneCrea = getNutrizioneCrea(r);
+    if(nutrizioneCrea){
       const rows = NUTRITION_FIELDS
-        .filter(f => totals[f.key] > 0)
-        .map(f => `<div>${f.label}: <b>${roundNice(totals[f.key])}</b>${f.unit}</div>`).join('');
-      const rowsPerPortion = NUTRITION_FIELDS
-        .filter(f => totals[f.key] > 0)
-        .map(f => `<div>${f.label}: <b>${roundNice(totals[f.key] / (currentServings || 1))}</b>${f.unit}</div>`).join('');
-      const incomplete = withCount < totalCount;
-      const usaCrea = (r.ingredients || []).some(i => i.creaCodice);
+        .filter(f => nutrizioneCrea[f.key] !== null && nutrizioneCrea[f.key] !== undefined)
+        .map(f => `<div>${f.label}: <b>${roundNice(nutrizioneCrea[f.key])}</b>${f.unit}</div>`).join('');
       viewNutrition.innerHTML = `
         <div class="nutrition-summary">
-          <h4>🍎 Valori nutrizionali</h4>
-          <div style="font-size:12px;color:var(--ink-soft);margin-bottom:4px;">Totale ricetta (${currentServings} porzion${currentServings===1?'e':'i'})</div>
+          <h4>🍎 Valori nutrizionali (per 100 g del piatto)</h4>
           <div class="nutrition-grid">${rows}</div>
-          <div style="font-size:12px;color:var(--ink-soft);margin:10px 0 4px;">Per 1 porzione</div>
-          <div class="nutrition-grid">${rowsPerPortion}</div>
-          ${incomplete ? `<div class="nutrition-note">Calcolati solo sugli ingredienti con dati inseriti (${withCount} di ${totalCount}) — il totale reale potrebbe essere più alto.</div>` : ''}
-          ${usaCrea ? `<div class="nutrition-note" style="opacity:.7;margin-top:6px;">Alcuni valori: banca dati <a href="https://www.alimentinutrizione.it" target="_blank" rel="noopener" style="color:var(--gold-deep);">CREA</a>, per 100 g di parte edibile.</div>` : ''}
+          <div class="nutrition-note" style="opacity:.7;margin-top:6px;">
+            Valori ufficiali <a href="https://www.alimentinutrizione.it" target="_blank" rel="noopener" style="color:var(--gold-deep);">CREA</a>
+            misurati sul piatto finito (non calcolati sugli ingredienti crudi, che la cottura altera).
+          </div>
         </div>
       `;
       viewNutrition.style.display = 'block';
@@ -2920,18 +2827,12 @@
         return `- ${[qty, i.unit, i.name].filter(Boolean).join(' ')}`;
       })
     });
-    const nutrition = computeNutritionTotals(r, scale);
-    if(nutrition){
-      const { totals, withCount, totalCount } = nutrition;
+    const nutrizioneCrea = getNutrizioneCrea(r);
+    if(nutrizioneCrea){
       const nutritionLines = NUTRITION_FIELDS
-        .filter(f => totals[f.key] > 0)
-        .map(f => `${f.label}: ${roundNice(totals[f.key])}${f.unit}`);
-      if(withCount < totalCount) nutritionLines.push(`(dati inseriti solo su ${withCount} di ${totalCount} ingredienti)`);
-      sections.push({ heading: `Valori nutrizionali - totale ricetta (${currentServings} porzioni)`, lines: nutritionLines });
-      const perPortionLines = NUTRITION_FIELDS
-        .filter(f => totals[f.key] > 0)
-        .map(f => `${f.label}: ${roundNice(totals[f.key] / (currentServings || 1))}${f.unit}`);
-      sections.push({ heading: 'Valori nutrizionali - per 1 porzione', lines: perPortionLines });
+        .filter(f => nutrizioneCrea[f.key] !== null && nutrizioneCrea[f.key] !== undefined)
+        .map(f => `${f.label}: ${roundNice(nutrizioneCrea[f.key])}${f.unit}`);
+      sections.push({ heading: 'Valori nutrizionali ufficiali CREA (per 100 g del piatto)', lines: nutritionLines });
     }
     sections.push({
       heading: 'Preparazione',
@@ -4192,16 +4093,31 @@
 
       const qtyKcalParts = [];
       if(it.qty || it.unit) qtyKcalParts.push(`${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}`.trim());
-      if(it.kcal) qtyKcalParts.push(`🍎 ${roundNice(it.kcal)} kcal (per questa quantità)`);
       const qtyKcalHtml = qtyKcalParts.length ? `<div class="dispensa-qty">${qtyKcalParts.join(' · ')}</div>` : '';
+
+      // Valori nutrizionali: sempre per 100 g di prodotto (dato del prodotto,
+      // indipendente da quanto ne hai in dispensa in questo momento).
+      const campiNutrizione = [
+        ['kcal', 'Kcal', ''], ['protein', 'Proteine', 'g'], ['fat', 'Grassi', 'g'],
+        ['carbs', 'Carb.', 'g'], ['fiber', 'Fibre', 'g'], ['sugar', 'Zuccheri', 'g'], ['salt', 'Sale', 'g'],
+      ];
+      const righeNutrizione = campiNutrizione
+        .filter(([campo]) => it[campo] !== '' && it[campo] !== undefined && it[campo] !== null)
+        .map(([campo, etichetta, unita]) => `<div>${etichetta}: <b>${roundNice(it[campo])}</b>${unita}</div>`)
+        .join('');
+      const nutrizioneHtml = righeNutrizione
+        ? `<div class="nutrition-summary" style="margin:6px 0;padding:8px 10px;"><div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px;">Per 100 g di prodotto</div><div class="nutrition-grid">${righeNutrizione}</div></div>`
+        : '';
+
       const creaInfoHtml = it.creaCodice
-        ? `<button type="button" class="crea-scheda-btn visibile" data-codice="${escapeAttr(it.creaCodice)}" style="margin:2px 0 4px;" title="Tutti i valori nutrizionali CREA per 100 g">ℹ️ Valori per 100 g (CREA)</button>`
+        ? `<button type="button" class="crea-scheda-btn visibile" data-codice="${escapeAttr(it.creaCodice)}" style="margin:2px 0 4px;" title="Tutti i valori nutrizionali CREA per 100 g">ℹ️ Scheda completa (CREA)</button>`
         : '';
 
       card.innerHTML = `
         <span class="cat-tag">${escapeHtml(it.category)}</span>
         <h3 style="margin:2px 0 4px;font-size:19px;">${escapeHtml(it.name)}</h3>
         ${qtyKcalHtml}
+        ${nutrizioneHtml}
         ${creaInfoHtml}
         ${expiryHtml}
         ${it.notes ? `<div class="dispensa-notes">${escapeHtml(it.notes)}</div>` : ''}

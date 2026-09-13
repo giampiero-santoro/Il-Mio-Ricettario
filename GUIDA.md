@@ -10,7 +10,7 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 4. [Esportare e importare una singola ricetta](#esportare-e-importare-una-singola-ricetta)
 5. [Impostazioni robot per i passaggi (facoltative)](#impostazioni-robot-per-i-passaggi-facoltative)
 6. [Impostazioni pentola a pressione (facoltative)](#impostazioni-pentola-a-pressione-facoltative)
-7. [Valori nutrizionali (facoltativi)](#valori-nutrizionali-facoltativi)
+7. [Valori nutrizionali (solo per le ricette da CREA Menù)](#valori-nutrizionali-solo-per-le-ricette-da-crea-menù)
 8. [Tag dietetici](#tag-dietetici)
 9. [Visualizzare e scalare le porzioni](#visualizzare-e-scalare-le-porzioni)
 10. [Ricerca, filtri ed esclusione ingredienti](#ricerca-filtri-ed-esclusione-ingredienti)
@@ -83,15 +83,11 @@ Nel modulo di modifica trovi anche, accanto a porzioni e tempo, un campo facolta
 
 Le ricette mostrano automaticamente un'etichetta del metodo di cottura, nella lista e nella scheda, dedotta dai passaggi — non serve spuntare nulla a mano: **🍲** se c'è almeno un passaggio a pressione, **🤖** se c'è almeno un passaggio con impostazioni robot, **🔥 Tradizionale** se non ne ha nessuno dei due. Una ricetta che usa entrambi i metodi mostra sia 🍲 sia 🤖.
 
-## Valori nutrizionali (facoltativi)
+## Valori nutrizionali (solo per le ricette da CREA Menù)
 
-Il ricettario non ha un database nutrizionale: i valori li inserisci tu (ad esempio copiandoli da un'etichetta), e il ricettario fa i conti al posto tuo.
+Il ricettario **non calcola più** i valori nutrizionali di una ricetta sommando quelli dei singoli ingredienti crudi: la cottura altera acqua, grassi e altri valori in modo imprevedibile (la pasta assorbe acqua, un fritto assorbe olio...), quindi una somma "a crudo" darebbe un numero preciso ma sbagliato.
 
-1. Nel modulo di modifica, premi **"🍎 Valori nutrizionali"** vicino agli ingredienti: compaiono per ogni ingrediente i campi Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale
-2. Inserisci i valori **riferiti alla quantità di quell'ingrediente così com'è scritta nella ricetta** (non per 100g) — puoi compilarli anche solo per alcuni ingredienti, se non conosci gli altri
-3. Nella scheda della ricetta compare un riepilogo con il totale e il valore per porzione, che si ricalcola da solo quando cambi le porzioni con il +/−
-4. Il riepilogo è incluso anche nell'**"⬇ Esporta PDF"** della ricetta
-5. Se non hai inserito i dati per tutti gli ingredienti, il riepilogo (e il PDF) lo segnala, così sai che il totale reale potrebbe essere più alto
+I valori nutrizionali compaiono quindi **solo per le ricette importate da "🇮🇹 CREA Menù"** (vedi la sezione dedicata più avanti in questa guida): sono quelli misurati ufficialmente dal CREA sul piatto finito, per 100 g — non calcolati da noi, mostrati così come sono. Una ricetta scritta a mano o importata da un'altra fonte non ha valori nutrizionali associati, e nella sua scheda quella sezione semplicemente non compare.
 
 ## Tag dietetici
 
@@ -214,10 +210,10 @@ La Dispensa è una sezione separata dal ricettario, per tenere traccia di quello
 1. Premi **"+ Nuovo prodotto"**
 2. Scrivi il nome e scegli una categoria tra quelle disponibili: dai freschi (Frutta, Verdura, Uova, Salumi, Latticini e pronti) ai Surgelati, fino alla dispensa vera e propria (Pasta/riso e cereali, Legumi, Farine/zucchero e lieviti, Conserve e scatolame, Spezie e condimenti, Oli/aceti e grassi, Bevande, Snack e dolciumi), oppure Altro per tutto il resto
 3. Quantità, unità, data di scadenza e note sono tutte facoltative
-4. Se vuoi, premi **"🍎 Valori nutrizionali"** per aggiungere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale, riferiti alla quantità indicata sopra (non ai 100g) — utile ad esempio per uno yogurt o un affettato già confezionato
+4. Se vuoi, premi **"🍎 Valori nutrizionali"** per aggiungere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale, riferiti a **100 g di prodotto** (non alla quantità che hai in dispensa in quel momento) — coerente con l'etichetta nutrizionale che trovi sulla confezione. Puoi scriverli a mano oppure usare **"🔎 Cerca su CREA"** per compilarli da soli scegliendo l'alimento più vicino dalla banca dati ufficiale CREA; dopo la scelta compare anche un pulsante **"ℹ️"** con la scheda nutrizionale completa di quell'alimento (tutte le proprietà misurate, non solo le 7 di sopra)
 5. Premi **"Salva prodotto"**
 
-Nell'elenco, i prodotti si ordinano da soli mettendo prima quelli con la scadenza più vicina: le scadenze già passate sono evidenziate in rosso, quelle entro 3 giorni in arancione. Se hai inserito le kcal, compaiono anche nella card, accanto alla quantità. Cerca per nome o filtra per categoria con i controlli in alto. Clicca su un prodotto per modificarlo o eliminarlo.
+Nell'elenco, i prodotti si ordinano da soli mettendo prima quelli con la scadenza più vicina: le scadenze già passate sono evidenziate in rosso, quelle entro 3 giorni in arancione. Se hai inserito i valori nutrizionali, compaiono tutti (Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri, Sale) nella card, sempre per 100 g di prodotto. Cerca per nome o filtra per categoria con i controlli in alto. Clicca su un prodotto per modificarlo o eliminarlo.
 
 Un prodotto della Dispensa si può anche pianificare direttamente come pasto nella Pianificazione settimanale (vedi sezione successiva) — comodo per cose semplici come uno yogurt a colazione o della frutta come spuntino, senza dover creare una ricetta apposta.
 
