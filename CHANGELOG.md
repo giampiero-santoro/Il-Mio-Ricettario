@@ -2,6 +2,27 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.18.0] — Frazioni da cucina per cucchiai, cucchiaini, pizzichi, pezzi...
+
+### Aggiunto
+- **Frazioni al posto dei decimali per le unità "a conteggio"**: scalando le porzioni, quando la quantità di un ingrediente misurato in cucchiaio/cucchiai, cucchiaino/cucchiaini, pizzico/pizzichi, pezzo/pezzi, tazza/tazze, fetta/fette, spicchio/spicchi, rametto/rametti, filetto/filetti o foglia/foglie scende sotto l'unità intera, ora viene mostrata come frazione da cucina (es. "1/2", "1/4 e 3/4" quando c'è anche una parte intera) invece che come decimale ("0.5"). Vale nella scheda ricetta, nel PDF, nella lista della spesa e negli avvisi di scarico dalla Dispensa. Grammi, ml, litri e unità simili restano invece decimali come prima
+
+## [3.17.0] — Salvataggio su Drive/cloud da cellulare
+
+### Aggiunto
+- **Foglio di condivisione nativo su cellulare per backup/CSV/PDF**: su Android e iPhone/iPad, i pulsanti "Esporta" ora aprono il foglio di condivisione del telefono invece di scaricare direttamente nella cartella Download. Tra le app che compaiono c'è "Salva su Drive" (se hai Google Drive installato), oltre a Dropbox, Files, email, ecc. — quindi ora è possibile scegliere dove salvare, incluso il Cloud. Resta comunque possibile scegliere "Salva sul dispositivo"/"File" dal foglio se si preferisce tenerlo solo in locale. Su computer (Chrome/Edge) il comportamento resta quello di prima, con la finestra "Salva con nome"
+
+## [3.16.1] — Corretto overflow del menu soglia su mobile
+
+### Corretto
+- **Il menu a tendina della soglia ingredienti mancanti usciva dal riquadro su mobile**: il `<select>` non si restringeva sotto la larghezza del suo testo più lungo ("Mancano al massimo 5 ingredienti"), sporgendo oltre il bordo del pannello sugli schermi stretti. Ora occupa correttamente tutta la larghezza disponibile; accorciate anche le etichette (es. "Mancano max 5 ingredienti")
+
+## [3.16.0] — Soglia di ingredienti mancanti in "Cosa posso cucinare?"
+
+### Aggiunto
+- **Soglia ingredienti mancanti in "Cosa posso cucinare?"**: nuovo menu a tendina per scegliere quanti ingredienti possono mancare — da "Solo ricette già pronte" (0 mancanti) fino a 5, oppure "Qualsiasi risultato" (comportamento di prima, nessun limite). La scelta resta salvata. Prima venivano sempre mostrate tutte le ricette del ricettario, solo ordinate per numero di ingredienti mancanti, senza modo di nasconderle
+- Confermato che "Trova ricette" funziona già anche lasciando vuoto il campo di testo, usando automaticamente solo i prodotti in Dispensa (funzionalità già presente, verificata con un test dedicato)
+
 ## [3.15.0] — Valori nutrizionali anche per porzione singola
 
 ### Modificato

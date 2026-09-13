@@ -119,6 +119,7 @@
   .panel-sub{font-size:13px;color:var(--ink-soft);font-style:italic;}
   .panel-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
   .panel-row input[type="text"]{flex:1;min-width:220px;}
+  .panel-row select{min-width:0;max-width:100%;}
 
   /* ---------- Toolbar ---------- */
   .toolbar{
@@ -577,6 +578,7 @@
     .row{flex-direction:column;}
     .toolbar{flex-direction:column;align-items:stretch;}
     .panel-row{flex-direction:column;align-items:stretch;}
+    .panel-row select{width:100%;}
   }
   @media (prefers-reduced-motion: reduce){
     .card,.modal,.menu-dropdown,.plan-day-card{animation:none; transition:none;}
@@ -645,6 +647,14 @@
     </div>
     <div class="panel-row">
       <input type="text" id="pantry-input" placeholder="Altri ingredienti che hai, separati da virgola (facoltativo)">
+      <select id="pantry-missing-limit" title="Quanti ingredienti possono mancare">
+        <option value="any">Qualsiasi risultato</option>
+        <option value="0">Solo ricette pronte</option>
+        <option value="1">Manca max 1 ingrediente</option>
+        <option value="2">Mancano max 2 ingredienti</option>
+        <option value="3">Mancano max 3 ingredienti</option>
+        <option value="5">Mancano max 5 ingredienti</option>
+      </select>
       <button class="btn-gold" id="pantry-search-btn">Trova ricette</button>
       <button class="btn-ghost" id="pantry-reset-btn" style="display:none;">Mostra tutte</button>
     </div>
@@ -740,25 +750,21 @@
         </div>
         <select id="dispensa-category-filter">
           <option value="">Tutte le categorie</option>
-          <option value="Alimenti Etnici">Alimenti Etnici</option>
-          <option value="Bevande alcoliche">Bevande alcoliche</option>
-          <option value="Carni fresche">Carni fresche</option>
-          <option value="Carni trasformate e conservate">Carni trasformate e conservate</option>
-          <option value="Cereali e derivati">Cereali e derivati</option>
-          <option value="Dolci">Dolci</option>
-          <option value="Fast-food a base di carne">Fast-food a base di carne</option>
-          <option value="Formaggi e latticini">Formaggi e latticini</option>
-          <option value="Frattaglie">Frattaglie</option>
           <option value="Frutta">Frutta</option>
-          <option value="Frutta secca a guscio e semi oleaginosi">Frutta secca a guscio e semi oleaginosi</option>
-          <option value="Latte e yogurt">Latte e yogurt</option>
-          <option value="Legumi">Legumi</option>
-          <option value="Oli e grassi">Oli e grassi</option>
-          <option value="Prodotti della pesca">Prodotti della pesca</option>
-          <option value="Prodotti vari">Prodotti vari</option>
-          <option value="Ricette Italiane">Ricette Italiane</option>
+          <option value="Verdura">Verdura</option>
           <option value="Uova">Uova</option>
-          <option value="Verdure e ortaggi">Verdure e ortaggi</option>
+          <option value="Salumi">Salumi</option>
+          <option value="Latticini e pronti">Latticini e pronti</option>
+          <option value="Surgelati">Surgelati</option>
+          <option value="Pasta, riso e cereali">Pasta, riso e cereali</option>
+          <option value="Legumi">Legumi</option>
+          <option value="Farine, zucchero e lieviti">Farine, zucchero e lieviti</option>
+          <option value="Conserve e scatolame">Conserve e scatolame</option>
+          <option value="Spezie e condimenti">Spezie e condimenti</option>
+          <option value="Oli, aceti e grassi">Oli, aceti e grassi</option>
+          <option value="Bevande">Bevande</option>
+          <option value="Snack e dolciumi">Snack e dolciumi</option>
+          <option value="Altro">Altro</option>
         </select>
       </div>
     </div>
@@ -911,54 +917,25 @@
       <input type="text" id="d-name" placeholder="es. Mele, Yogurt bianco, Prosciutto crudo">
     </div>
 
-    <div class="field">
-      <div class="ingredients-actions" style="justify-content:flex-start;">
-        <button type="button" class="btn-ghost btn-small" id="off-scan-open-btn">📷 Scansiona codice a barre</button>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
-        <input type="text" id="off-barcode-input" placeholder="…oppure incolla qui il codice a barre (EAN/UPC)" inputmode="numeric" style="flex:1;">
-        <button type="button" class="btn-ghost btn-small" id="off-barcode-search-btn">Cerca</button>
-      </div>
-      <div style="margin-top:8px;">
-        <input type="text" id="off-text-search" placeholder="🔎 Cerca su Open Food Facts (es. nutella, pasta barilla)…" autocomplete="off">
-      </div>
-      <div id="off-preview" style="display:none;align-items:center;gap:10px;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--parchment-light);">
-        <img id="off-preview-img" src="" alt="" style="width:44px;height:44px;object-fit:contain;border-radius:4px;">
-        <div style="flex:1;font-size:13px;">
-          <div id="off-preview-nome" style="font-family:'Cormorant Garamond',serif;font-size:16px;"></div>
-          <div id="off-preview-marca" style="color:var(--ink-soft);"></div>
-        </div>
-        <span id="off-preview-nutriscore" class="cat-tag" style="display:none;"></span>
-      </div>
-      <div id="off-status" style="font-size:12px;color:var(--ink-soft);margin-top:6px;"></div>
-      <div style="font-size:11px;color:var(--ink-soft);font-style:italic;margin-top:4px;">
-        Dati prodotto da Open Food Facts (banca dati collaborativa): compilano nome, categoria, quantità e valori nutrizionali — controlla e completa a mano ciò che manca.
-      </div>
-    </div>
-
     <div class="row">
       <div class="field">
         <label>Categoria</label>
         <select id="d-category">
-          <option>Alimenti Etnici</option>
-          <option>Bevande alcoliche</option>
-          <option>Carni fresche</option>
-          <option>Carni trasformate e conservate</option>
-          <option>Cereali e derivati</option>
-          <option>Dolci</option>
-          <option>Fast-food a base di carne</option>
-          <option>Formaggi e latticini</option>
-          <option>Frattaglie</option>
           <option>Frutta</option>
-          <option>Frutta secca a guscio e semi oleaginosi</option>
-          <option>Latte e yogurt</option>
-          <option>Legumi</option>
-          <option>Oli e grassi</option>
-          <option>Prodotti della pesca</option>
-          <option>Prodotti vari</option>
-          <option>Ricette Italiane</option>
+          <option>Verdura</option>
           <option>Uova</option>
-          <option>Verdure e ortaggi</option>
+          <option>Salumi</option>
+          <option>Latticini e pronti</option>
+          <option>Surgelati</option>
+          <option>Pasta, riso e cereali</option>
+          <option>Legumi</option>
+          <option>Farine, zucchero e lieviti</option>
+          <option>Conserve e scatolame</option>
+          <option>Spezie e condimenti</option>
+          <option>Oli, aceti e grassi</option>
+          <option>Bevande</option>
+          <option>Snack e dolciumi</option>
+          <option>Altro</option>
         </select>
       </div>
       <div class="field">
@@ -970,7 +947,6 @@
         <input type="text" id="d-unit" placeholder="es. pz, g, ml">
       </div>
     </div>
-
 
     <div class="field">
       <div class="ingredients-actions" style="justify-content:flex-start;">
@@ -1109,20 +1085,6 @@
   </div>
 </div>
 
-<!-- ============ SCANNER CODICE A BARRE (Open Food Facts) ============ -->
-<div class="overlay" id="off-scanner-overlay">
-  <div class="modal">
-    <button class="close-x" id="off-scanner-close" aria-label="Chiudi">×</button>
-    <h2>Scansiona codice a barre</h2>
-    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">
-      Inquadra il codice a barre della confezione. Serve l'autorizzazione
-      del browser a usare la fotocamera.
-    </div>
-    <div id="off-scanner-reader" style="width:100%;"></div>
-    <div id="off-scanner-status" style="font-size:13px;color:var(--ink-soft);margin-top:10px;"></div>
-  </div>
-</div>
-
 <!-- ============ VIEW MODAL ============ -->
 <div class="overlay" id="view-overlay">
   <div class="modal">
@@ -1242,30 +1204,39 @@
 <!-- Banca dati nutrizionale CREA: deve caricarsi PRIMA dello script principale,
      perché quest'ultimo usa l'oggetto CreaDB e la funzione attachCreaAutocomplete. -->
 <script src="js/crea-nutrition.js"></script>
-<script src="js/off-integration.js"></script>
 <script>
 (function(){
   const STORAGE_KEY = 'mc_ricettario_v1';
   const WEEK_KEY = 'mc_ricettario_settimana_v1';
   const MEALTYPES_KEY = 'mc_ricettario_pasti_v1';
   const PANTRY_KEY = 'mc_ricettario_dispensa_v1';
+  const PANTRY_LIMIT_KEY = 'mc_ricettario_dispensa_limit_v1';
   const PLAN_SERVINGS_KEY = 'mc_ricettario_porzioni_piano_v1';
   const LAST_BACKUP_KEY = 'mc_ricettario_ultimo_backup_v1';
   const PREV_WEEK_KEY = 'mc_ricettario_settimana_precedente_v1';
   const DISPENSA_ITEMS_KEY = 'mc_ricettario_dispensa_prodotti_v1';
   const SHOPPING_EXTRA_KEY = 'mc_ricettario_spesa_extra_v1';
-  // Dispensa usa direttamente le 19 categorie ufficiali CREA (le stesse
-  // della vista "CREA Alimenti"): niente più mappatura fra due elenchi
-  // diversi, un prodotto collegato a CREA eredita la categoria così com'è.
   const PANTRY_CATEGORY_COLORS = {
-    'Alimenti Etnici': '#7a4fa0', 'Bevande alcoliche': '#3f6e9c', 'Carni fresche': '#8b2635',
-    'Carni trasformate e conservate': '#a13d3d', 'Cereali e derivati': '#8a6642', 'Dolci': '#b83a6b',
-    'Fast-food a base di carne': '#cf7a2c', 'Formaggi e latticini': '#c9a227', 'Frattaglie': '#6b3f3f',
-    'Frutta': '#d17b3f', 'Frutta secca a guscio e semi oleaginosi': '#a68a5b', 'Latte e yogurt': '#d9c27a',
-    'Legumi': '#6b5b3a', 'Oli e grassi': '#8a7a2e', 'Prodotti della pesca': '#3f7f8b',
-    'Prodotti vari': '#3f6e79', 'Ricette Italiane': '#9c4b1f', 'Uova': '#d9a94a',
-    'Verdure e ortaggi': '#5c8a3a'
+    'Frutta': '#d17b3f', 'Verdura': '#5c8a3a', 'Uova': '#d9a94a', 'Salumi': '#a13d3d',
+    'Latticini e pronti': '#c9a227', 'Surgelati': '#4f7f8b', 'Pasta, riso e cereali': '#8a6642',
+    'Legumi': '#6b5b3a', 'Farine, zucchero e lieviti': '#a68a5b', 'Conserve e scatolame': '#7a5230',
+    'Spezie e condimenti': '#9c4b1f', 'Oli, aceti e grassi': '#8a7a2e', 'Bevande': '#3f6e9c',
+    'Snack e dolciumi': '#b83a6b', 'Altro': '#3f6e79'
   };
+  // Mappa (euristica) dalle 19 categorie del dataset CREA alle 15 categorie
+  // di Dispensa: solo un default suggerito, resta modificabile come qualsiasi
+  // altro campo del prodotto.
+  const CREA_TO_PANTRY_CATEGORY = {
+    'Frutta': 'Frutta', 'Verdure e ortaggi': 'Verdura', 'Uova': 'Uova',
+    'Carni trasformate e conservate': 'Salumi', 'Formaggi e latticini': 'Latticini e pronti',
+    'Latte e yogurt': 'Latticini e pronti', 'Cereali e derivati': 'Pasta, riso e cereali',
+    'Legumi': 'Legumi', 'Frutta secca a guscio e semi oleaginosi': 'Snack e dolciumi',
+    'Oli e grassi': 'Oli, aceti e grassi', 'Dolci': 'Snack e dolciumi',
+    'Bevande alcoliche': 'Bevande',
+  };
+  function mappaCategoriaCreaDispensa(categoriaCrea) {
+    return CREA_TO_PANTRY_CATEGORY[categoriaCrea] || 'Altro';
+  }
   const DAYS = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
   const DEFAULT_MEALTYPES = ['Colazione','Pranzo','Spuntino','Cena'];
   const TAG_OPTIONS = ['Vegetariano','Vegano','Senza glutine','Senza lattosio','Piccante'];
@@ -1327,6 +1298,10 @@
     try{
       const rawPantry = localStorage.getItem(PANTRY_KEY);
       if(rawPantry) pantryInput.value = rawPantry;
+    }catch(e){}
+    try{
+      const rawLimit = localStorage.getItem(PANTRY_LIMIT_KEY);
+      if(rawLimit) pantryMissingLimitEl.value = rawLimit;
     }catch(e){}
     try{
       const rawPrev = localStorage.getItem(PREV_WEEK_KEY);
@@ -1629,7 +1604,7 @@
     });
     let msg = `Segnare "${recipe.name}" come consumata?`;
     if(toUpdate.length){
-      msg += `\n\nVerranno tolti dalla Dispensa:\n` + toUpdate.map(u=>`- ${u.item.name}: -${roundNice(u.amount)} ${u.unit} (restano ${roundNice(u.nextQty)} ${u.item.unit})`).join('\n');
+      msg += `\n\nVerranno tolti dalla Dispensa:\n` + toUpdate.map(u=>`- ${u.item.name}: -${formatQtyForUnit(u.amount, u.unit)} ${u.unit} (restano ${roundNice(u.nextQty)} ${u.item.unit})`).join('\n');
     }
     if(skipped.size){
       msg += `\n\nNon modificati (unità diverse o quantità non indicata in Dispensa): ${Array.from(skipped).join(', ')}.`;
@@ -1713,9 +1688,15 @@
     listEl.innerHTML = '';
 
     if(pantryMode){
-      const scored = filtered.map(r=>({recipe:r, match: computeMatch(r, currentPantryMatchList())}));
+      const limit = pantryMissingLimit();
+      let scored = filtered.map(r=>({recipe:r, match: computeMatch(r, currentPantryMatchList())}));
+      scored = scored.filter(({match}) => match.missing.length <= limit);
       scored.sort((a,b)=> a.match.missing.length - b.match.missing.length);
-      if(scored.length === 0){ listEl.innerHTML = '<div class="empty-state">Nessuna ricetta in questa categoria/ricerca.</div>'; return; }
+      if(scored.length === 0){
+        const soglia = limit === Infinity ? '' : (limit === 0 ? ' già pronta con quello che hai' : ` con al massimo ${limit} ingredient${limit===1?'e':'i'} mancant${limit===1?'e':'i'}`);
+        listEl.innerHTML = `<div class="empty-state">Nessuna ricetta${soglia} in questa categoria/ricerca. Prova ad alzare la soglia di ingredienti mancanti, oppure aggiungi qualcosa in Dispensa.</div>`;
+        return;
+      }
       scored.forEach(({recipe:r, match})=>{
         const card = document.createElement('div');
         card.className = 'card';
@@ -1808,6 +1789,11 @@
   const pantryInput = document.getElementById('pantry-input');
   const pantrySearchBtn = document.getElementById('pantry-search-btn');
   const pantryResetBtn = document.getElementById('pantry-reset-btn');
+  const pantryMissingLimitEl = document.getElementById('pantry-missing-limit');
+  function pantryMissingLimit(){
+    const v = pantryMissingLimitEl.value;
+    return v === 'any' ? Infinity : (parseInt(v, 10) || 0);
+  }
   function currentPantryMatchList(){
     const dispensaNames = dispensaItems.map(it => normalize(it.name)).filter(Boolean);
     const raw = pantryInput.value.trim();
@@ -1840,6 +1826,10 @@
     pantryMode = false;
     pantryResetBtn.style.display = 'none';
     renderList();
+  });
+  pantryMissingLimitEl.addEventListener('change', ()=>{
+    safeStorageSet(PANTRY_LIMIT_KEY, pantryMissingLimitEl.value);
+    if(pantryMode) renderList();
   });
 
   // ---------- Escludi ingredienti ----------
@@ -2095,7 +2085,7 @@
       dCreaSchedaBtn.classList.add('visibile');
       const nomeInput = document.getElementById('d-name');
       if (!nomeInput.value.trim()) nomeInput.value = alimento.nome;
-      document.getElementById('d-category').value = alimento.categoria || 'Prodotti vari';
+      document.getElementById('d-category').value = mappaCategoriaCreaDispensa(alimento.categoria || '');
       const valori = CreaDB.scale(alimento, grammi);
       document.getElementById('d-kcal').value = valori.kcal ?? '';
       document.getElementById('d-protein').value = valori.proteine ?? '';
@@ -2113,169 +2103,6 @@
     if (dispensaCreaCodiceCorrente && typeof apriSchedaCrea === 'function') {
       apriSchedaCrea(dispensaCreaCodiceCorrente);
     }
-  });
-
-  // ---------- Open Food Facts: ricerca testo + barcode per il form Dispensa ----------
-  // Stessa filosofia della ricerca CREA: un modo IN PIÙ per compilare la
-  // stessa scheda prodotto già esistente (nome, categoria, quantità,
-  // valori nutrizionali) — non un inventario separato.
-  let dispensaOffBarcodeCorrente = '';
-  let dispensaOffImmagineCorrente = '';
-  let dispensaOffNutriscoreCorrente = '';
-
-  const offTextSearch = document.getElementById('off-text-search');
-  const offBarcodeInput = document.getElementById('off-barcode-input');
-  const offBarcodeSearchBtn = document.getElementById('off-barcode-search-btn');
-  const offStatus = document.getElementById('off-status');
-  const offPreview = document.getElementById('off-preview');
-  const offPreviewImg = document.getElementById('off-preview-img');
-  const offPreviewNome = document.getElementById('off-preview-nome');
-  const offPreviewMarca = document.getElementById('off-preview-marca');
-  const offPreviewNutriscore = document.getElementById('off-preview-nutriscore');
-
-  const NUTRISCORE_COLORI = { A: '#2e7d32', B: '#8bc34a', C: '#fbc02d', D: '#f57c00', E: '#c62828' };
-
-  function applicaProdottoOff(prodotto){
-    const nomeInput = document.getElementById('d-name');
-    if (!nomeInput.value.trim()) nomeInput.value = prodotto.nome || '';
-    if (prodotto.categoria) document.getElementById('d-category').value = prodotto.categoria;
-
-    const qtyInput = document.getElementById('d-qty');
-    const unitInput = document.getElementById('d-unit');
-    if (!qtyInput.value.trim()) {
-      const qta = OffIntegration.parseQuantita(prodotto.quantitaTesto);
-      if (qta && qta.numero) {
-        qtyInput.value = qta.numero;
-        if (qta.unita && !unitInput.value.trim()) unitInput.value = qta.unita;
-      }
-    }
-
-    const grammi = stimaGrammiIngrediente(qtyInput.value, unitInput.value);
-    if (grammi !== null) {
-      const fattore = grammi / 100;
-      const scala = (v) => (v === null || v === undefined) ? '' : Math.round(v * fattore * 100) / 100;
-      document.getElementById('d-kcal').value = scala(prodotto.kcal100);
-      document.getElementById('d-protein').value = scala(prodotto.proteine100);
-      document.getElementById('d-fat').value = scala(prodotto.grassi100);
-      document.getElementById('d-carbs').value = scala(prodotto.carboidrati100);
-      document.getElementById('d-fiber').value = scala(prodotto.fibre100);
-      document.getElementById('d-sugar').value = scala(prodotto.zuccheri100);
-      document.getElementById('d-salt').value = scala(prodotto.sale100);
-      document.getElementById('dispensa-nutrition-fields').style.display = 'flex';
-      document.getElementById('dispensa-nutrition-toggle-btn').classList.add('active');
-    } else {
-      offStatus.textContent = 'Prodotto trovato, ma senza una quantità in grammi/kg riconoscibile: inserisci tu la quantità per calcolare i valori nutrizionali, oppure completali a mano.';
-    }
-
-    dispensaOffBarcodeCorrente = prodotto.barcode || '';
-    dispensaOffImmagineCorrente = prodotto.immagine || '';
-    dispensaOffNutriscoreCorrente = prodotto.nutriscore || '';
-
-    if (prodotto.nome || prodotto.immagine) {
-      offPreviewImg.src = prodotto.immagine || '';
-      offPreviewImg.style.display = prodotto.immagine ? '' : 'none';
-      offPreviewNome.textContent = prodotto.nome || '(senza nome)';
-      offPreviewMarca.textContent = prodotto.marca || '';
-      if (prodotto.nutriscore && NUTRISCORE_COLORI[prodotto.nutriscore]) {
-        offPreviewNutriscore.textContent = 'Nutri-Score ' + prodotto.nutriscore;
-        offPreviewNutriscore.style.background = NUTRISCORE_COLORI[prodotto.nutriscore];
-        offPreviewNutriscore.style.display = 'inline-block';
-      } else {
-        offPreviewNutriscore.style.display = 'none';
-      }
-      offPreview.style.display = 'flex';
-    }
-    formDirty = true;
-  }
-
-  if (typeof attachOffAutocomplete === 'function') {
-    attachOffAutocomplete(offTextSearch, (prodotto) => {
-      offStatus.textContent = '';
-      applicaProdottoOff(prodotto);
-    }, (err) => {
-      offStatus.textContent = 'Errore nella ricerca su Open Food Facts (verifica la connessione).';
-      console.error(err);
-    });
-  }
-
-  function cercaOffPerBarcode(barcode){
-    if (!barcode) return;
-    offStatus.textContent = 'Ricerca in corso…';
-    offBarcodeSearchBtn.disabled = true;
-    OffIntegration.cercaDaBarcode(barcode)
-      .then(prodotto => {
-        if (!prodotto) {
-          offStatus.textContent = `Nessun prodotto trovato su Open Food Facts per il codice ${barcode}: puoi compilare a mano.`;
-          return;
-        }
-        applicaProdottoOff(prodotto);
-        offStatus.textContent = 'Prodotto trovato ✅';
-      })
-      .catch(err => {
-        offStatus.textContent = 'Errore nella ricerca su Open Food Facts (verifica la connessione).';
-        console.error(err);
-      })
-      .finally(() => { offBarcodeSearchBtn.disabled = false; });
-  }
-  offBarcodeSearchBtn.addEventListener('click', () => cercaOffPerBarcode(offBarcodeInput.value.trim()));
-  offBarcodeInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); cercaOffPerBarcode(offBarcodeInput.value.trim()); }
-  });
-
-  // ---------- Scanner da fotocamera (html5-qrcode, caricato solo se usato) ----------
-  const offScannerOverlay = document.getElementById('off-scanner-overlay');
-  const offScannerStatus = document.getElementById('off-scanner-status');
-  let html5QrcodeCaricato = false;
-  let html5QrcodeScannerAttivo = null;
-
-  function caricaHtml5Qrcode(){
-    if (html5QrcodeCaricato) return Promise.resolve();
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/html5-qrcode';
-      script.onload = () => { html5QrcodeCaricato = true; resolve(); };
-      script.onerror = () => reject(new Error('Impossibile caricare html5-qrcode (verifica la connessione)'));
-      document.head.appendChild(script);
-    });
-  }
-
-  function fermaScanner(){
-    if (html5QrcodeScannerAttivo) {
-      html5QrcodeScannerAttivo.stop().catch(() => {}).finally(() => {
-        html5QrcodeScannerAttivo.clear();
-        html5QrcodeScannerAttivo = null;
-      });
-    }
-  }
-
-  document.getElementById('off-scan-open-btn').addEventListener('click', () => {
-    offScannerOverlay.classList.add('active');
-    offScannerStatus.textContent = 'Caricamento dello scanner…';
-    caricaHtml5Qrcode().then(() => {
-      offScannerStatus.textContent = '';
-      html5QrcodeScannerAttivo = new Html5Qrcode('off-scanner-reader');
-      html5QrcodeScannerAttivo.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: 250 },
-        (decodedText) => {
-          fermaScanner();
-          offScannerOverlay.classList.remove('active');
-          offBarcodeInput.value = decodedText;
-          cercaOffPerBarcode(decodedText);
-        },
-        () => { /* nessuna corrispondenza in questo frame: normale, si ignora */ }
-      ).catch(err => {
-        offScannerStatus.textContent = 'Fotocamera non disponibile o permesso negato: usa il campo codice a barre qui sotto.';
-        console.error(err);
-      });
-    }).catch(err => {
-      offScannerStatus.textContent = err.message;
-      console.error(err);
-    });
-  });
-  document.getElementById('off-scanner-close').addEventListener('click', () => {
-    fermaScanner();
-    offScannerOverlay.classList.remove('active');
   });
 
   // ---------- Vista "CREA Alimenti" (consultazione banca dati, tutti i 900) ----------
@@ -2826,6 +2653,34 @@
     const rounded = Math.round(n * 10) / 10;
     return rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
   }
+  // Unità "a conteggio" (cucchiai, cucchiaini, pizzichi, pezzi...) per cui, sotto l'unità
+  // intera, ha più senso una frazione da cucina (1/2, 1/4...) che un decimale.
+  const COUNT_STYLE_UNITS = ['cucchiaio','cucchiai','cucchiaino','cucchiaini','pizzico','pizzichi','pezzo','pezzi','tazza','tazze','fetta','fette','spicchio','spicchi','rametto','rametti','filetto','filetti','foglia','foglie'];
+  const NICE_FRACTIONS = [
+    { value: 1/4, text: '1/4' },
+    { value: 1/3, text: '1/3' },
+    { value: 1/2, text: '1/2' },
+    { value: 2/3, text: '2/3' },
+    { value: 3/4, text: '3/4' }
+  ];
+  function isCountStyleUnit(unit){
+    return COUNT_STYLE_UNITS.includes(String(unit||'').trim().toLowerCase());
+  }
+  // Formatta una quantità già scalata in base all'unità: per cucchiai/cucchiaini/pizzichi/
+  // pezzi ecc. converte la parte frazionaria in una frazione da cucina quando corrisponde
+  // a una comune (es. 0.5 -> "1/2", 1.75 -> "1 e 3/4"); altrimenti si comporta come roundNice.
+  function formatQtyForUnit(value, unit){
+    if(value === '' || value === null || value === undefined) return '';
+    const n = parseFloat(value);
+    if(isNaN(n)) return '';
+    if(!isCountStyleUnit(unit)) return roundNice(n);
+    const whole = Math.floor(n + 1e-9);
+    const frac = n - whole;
+    if(frac < 0.02) return String(whole);
+    const match = NICE_FRACTIONS.find(f => Math.abs(frac - f.value) < 0.03);
+    if(!match) return roundNice(n);
+    return whole > 0 ? `${whole} e ${match.text}` : match.text;
+  }
   function plural(n, one, many){ return n === 1 ? one : many; }
 
   const NUTRITION_FIELDS = [
@@ -2875,7 +2730,7 @@
     const scale = currentServings / (r.servings || 1);
     viewIngredients.innerHTML = '';
     r.ingredients.forEach(i=>{
-      const scaledQty = i.qty ? roundNice(i.qty * scale) : '';
+      const scaledQty = i.qty ? formatQtyForUnit(i.qty * scale, i.unit) : '';
       const li = document.createElement('li');
       li.innerHTML = `<span>${escapeHtml(i.name)}</span><span class="amt">${scaledQty} ${escapeHtml(i.unit)}</span>`;
       viewIngredients.appendChild(li);
@@ -3061,7 +2916,7 @@
     sections.push({
       heading: 'Ingredienti',
       lines: r.ingredients.map(i=>{
-        const qty = i.qty ? roundNice(parseFloat(i.qty) * scale) : '';
+        const qty = i.qty ? formatQtyForUnit(parseFloat(i.qty) * scale, i.unit) : '';
         return `- ${[qty, i.unit, i.name].filter(Boolean).join(' ')}`;
       })
     });
@@ -3181,7 +3036,7 @@
   }
   function shoppingItemLine(i){
     if(i.fromDispensaFlag) return `${i.name} (dalla dispensa)`;
-    return `${i.name}${i.qty ? ' — ' + roundNice(i.qty) : ''}${i.unit ? ' ' + i.unit : ''}`;
+    return `${i.name}${i.qty ? ' — ' + formatQtyForUnit(i.qty, i.unit) : ''}${i.unit ? ' ' + i.unit : ''}`;
   }
 
   // ---------- Generatore PDF minimale (solo testo, multipagina, nessuna libreria esterna) ----------
@@ -3332,7 +3187,24 @@
   }
 
   // ---------- Salvataggio file: finestra "Salva con nome" dove disponibile ----------
+  const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   async function saveFileSmart(blob, filename, mimeType, extension, description){
+    // Su cellulare (Android/iOS) prova prima il foglio di condivisione nativo: tra le sue
+    // opzioni ci sono già "Salva su Drive"/"File" ecc., a seconda delle app installate.
+    // La finestra "Salva con nome" (sotto) su Android è più recente e ha ancora dei difetti
+    // noti (a volte non permette di creare un file nuovo, solo sovrascriverne uno esistente).
+    if(isMobileDevice && navigator.canShare){
+      try{
+        const file = new File([blob], filename, { type: blob.type });
+        if(navigator.canShare({ files: [file] })){
+          await navigator.share({ files: [file] });
+          return true;
+        }
+      }catch(err){
+        if(err && err.name === 'AbortError') return false; // l'utente ha chiuso il foglio di condivisione
+        // altro errore (es. tipo di file non condivisibile): prosegue con i metodi qui sotto
+      }
+    }
     if(window.showSaveFilePicker){
       try{
         const handle = await window.showSaveFilePicker({
@@ -4325,17 +4197,9 @@
       const creaInfoHtml = it.creaCodice
         ? `<button type="button" class="crea-scheda-btn visibile" data-codice="${escapeAttr(it.creaCodice)}" style="margin:2px 0 4px;" title="Tutti i valori nutrizionali CREA per 100 g">ℹ️ Valori per 100 g (CREA)</button>`
         : '';
-      const nutriscoreColori = { A:'#2e7d32', B:'#8bc34a', C:'#fbc02d', D:'#f57c00', E:'#c62828' };
-      const offBadgeHtml = it.offNutriscore && nutriscoreColori[it.offNutriscore]
-        ? `<span class="cat-tag" style="background:${nutriscoreColori[it.offNutriscore]};margin-left:6px;">Nutri-Score ${escapeHtml(it.offNutriscore)}</span>`
-        : '';
-      const offImgHtml = it.offImmagine
-        ? `<img src="${escapeAttr(it.offImmagine)}" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:4px;float:right;margin:0 0 6px 8px;">`
-        : '';
 
       card.innerHTML = `
-        ${offImgHtml}
-        <span class="cat-tag">${escapeHtml(it.category)}</span>${offBadgeHtml}
+        <span class="cat-tag">${escapeHtml(it.category)}</span>
         <h3 style="margin:2px 0 4px;font-size:19px;">${escapeHtml(it.name)}</h3>
         ${qtyKcalHtml}
         ${creaInfoHtml}
@@ -4378,32 +4242,6 @@
     dispensaCreaCodiceCorrente = (item && item.creaCodice) || '';
     document.getElementById('d-crea-search').value = '';
     document.getElementById('d-crea-scheda-btn').classList.toggle('visibile', !!dispensaCreaCodiceCorrente);
-
-    dispensaOffBarcodeCorrente = (item && item.offBarcode) || '';
-    dispensaOffImmagineCorrente = (item && item.offImmagine) || '';
-    dispensaOffNutriscoreCorrente = (item && item.offNutriscore) || '';
-    document.getElementById('off-text-search').value = '';
-    document.getElementById('off-barcode-input').value = '';
-    document.getElementById('off-status').textContent = '';
-    const offPreviewEl = document.getElementById('off-preview');
-    if (dispensaOffImmagineCorrente || dispensaOffBarcodeCorrente) {
-      document.getElementById('off-preview-img').src = dispensaOffImmagineCorrente || '';
-      document.getElementById('off-preview-img').style.display = dispensaOffImmagineCorrente ? '' : 'none';
-      document.getElementById('off-preview-nome').textContent = item ? item.name : '';
-      document.getElementById('off-preview-marca').textContent = '';
-      const nsEl = document.getElementById('off-preview-nutriscore');
-      if (dispensaOffNutriscoreCorrente && NUTRISCORE_COLORI[dispensaOffNutriscoreCorrente]) {
-        nsEl.textContent = 'Nutri-Score ' + dispensaOffNutriscoreCorrente;
-        nsEl.style.background = NUTRISCORE_COLORI[dispensaOffNutriscoreCorrente];
-        nsEl.style.display = 'inline-block';
-      } else {
-        nsEl.style.display = 'none';
-      }
-      offPreviewEl.style.display = 'flex';
-    } else {
-      offPreviewEl.style.display = 'none';
-    }
-
     document.getElementById('dispensa-edit-overlay').classList.add('active');
     formDirty = false;
   }
@@ -4447,10 +4285,7 @@
       fiber: document.getElementById('d-fiber').value,
       sugar: document.getElementById('d-sugar').value,
       salt: document.getElementById('d-salt').value,
-      creaCodice: dispensaCreaCodiceCorrente,
-      offBarcode: dispensaOffBarcodeCorrente,
-      offImmagine: dispensaOffImmagineCorrente,
-      offNutriscore: dispensaOffNutriscoreCorrente
+      creaCodice: dispensaCreaCodiceCorrente
     };
     if(editingDispensaId){
       const idx = dispensaItems.findIndex(i=>i.id === editingDispensaId);
@@ -4547,7 +4382,7 @@
     shoppingListItems.innerHTML = '';
     items.forEach(item=>{
       const li = document.createElement('li');
-      const amt = item.fromDispensaFlag ? 'dalla dispensa' : `${item.qty ? roundNice(item.qty) : ''} ${item.unit||''}`.trim();
+      const amt = item.fromDispensaFlag ? 'dalla dispensa' : `${item.qty ? formatQtyForUnit(item.qty, item.unit) : ''} ${item.unit||''}`.trim();
       li.innerHTML = `<input type="checkbox"><span>${escapeHtml(item.name)}</span><span class="amt">${escapeHtml(amt)}</span>`;
       const amtSpan = li.querySelector('.amt');
 
@@ -4556,7 +4391,7 @@
       // tornare indietro in caso di tocco per sbaglio).
       if(!item.fromDispensaFlag){
         const { match: dispensaMatch, isApprox, ambiguous: otherMatches } = findDispensaMatch(item.name);
-        const qtyUnitLabel = (val, unit) => unit ? `${roundNice(val)} ${unit}` : roundNice(val);
+        const qtyUnitLabel = (val, unit) => unit ? `${formatQtyForUnit(val, unit)} ${unit}` : formatQtyForUnit(val, unit);
         if(dispensaMatch){
           const dispensaQtyRaw = parseFloat(dispensaMatch.qty) || 0;
           // Se le unità non sono scritte allo stesso modo, prova a convertirle (es. kg -> g, l -> ml)

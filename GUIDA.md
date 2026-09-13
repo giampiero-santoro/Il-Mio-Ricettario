@@ -99,7 +99,7 @@ Nel modulo di modifica puoi selezionare uno o più tag: Vegetariano, Vegano, Sen
 
 ## Visualizzare e scalare le porzioni
 
-Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi numerati e un controllo **+/−** per aumentare o diminuire le porzioni: le quantità si ricalcolano automaticamente in proporzione.
+Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi numerati e un controllo **+/−** per aumentare o diminuire le porzioni: le quantità si ricalcolano automaticamente in proporzione. Per le unità "a conteggio" — cucchiaio/cucchiai, cucchiaino/cucchiaini, pizzico/pizzichi, pezzo/pezzi, tazza/tazze, fetta/fette, spicchio/spicchi, rametto/rametti, filetto/filetti, foglia/foglie — quando il ricalcolo scende sotto l'unità intera, al posto del decimale compare la frazione da cucina più vicina (es. 2 cucchiai scalati a un quarto delle porzioni diventano "1/2 cucchiai" invece di "0.5"; se resta una parte intera, es. "1 e 1/2"). Per grammi, ml, litri e simili resta invece il numero decimale, più preciso per queste unità.
 
 ## Ricerca, filtri ed esclusione ingredienti
 
@@ -117,9 +117,10 @@ Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi 
 Usa automaticamente i prodotti che hai già in **Dispensa** — non serve più riscriverli a mano:
 
 1. Se vuoi, scrivi nel campo anche altri ingredienti che hai ma non sono in Dispensa (es. erbe fresche, avanzi), separati da virgola — la lista resta salvata anche se chiudi e riapri il ricettario
-2. Premi **"Trova ricette"** (funziona anche a campo vuoto, se hai già qualcosa in Dispensa)
-3. Le ricette si ordinano per numero di ingredienti mancanti, con badge verde **"✓ Puoi farla"** o arancione **"Manca X ingr."**
-4. Premi **"Mostra tutte"** per tornare alla visualizzazione normale
+2. Scegli dal menu a tendina quanti ingredienti possono mancare: **"Solo ricette già pronte"** (zero mancanti), fino a un massimo di 1/2/3/5, oppure **"Qualsiasi risultato"** per non applicare limiti — la scelta resta salvata
+3. Premi **"Trova ricette"** (funziona anche a campo vuoto, se hai già qualcosa in Dispensa)
+4. Le ricette che rispettano la soglia scelta si ordinano per numero di ingredienti mancanti, con badge verde **"✓ Puoi farla"** o arancione **"Manca X ingr."**
+5. Premi **"Mostra tutte"** per tornare alla visualizzazione normale
 
 Il confronto riconosce varianti semplici (es. "pomodoro" riconosce "pomodori pelati"), ma è un controllo testuale di base. Se aggiorni la Dispensa mentre questa vista è attiva, l'elenco delle ricette si aggiorna da solo.
 
@@ -234,7 +235,7 @@ Tutto è salvato nel `localStorage` del browser che stai usando:
 ## Dove vengono salvati e caricati i file
 
 - **Caricare un file** (Importa backup, Importa CSV): si apre sempre la finestra di scelta file del tuo dispositivo, dove puoi navigare in qualsiasi cartella o servizio collegato (es. Google Drive, iCloud Drive) per scegliere il file da importare
-- **Salvare un file** (backup, CSV, PDF): su Chrome o Edge da computer, si apre una finestra "Salva con nome" dove scegli tu la cartella e il nome del file. Su cellulare, e su Safari o Firefox in generale, questo non è ancora possibile per limiti del browser stesso: il file viene scaricato automaticamente nella cartella "Download" predefinita del dispositivo, da cui potrai comunque spostarlo o condividerlo in un secondo momento
+- **Salvare un file** (backup, CSV, PDF): su Chrome o Edge da computer, si apre una finestra "Salva con nome" dove scegli tu la cartella e il nome del file. **Su cellulare (Android o iPhone/iPad)** si apre invece il **foglio di condivisione nativo** del telefono, con tutte le app installate tra cui scegliere — inclusa "Salva su Drive" se hai l'app Google Drive, oppure Dropbox, Files, WhatsApp, email, ecc.; tra le opzioni del foglio c'è anche "Salva sul dispositivo"/"File", quindi puoi comunque tenerlo solo in locale se preferisci. Su Firefox in generale, questo non è ancora possibile per limiti del browser stesso: il file viene scaricato automaticamente nella cartella "Download" predefinita del dispositivo, da cui potrai comunque spostarlo o condividerlo in un secondo momento
 
 ## Domande frequenti
 
