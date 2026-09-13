@@ -2,6 +2,11 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.20.1] — Correzione: finestra dello scanner bloccata senza fotocamera
+
+### Corretto
+- Se la fotocamera non era disponibile (permesso negato, dispositivo senza fotocamera...), il pulsante "×" per chiudere la finestra dello scanner non rispondeva più: `html5-qrcode` può lanciare un errore nel fermare uno scanner mai avviato con successo, e questo impediva al codice di chiudere la finestra. La chiusura ora avviene sempre, indipendentemente da eventuali errori nell'arresto dello scanner
+
 ## [3.20.0] — Ricerca prodotto da Open Food Facts in Dispensa
 
 ### Aggiunto

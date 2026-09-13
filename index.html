@@ -2259,11 +2259,18 @@
   }
 
   function fermaScanner(){
-    if (html5QrcodeScannerAttivo) {
-      html5QrcodeScannerAttivo.stop().catch(() => {}).finally(() => {
-        html5QrcodeScannerAttivo.clear();
-        html5QrcodeScannerAttivo = null;
+    if (!html5QrcodeScannerAttivo) return;
+    const scanner = html5QrcodeScannerAttivo;
+    html5QrcodeScannerAttivo = null;
+    // .stop() può sia rifiutare la Promise sia lanciare subito un errore
+    // sincrono se la fotocamera non è mai partita (es. permesso negato):
+    // in entrambi i casi non deve impedire la chiusura della finestra.
+    try {
+      Promise.resolve(scanner.stop()).catch(() => {}).finally(() => {
+        try { scanner.clear(); } catch (e) { /* niente da pulire, va bene così */ }
       });
+    } catch (e) {
+      try { scanner.clear(); } catch (e2) { /* niente da pulire, va bene così */ }
     }
   }
 
@@ -2277,8 +2284,8 @@
         { facingMode: 'environment' },
         { fps: 10, qrbox: 250 },
         (decodedText) => {
-          fermaScanner();
           offScannerOverlay.classList.remove('active');
+          fermaScanner();
           offBarcodeInput.value = decodedText;
           cercaOffPerBarcode(decodedText);
         },
@@ -2293,8 +2300,8 @@
     });
   });
   document.getElementById('off-scanner-close').addEventListener('click', () => {
-    fermaScanner();
     offScannerOverlay.classList.remove('active');
+    fermaScanner();
   });
 
   // ---------- Vista "CREA Alimenti" (consultazione banca dati, tutti i 900) ----------
