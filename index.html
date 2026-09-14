@@ -511,6 +511,11 @@
   .plan-entry{padding:4px 0;border-bottom:1px dotted var(--line);font-size:14.5px;}
   .plan-entry-main{display:flex;align-items:center;gap:8px;}
   .plan-entry-nutrition{font-size:11.5px;color:var(--ink-soft);margin:2px 0 0 2px;}
+  .plan-meal-total{font-size:12px;color:var(--brass);font-weight:600;margin:6px 0 2px;text-align:right;}
+  .plan-day-total{font-size:13px;color:var(--brass);font-weight:600;text-align:center;margin:-4px 0 14px;}
+  .week-totals-day{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dotted var(--line);font-size:13px;}
+  .week-totals-day-name{font-family:'Cormorant Garamond',serif;font-size:16px;flex:0 0 auto;}
+  .week-totals-day-values{color:var(--ink-soft);text-align:right;}
   .plan-entry-time{
     font-weight:700;color:var(--brass);font-size:11.5px;
     background:linear-gradient(180deg,#f7edd4,#f0e2bd);
@@ -1155,22 +1160,47 @@
 <div class="overlay" id="storage-choice-overlay">
   <div class="modal">
     <button class="close-x" id="storage-choice-close" aria-label="Chiudi">×</button>
-    <h2>Dove vuoi salvare i tuoi dati?</h2>
-    <div style="font-size:14px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">
-      Per impostazione predefinita, ricette, dispensa e pianificazione restano
-      nella memoria di questo browser. Puoi invece collegare un file sul tuo
-      dispositivo — anche dentro una cartella sincronizzata con Google Drive,
-      Dropbox o simili — così ogni modifica si salva automaticamente lì, e
-      potrai riaprirlo da un altro browser o computer.
-      <br><br>
-      <span style="font-style:italic;">Disponibile solo su Chrome, Edge e browser simili — su questo browser potrebbe non funzionare.</span>
+
+    <div id="storage-choice-supportato">
+      <h2>Dove vuoi salvare i tuoi dati?</h2>
+      <div style="font-size:14px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">
+        Per impostazione predefinita, ricette, dispensa e pianificazione restano
+        nella memoria di questo browser. Puoi invece collegare un file sul tuo
+        dispositivo — anche dentro una cartella sincronizzata con Google Drive,
+        Dropbox o simili — così ogni modifica si salva automaticamente lì, e
+        potrai riaprirlo da un altro browser o computer.
+        <br><br>
+        <span style="font-style:italic;">Disponibile solo su Chrome, Edge e browser simili — su questo browser potrebbe non funzionare.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="btn-gold" id="storage-choice-new-btn">📄 Crea un nuovo file per i dati</button>
+        <button type="button" class="btn-ghost" id="storage-choice-open-btn">📂 Apri un file dati che ho già</button>
+        <button type="button" class="btn-ghost" id="storage-choice-skip-btn">💾 Continua solo con la memoria del browser</button>
+      </div>
+      <div id="storage-choice-status" style="font-size:13px;color:var(--ink-soft);margin-top:12px;"></div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <button type="button" class="btn-gold" id="storage-choice-new-btn">📄 Crea un nuovo file per i dati</button>
-      <button type="button" class="btn-ghost" id="storage-choice-open-btn">📂 Apri un file dati che ho già</button>
-      <button type="button" class="btn-ghost" id="storage-choice-skip-btn">💾 Continua solo con la memoria del browser</button>
+
+    <div id="storage-choice-non-supportato" style="display:none;">
+      <h2>Il collegamento a un file non è disponibile qui</h2>
+      <div style="font-size:14px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">
+        Questo browser non supporta il salvataggio automatico su un file del
+        dispositivo — è una scelta di Safari e Firefox (anche su iOS/iPadOS,
+        dove tutti i browser si basano su Safari), non qualcosa che dipende
+        dal sito. I tuoi dati restano comunque salvati normalmente nella
+        memoria di questo browser.
+        <br><br>
+        La via più semplice per tenerli anche altrove (un altro dispositivo,
+        una cartella Drive/Dropbox) resta il backup manuale, già disponibile:
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="btn-gold" id="storage-choice-fallback-export-btn">⬇ Esporta backup ora</button>
+        <button type="button" class="btn-ghost" id="storage-choice-fallback-close-btn">Ho capito</button>
+      </div>
+      <div style="font-size:12px;color:var(--ink-soft);font-style:italic;margin-top:12px;">
+        Una sincronizzazione automatica col cloud (Google Drive, Dropbox) funzionerebbe anche qui, ma è una funzionalità più grande, ancora da costruire.
+      </div>
     </div>
-    <div id="storage-choice-status" style="font-size:13px;color:var(--ink-soft);margin-top:12px;"></div>
+
   </div>
 </div>
 
@@ -1287,6 +1317,19 @@
       <div style="flex:1;"></div>
       <button class="btn-ghost" id="export-shopping-pdf-btn">⬇ Esporta PDF</button>
     </div>
+  </div>
+</div>
+
+<!-- ============ TOTALI NUTRIZIONALI DELLA SETTIMANA ============ -->
+<div class="overlay" id="week-totals-overlay">
+  <div class="modal">
+    <button class="close-x" id="week-totals-close" aria-label="Chiudi">×</button>
+    <h2>📊 Totali nutrizionali della settimana</h2>
+    <div style="font-size:12px;color:var(--ink-soft);font-style:italic;margin-bottom:14px;">
+      Solo per le voci pianificate che hanno valori nutrizionali disponibili (ricette con valori per porzione, o prodotti Dispensa con quantità in grammi/kg): i giorni o pasti senza nessun dato non vengono conteggiati, non trattati come zero.
+    </div>
+    <div id="week-totals-days"></div>
+    <div class="nutrition-summary" id="week-totals-grand" style="margin-top:10px;"></div>
   </div>
 </div>
 
@@ -1683,13 +1726,31 @@
     }
   });
 
-  document.getElementById('file-storage-link-btn').addEventListener('click', () => {
-    if (!('showSaveFilePicker' in window)) {
-      alert('Il salvataggio su file non è supportato da questo browser: funziona solo su Chrome, Edge e browser basati su Chromium (non su Safari o Firefox, né su iOS, per una scelta di quei browser). I tuoi dati restano comunque salvati normalmente nella memoria di questo browser.');
-      return;
-    }
+  function mostraSceltaStorageNonSupportata(){
+    document.getElementById('storage-choice-supportato').style.display = 'none';
+    document.getElementById('storage-choice-non-supportato').style.display = 'block';
+    document.getElementById('storage-choice-overlay').classList.add('active');
+  }
+  function mostraSceltaStorageSupportata(){
+    document.getElementById('storage-choice-non-supportato').style.display = 'none';
+    document.getElementById('storage-choice-supportato').style.display = 'block';
     document.getElementById('storage-choice-status').textContent = '';
     document.getElementById('storage-choice-overlay').classList.add('active');
+  }
+
+  document.getElementById('file-storage-link-btn').addEventListener('click', () => {
+    if (!('showSaveFilePicker' in window)) {
+      mostraSceltaStorageNonSupportata();
+      return;
+    }
+    mostraSceltaStorageSupportata();
+  });
+  document.getElementById('storage-choice-fallback-export-btn').addEventListener('click', () => {
+    chiudiSceltaStorage();
+    document.getElementById('export-btn').click();
+  });
+  document.getElementById('storage-choice-fallback-close-btn').addEventListener('click', () => {
+    chiudiSceltaStorage();
   });
 
   document.getElementById('file-storage-unlink-btn').addEventListener('click', async () => {
@@ -3521,6 +3582,42 @@
     }
     return almenoUno ? risultato : null;
   }
+
+  /** Somma una lista di oggetti nutrizionali (uscita di nutrizionePerEntry,
+   * anche null per le voci senza dati): ogni campo ignora le voci senza
+   * quel valore, invece di trattarle come zero — così "manca il dato per
+   * un piatto" resta visibile nel confronto, non nasconde un possibile
+   * sottostima. Ritorna null se non c'è proprio nulla da sommare. */
+  function sommaNutrizione(listaValori){
+    const campi = ['kcal','proteine','grassi','carboidrati','fibre','zuccheri','sale'];
+    const totale = {};
+    let almenoUnCampo = false;
+    for(const campo of campi){
+      let somma = 0, contribuito = false;
+      for(const v of listaValori){
+        if(v && v[campo] !== null && v[campo] !== undefined){ somma += v[campo]; contribuito = true; }
+      }
+      totale[campo] = contribuito ? somma : null;
+      if(contribuito) almenoUnCampo = true;
+    }
+    return almenoUnCampo ? totale : null;
+  }
+  function formattaNutrizioneCompatta(nutrizione){
+    if(!nutrizione) return '';
+    return NUTRITION_FIELDS
+      .filter(f => nutrizione[f.key] !== null && nutrizione[f.key] !== undefined)
+      .map(f => `${f.label} ${roundNice(nutrizione[f.key])}${f.unit}`)
+      .join(' · ');
+  }
+  function nutrizioneMealBlock(day, mealType){
+    return sommaNutrizione((weekPlan[day]||[]).filter(e=>e.mealType===mealType).map(nutrizionePerEntry));
+  }
+  function nutrizioneGiorno(day){
+    return sommaNutrizione((weekPlan[day]||[]).map(nutrizionePerEntry));
+  }
+  function nutrizioneSettimana(){
+    return sommaNutrizione(DAYS.flatMap(d => weekPlan[d]||[]).map(nutrizionePerEntry));
+  }
   // Aggrega gli ingredienti di un elenco di { recipe, scale } in un'unica lista per la spesa.
   // "includeExtras" (facoltativo, di base true) aggiunge anche i promemoria degli ingredienti
   // segnalati mancanti dalla Dispensa, quando non già coperti dagli ingredienti aggregati.
@@ -4527,6 +4624,34 @@
     openShoppingListOverlay(items, `Per ${planServings} persone — ${day}: ${dayRecipes.map(r=>r.name).join(', ')}`);
   }
 
+  function openWeekTotalsOverlay(){
+    const giorniHtml = DAYS.map(day => {
+      const t = nutrizioneGiorno(day);
+      return `<div class="week-totals-day">
+        <div class="week-totals-day-name">${escapeHtml(day)}</div>
+        <div class="week-totals-day-values">${t ? formattaNutrizioneCompatta(t) : '<span style="opacity:.6;font-style:italic;">Nessun dato</span>'}</div>
+      </div>`;
+    }).join('');
+    document.getElementById('week-totals-days').innerHTML = giorniHtml;
+
+    const grand = nutrizioneSettimana();
+    const grandEl = document.getElementById('week-totals-grand');
+    if(grand){
+      const rows = NUTRITION_FIELDS
+        .filter(f => grand[f.key] !== null && grand[f.key] !== undefined)
+        .map(f => `<div>${f.label}: <b>${roundNice(grand[f.key])}</b>${f.unit}</div>`).join('');
+      grandEl.innerHTML = `<h4>Totale settimana</h4><div class="nutrition-grid">${rows}</div>`;
+      grandEl.style.display = 'block';
+    } else {
+      grandEl.innerHTML = '';
+      grandEl.style.display = 'none';
+    }
+    document.getElementById('week-totals-overlay').classList.add('active');
+  }
+  document.getElementById('week-totals-close').addEventListener('click', () => {
+    document.getElementById('week-totals-overlay').classList.remove('active');
+  });
+
   function renderPlanningDays(){
     if(!planningDaysEl) return;
     if(!selectedPlanDay){
@@ -4555,12 +4680,17 @@
       const entries = dayEntries.filter(e=>e.mealType === mt)
         .slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
       const entriesHtml = entries.length ? entries.map(renderPlanEntry).join('') : `<div class="plan-entry-empty">Nessuna ricetta</div>`;
+      const totaleMealHtml = entries.length ? (() => {
+        const t = nutrizioneMealBlock(day, mt);
+        return t ? `<div class="plan-meal-total">Totale ${escapeHtml(mt.toLowerCase())}: ${formattaNutrizioneCompatta(t)}</div>` : '';
+      })() : '';
       return `<div class="plan-meal-block" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
         <div class="plan-meal-header">
           <span class="plan-meal-name">${escapeHtml(mt)}</span>
           <span class="plan-meal-actions"><button class="icon-btn mealtype-remove-btn" data-mealtype="${escapeAttr(mt)}" title="Rimuovi questa fascia pasto">🗑</button></span>
         </div>
         <div class="plan-entry-list">${entriesHtml}</div>
+        ${totaleMealHtml}
         <div class="plan-add-row">
           <input type="time" class="plan-add-time">
           <button class="btn-ghost btn-small plan-add-btn">🔍 Cerca ricetta…</button>
@@ -4575,10 +4705,23 @@
       <div class="plan-entry-list">${orphaned.map(renderPlanEntry).join('')}</div>
     </div>` : '';
 
+    const totaleGiorno = nutrizioneGiorno(day);
+    const totaleGiornoHtml = totaleGiorno
+      ? `<div class="plan-day-total">📊 Totale ${escapeHtml(day.toLowerCase())}: ${formattaNutrizioneCompatta(totaleGiorno)}</div>` : '';
+
     card.innerHTML = `<h3>${escapeHtml(day)}</h3>
-      <div style="text-align:center;margin:-6px 0 14px;"><button type="button" class="btn-ghost btn-small plan-day-shopping-btn">🛒 Lista della spesa del giorno</button></div>
+      <div style="text-align:center;margin:-6px 0 14px;">
+        <button type="button" class="btn-ghost btn-small plan-day-shopping-btn">🛒 Lista della spesa del giorno</button>
+        <button type="button" class="btn-ghost btn-small plan-week-totals-btn">📊 Totali settimana</button>
+      </div>
+      ${totaleGiornoHtml}
       ${blocksHtml}${orphanedHtml || ''}`;
     planningDaysEl.appendChild(card);
+
+    const weekTotalsBtn = card.querySelector('.plan-week-totals-btn');
+    if(weekTotalsBtn){
+      weekTotalsBtn.addEventListener('click', openWeekTotalsOverlay);
+    }
 
     const dayShoppingBtn = card.querySelector('.plan-day-shopping-btn');
     if(dayShoppingBtn){

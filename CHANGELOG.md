@@ -2,6 +2,18 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.23.0] — Totali nutrizionali per pasto, giorno e settimana
+
+### Aggiunto
+- I valori nutrizionali delle voci pianificate (già introdotti nella versione precedente) ora si sommano automaticamente **per fascia pasto** e **per l'intera giornata**, mostrati direttamente nella scheda del giorno in Pianificazione
+- Nuovo pulsante **"📊 Totali settimana"** che apre il riepilogo di Kcal/Proteine/Grassi/Carboidrati/Fibre/Zuccheri/Sale per ciascun giorno della settimana, più il totale complessivo
+- In tutti e tre i livelli (pasto, giorno, settimana), le voci senza dati nutrizionali disponibili vengono escluse dalla somma invece di essere contate come zero: se manca un dato, il totale mostrato è quello di ciò che si sa per certo, non un numero che sembra completo ma non lo è
+
+## [3.22.2] — Consiglio pratico quando il salvataggio su file non è disponibile
+
+### Aggiunto
+- Su Safari, Firefox e iOS (dove il collegamento a un file non è supportato), il pulsante "🗂️ Collega un file di salvataggio…" ora spiega perché non è disponibile e propone la via alternativa già pronta — un pulsante di scorciatoia **"⬇ Esporta backup ora"** — invece del semplice avviso generico di prima
+
 ## [3.22.1] — Correzione: errore poco chiaro nel collegare un file su browser non supportati
 
 ### Corretto
