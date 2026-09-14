@@ -2,6 +2,12 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.22.1] — Correzione: errore poco chiaro nel collegare un file su browser non supportati
+
+### Corretto
+- Il pulsante "🗂️ Collega un file di salvataggio…" nel menu non controllava se il browser supportasse davvero questa funzione (lo fa già, correttamente, il popup automatico alla prima apertura): su Safari, Firefox o iOS portava sempre agli stessi due errori generici "Non è stato possibile creare/aprire il file", senza spiegare perché. Ora mostra subito un avviso chiaro che indica il limite del browser, senza nemmeno aprire la finestra che avrebbe comunque fallito
+- Anche quando la finestra si apre, i messaggi d'errore ora distinguono, quando possibile, un browser non supportato da un blocco di sicurezza del contesto (es. sito aperto dentro un'altra app) da un errore generico
+
 ## [3.22.0] — Valori nutrizionali della ricetta (per porzione) e nella pianificazione
 
 ### Aggiunto

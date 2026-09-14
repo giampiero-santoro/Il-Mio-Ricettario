@@ -1619,6 +1619,18 @@
     chiudiSceltaStorage();
   });
 
+  /** Distingue, quando possibile, PERCHÉ showSaveFilePicker/showOpenFilePicker
+   * hanno fallito, per dare un messaggio utile invece che uno generico. */
+  function messaggioErroreFileSystem(err){
+    if (!('showSaveFilePicker' in window) || err instanceof TypeError) {
+      return 'Il tuo browser non supporta questa funzione: funziona solo su Chrome, Edge e browser basati su Chromium — non su Safari, Firefox, né su iOS (limite di quei browser). I tuoi dati restano comunque salvati normalmente nella memoria di questo browser.';
+    }
+    if (err && (err.name === 'SecurityError' || err.name === 'NotAllowedError')) {
+      return 'Il browser ha bloccato l\'accesso ai file in questo contesto (es. aperto dentro un\'altra app, o come "app installata"): prova ad aprire il sito direttamente in una scheda del browser.';
+    }
+    return null; // nessuna causa specifica riconosciuta: il chiamante userà un messaggio generico
+  }
+
   document.getElementById('storage-choice-new-btn').addEventListener('click', async () => {
     const statusEl = document.getElementById('storage-choice-status');
     try {
@@ -1644,7 +1656,7 @@
     } catch (err) {
       if (err && err.name === 'AbortError') return; // l'utente ha annullato la finestra, nessun errore da mostrare
       console.error('Errore creando il file di salvataggio:', err);
-      statusEl.textContent = 'Non è stato possibile creare il file: riprova, oppure continua con la memoria del browser.';
+      statusEl.textContent = messaggioErroreFileSystem(err) || 'Non è stato possibile creare il file: riprova, oppure continua con la memoria del browser.';
     }
   });
 
@@ -1667,11 +1679,15 @@
     } catch (err) {
       if (err && err.name === 'AbortError') return;
       console.error('Errore aprendo il file di salvataggio:', err);
-      statusEl.textContent = 'Non è stato possibile aprire il file: verifica che sia un file dati valido di questo sito.';
+      statusEl.textContent = messaggioErroreFileSystem(err) || 'Non è stato possibile aprire il file: verifica che sia un file dati valido di questo sito.';
     }
   });
 
   document.getElementById('file-storage-link-btn').addEventListener('click', () => {
+    if (!('showSaveFilePicker' in window)) {
+      alert('Il salvataggio su file non è supportato da questo browser: funziona solo su Chrome, Edge e browser basati su Chromium (non su Safari o Firefox, né su iOS, per una scelta di quei browser). I tuoi dati restano comunque salvati normalmente nella memoria di questo browser.');
+      return;
+    }
     document.getElementById('storage-choice-status').textContent = '';
     document.getElementById('storage-choice-overlay').classList.add('active');
   });
