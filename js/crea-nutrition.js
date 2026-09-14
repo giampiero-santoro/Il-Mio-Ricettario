@@ -296,11 +296,10 @@ const CreaRicette = (() => {
 
   /**
    * Converte una ricetta CREA nel formato dati usato da "Il Mio Ricettario".
-   * Ogni ingrediente porta con sé anche `crea_codice_collegato` quando il
-   * nome corrispondeva ESATTAMENTE (non approssimativamente) a un alimento
-   * della banca dati: solo in quel caso viene collegato in automatico,
-   * per non rischiare di associare valori nutrizionali sbagliati a un
-   * ingrediente diverso da quello che sembra.
+   * I valori nutrizionali NON vengono più calcolati sommando gli ingredienti
+   * crudi (la cottura li altera in modo imprevedibile): la ricetta importata
+   * porta con sé `nutrizioneCrea`, i valori ufficiali che CREA ha misurato
+   * sul piatto finito, per 100 g — mostrati così come sono, non ricalcolati.
    */
   function convertiInRicettaApp(ricettaCrea, cryptoId) {
     return {
@@ -312,30 +311,12 @@ const CreaRicette = (() => {
       cookerType: '',
       favorite: false, photo: '', lastMade: null, timesMade: 0,
       tags: [],
-      ingredients: ricettaCrea.ingredienti.map(ing => {
-        const base = {
-          name: ing.nome,
-          qty: ing.quantita ?? '',
-          unit: ing.unita || '',
-          creaCodice: ing.crea_codice_collegato || '',
-        };
-        // Solo per i collegamenti esatti (nome identico) e quantità in grammi:
-        // precompila anche i valori nutrizionali, come farebbe la ricerca manuale.
-        if (ing.crea_codice_collegato && ing.unita === 'g' && ing.quantita && CreaDB.isReady()) {
-          const alimento = CreaDB.getByCode(ing.crea_codice_collegato);
-          if (alimento) {
-            const valori = CreaDB.scale(alimento, ing.quantita);
-            base.kcal = valori.kcal ?? '';
-            base.protein = valori.proteine ?? '';
-            base.fat = valori.grassi ?? '';
-            base.carbs = valori.carboidrati ?? '';
-            base.fiber = valori.fibre ?? '';
-            base.sugar = valori.zuccheri ?? '';
-            base.salt = valori.sale ?? '';
-          }
-        }
-        return base;
-      }),
+      ingredients: ricettaCrea.ingredienti.map(ing => ({
+        name: ing.nome,
+        qty: ing.quantita ?? '',
+        unit: ing.unita || '',
+      })),
+      nutrizioneCrea: ricettaCrea.valori_nutrizionali_100g_piatto || null,
       steps: [{ text: ricettaCrea.preparazione || '' }],
       notes: [
         ricettaCrea.porzioni_testo ? `Porzioni indicate dalla fonte: ${ricettaCrea.porzioni_testo}` : '',
