@@ -10,7 +10,7 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 4. [Esportare e importare una singola ricetta](#esportare-e-importare-una-singola-ricetta)
 5. [Impostazioni robot per i passaggi (facoltative)](#impostazioni-robot-per-i-passaggi-facoltative)
 6. [Impostazioni pentola a pressione (facoltative)](#impostazioni-pentola-a-pressione-facoltative)
-7. [Valori nutrizionali (solo per le ricette da CREA Menù)](#valori-nutrizionali-solo-per-le-ricette-da-crea-menù)
+7. [Valori nutrizionali della ricetta](#valori-nutrizionali-della-ricetta)
 8. [Tag dietetici](#tag-dietetici)
 9. [Visualizzare e scalare le porzioni](#visualizzare-e-scalare-le-porzioni)
 10. [Ricerca, filtri ed esclusione ingredienti](#ricerca-filtri-ed-esclusione-ingredienti)
@@ -84,11 +84,16 @@ Nel modulo di modifica trovi anche, accanto a porzioni e tempo, un campo facolta
 
 Le ricette mostrano automaticamente un'etichetta del metodo di cottura, nella lista e nella scheda, dedotta dai passaggi — non serve spuntare nulla a mano: **🍲** se c'è almeno un passaggio a pressione, **🤖** se c'è almeno un passaggio con impostazioni robot, **🔥 Tradizionale** se non ne ha nessuno dei due. Una ricetta che usa entrambi i metodi mostra sia 🍲 sia 🤖.
 
-## Valori nutrizionali (solo per le ricette da CREA Menù)
+## Valori nutrizionali della ricetta
 
-Il ricettario **non calcola più** i valori nutrizionali di una ricetta sommando quelli dei singoli ingredienti crudi: la cottura altera acqua, grassi e altri valori in modo imprevedibile (la pasta assorbe acqua, un fritto assorbe olio...), quindi una somma "a crudo" darebbe un numero preciso ma sbagliato.
+Il ricettario **non calcola** i valori nutrizionali di una ricetta sommando quelli dei singoli ingredienti crudi: la cottura altera acqua, grassi e altri valori in modo imprevedibile (la pasta assorbe acqua, un fritto assorbe olio...), quindi una somma "a crudo" darebbe un numero preciso ma sbagliato.
 
-I valori nutrizionali compaiono quindi **solo per le ricette importate da "🇮🇹 CREA Menù"** (vedi la sezione dedicata più avanti in questa guida): sono quelli misurati ufficialmente dal CREA sul piatto finito, per 100 g — non calcolati da noi, mostrati così come sono. Una ricetta scritta a mano o importata da un'altra fonte non ha valori nutrizionali associati, e nella sua scheda quella sezione semplicemente non compare.
+Ci sono invece due modi in cui i valori nutrizionali possono comparire nella scheda di una ricetta, anche insieme:
+
+- **Inseriti da te**: nel modulo di modifica, premi **"🍎 Valori nutrizionali (per porzione)"** per scrivere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale — facoltativi, utili quando li conosci già da un'altra fonte (un'etichetta, un sito). Sono sempre riferiti a **una singola porzione**
+- **Ufficiali CREA**: solo per le ricette importate da **"🇮🇹 CREA Menù"** (vedi la sezione dedicata più avanti in questa guida) — quelli misurati ufficialmente dal CREA sul piatto finito, per 100 g, mostrati così come sono e chiaramente attribuiti alla fonte
+
+Una ricetta scritta a mano senza questi valori semplicemente non mostra quella sezione — non viene inventato nulla.
 
 ## Tag dietetici
 
@@ -148,6 +153,7 @@ Puoi anche saltare la ricerca e pianificare al volo mentre guardi una ricetta: n
 - Quando aggiungi una ricetta alla pianificazione (da qui o dal pulsante "📅 Pianifica" nella sua scheda), il ricettario controlla i suoi ingredienti rispetto a quello che hai segnato nella Dispensa: se qualcosa manca, te lo segnala e ti chiede conferma prima di aggiungerlo a un promemoria per la lista della spesa
 - Per aggiungere invece un prodotto della Dispensa come pasto (es. uno yogurt a colazione, della frutta come spuntino): imposta l'orario facoltativo e premi **"🥫 Dalla dispensa…"** — si apre una finestra di ricerca sui prodotti che hai in dispensa, allo stesso modo di quella delle ricette. Scelto il prodotto, viene chiesta una **quantità facoltativa** per quel pasto (precompilata con quella che hai in dispensa, ma modificabile): se la indichi, compare accanto al nome nella pianificazione
 - Le voci di ogni fascia si ordinano da sole per orario
+- Se una ricetta ha valori nutrizionali per porzione, o un prodotto Dispensa ha valori per 100 g, sotto la voce pianificata compare una riga con Kcal/Proteine/Grassi/Carboidrati/Fibre/Zuccheri/Sale calcolati per quella voce: per una ricetta, moltiplicati per "per quante persone" impostato in cima alla Pianificazione; per un prodotto Dispensa, sulla quantità indicata per quel pasto (solo se espressa in grammi o kg — altre unità come "pz" non permettono un calcolo affidabile, e in quel caso la riga non compare)
 - Clicca sul nome di una voce pianificata per aprirne la scheda: quelle con l'etichetta 🥫 aprono la scheda del prodotto in Dispensa, le altre la scheda della ricetta
 - **"✓"** su una voce pianificata la segna come consumata e prova ad aggiornare la Dispensa di conseguenza (chiede sempre conferma, mostrando cosa sta per cambiare):
   - per un pasto aggiunto **"dalla dispensa"**, se avevi indicato una quantità nella stessa unità di misura del prodotto, quella quantità viene tolta dal prodotto

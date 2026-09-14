@@ -508,7 +508,9 @@
   .plan-entry-consume:hover{color:var(--green);}
   .plan-entry-consumed{color:var(--green);font-size:13px;padding:2px 6px;flex:0 0 auto;font-weight:700;}
   .plan-entry-list{margin-bottom:8px;}
-  .plan-entry{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px dotted var(--line);font-size:14.5px;}
+  .plan-entry{padding:4px 0;border-bottom:1px dotted var(--line);font-size:14.5px;}
+  .plan-entry-main{display:flex;align-items:center;gap:8px;}
+  .plan-entry-nutrition{font-size:11.5px;color:var(--ink-soft);margin:2px 0 0 2px;}
   .plan-entry-time{
     font-weight:700;color:var(--brass);font-size:11.5px;
     background:linear-gradient(180deg,#f7edd4,#f0e2bd);
@@ -875,6 +877,24 @@
           <option value="Elettrica">Elettrica</option>
           <option value="A fornello">A fornello</option>
         </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="ingredients-actions" style="justify-content:flex-start;">
+        <button type="button" class="btn-ghost btn-small" id="recipe-nutrition-toggle-btn">🍎 Valori nutrizionali (per porzione)</button>
+      </div>
+      <div class="ingredient-nutrition" id="recipe-nutrition-fields" style="display:none;margin-top:8px;">
+        <div class="mini">Kcal<input type="number" id="f-nutri-kcal" min="0"></div>
+        <div class="mini">Proteine (g)<input type="number" id="f-nutri-protein" min="0" step="0.1"></div>
+        <div class="mini">Grassi (g)<input type="number" id="f-nutri-fat" min="0" step="0.1"></div>
+        <div class="mini">Carb. (g)<input type="number" id="f-nutri-carbs" min="0" step="0.1"></div>
+        <div class="mini">Fibre (g)<input type="number" id="f-nutri-fiber" min="0" step="0.1"></div>
+        <div class="mini">Zuccheri (g)<input type="number" id="f-nutri-sugar" min="0" step="0.1"></div>
+        <div class="mini">Sale (g)<input type="number" id="f-nutri-salt" min="0" step="0.01"></div>
+      </div>
+      <div style="font-size:11px;color:var(--ink-soft);font-style:italic;margin-top:6px;">
+        Facoltativi: inseriscili se li conosci già (es. da un'etichetta o un'altra fonte), riferiti a una singola porzione. Restano un'informazione a parte da quella ufficiale CREA, quando presente.
       </div>
     </div>
 
@@ -2761,6 +2781,28 @@
   fTagsWrap.innerHTML = TAG_OPTIONS.map(t=>`<label><input type="checkbox" value="${escapeAttr(t)}"> ${escapeHtml(t)}</label>`).join('');
   let currentPhotoData = '';
 
+  /** Legge i 7 campi nutrizionali (per porzione) dal form ricetta. Ritorna
+   * null se sono tutti vuoti (nessun dato inserito), altrimenti un oggetto
+   * con i valori indicati e null per quelli lasciati vuoti. */
+  function leggiNutrizioneUtenteForm(){
+    const campi = {
+      kcal: document.getElementById('f-nutri-kcal').value,
+      proteine: document.getElementById('f-nutri-protein').value,
+      grassi: document.getElementById('f-nutri-fat').value,
+      carboidrati: document.getElementById('f-nutri-carbs').value,
+      fibre: document.getElementById('f-nutri-fiber').value,
+      zuccheri: document.getElementById('f-nutri-sugar').value,
+      sale: document.getElementById('f-nutri-salt').value,
+    };
+    const risultato = {};
+    let almenoUno = false;
+    for (const [k, v] of Object.entries(campi)) {
+      if (v !== '') { risultato[k] = parseFloat(v); almenoUno = true; }
+      else { risultato[k] = null; }
+    }
+    return almenoUno ? risultato : null;
+  }
+
   function openEdit(recipe, draft, titleOverride){
     // "recipe" apre in modifica una ricetta esistente. "draft" (usato per
     // l'importazione da testo o per duplicare una ricetta) precompila un modulo
@@ -2788,6 +2830,19 @@
     sourceIngredients.forEach(i=>addIngredientRow(i));
     stepsEditor.innerHTML = '';
     (source && source.steps && source.steps.length ? source.steps : [{text:'',vel:'',temp:'',time:'',mode:'Normale'}]).forEach(s=>addStepRow(s));
+
+    const nutrizioneUtente = (source && source.nutrizioneUtente) || null;
+    document.getElementById('f-nutri-kcal').value = nutrizioneUtente && nutrizioneUtente.kcal != null ? nutrizioneUtente.kcal : '';
+    document.getElementById('f-nutri-protein').value = nutrizioneUtente && nutrizioneUtente.proteine != null ? nutrizioneUtente.proteine : '';
+    document.getElementById('f-nutri-fat').value = nutrizioneUtente && nutrizioneUtente.grassi != null ? nutrizioneUtente.grassi : '';
+    document.getElementById('f-nutri-carbs').value = nutrizioneUtente && nutrizioneUtente.carboidrati != null ? nutrizioneUtente.carboidrati : '';
+    document.getElementById('f-nutri-fiber').value = nutrizioneUtente && nutrizioneUtente.fibre != null ? nutrizioneUtente.fibre : '';
+    document.getElementById('f-nutri-sugar').value = nutrizioneUtente && nutrizioneUtente.zuccheri != null ? nutrizioneUtente.zuccheri : '';
+    document.getElementById('f-nutri-salt').value = nutrizioneUtente && nutrizioneUtente.sale != null ? nutrizioneUtente.sale : '';
+    const recipeNutritionPanel = document.getElementById('recipe-nutrition-fields');
+    const recipeNutritionBtn = document.getElementById('recipe-nutrition-toggle-btn');
+    recipeNutritionPanel.style.display = nutrizioneUtente ? 'flex' : 'none';
+    recipeNutritionBtn.classList.toggle('active', !!nutrizioneUtente);
 
     editOverlay.classList.add('active');
     formDirty = false;
@@ -2992,18 +3047,21 @@
 
     const tags = Array.from(fTagsWrap.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.value);
 
-    let existingExtra = {favorite:false, lastMade:null, timesMade:0};
+    let existingExtra = {favorite:false, lastMade:null, timesMade:0, nutrizioneCrea:null};
     if(editingId){
       const prev = recipes.find(r=>r.id===editingId);
-      if(prev){ existingExtra = {favorite:prev.favorite, lastMade:prev.lastMade, timesMade:prev.timesMade}; }
+      if(prev){ existingExtra = {favorite:prev.favorite, lastMade:prev.lastMade, timesMade:prev.timesMade, nutrizioneCrea:prev.nutrizioneCrea||null}; }
     }
+
+    const nutrizioneUtente = leggiNutrizioneUtenteForm();
 
     const recipeData = {
       id: editingId || cryptoId(), name, category: fCategory.value,
       servings: parseInt(fServings.value) || 1, time: parseInt(fTime.value) || 0,
       cookerType: fCookerType.value,
       ingredients: finalIngredients, steps, tags, notes: fNotes.value.trim(),
-      photo: currentPhotoData, favorite: existingExtra.favorite, lastMade: existingExtra.lastMade, timesMade: existingExtra.timesMade
+      photo: currentPhotoData, favorite: existingExtra.favorite, lastMade: existingExtra.lastMade, timesMade: existingExtra.timesMade,
+      nutrizioneCrea: existingExtra.nutrizioneCrea, nutrizioneUtente
     };
 
     if(editingId){
@@ -3141,11 +3199,25 @@
 
     const viewNutrition = document.getElementById('view-nutrition');
     const nutrizioneCrea = getNutrizioneCrea(r);
+    const nutrizioneUtente = r.nutrizioneUtente || null;
+    let nutritionHtml = '';
+    if(nutrizioneUtente){
+      const rows = NUTRITION_FIELDS
+        .filter(f => nutrizioneUtente[f.key] !== null && nutrizioneUtente[f.key] !== undefined)
+        .map(f => `<div>${f.label}: <b>${roundNice(nutrizioneUtente[f.key])}</b>${f.unit}</div>`).join('');
+      nutritionHtml += `
+        <div class="nutrition-summary">
+          <h4>🍎 Valori nutrizionali (per porzione)</h4>
+          <div class="nutrition-grid">${rows}</div>
+          <div class="nutrition-note" style="opacity:.7;margin-top:6px;">Inseriti da te: verifica sempre la fonte da cui provengono.</div>
+        </div>
+      `;
+    }
     if(nutrizioneCrea){
       const rows = NUTRITION_FIELDS
         .filter(f => nutrizioneCrea[f.key] !== null && nutrizioneCrea[f.key] !== undefined)
         .map(f => `<div>${f.label}: <b>${roundNice(nutrizioneCrea[f.key])}</b>${f.unit}</div>`).join('');
-      viewNutrition.innerHTML = `
+      nutritionHtml += `
         <div class="nutrition-summary">
           <h4>🍎 Valori nutrizionali (per 100 g del piatto)</h4>
           <div class="nutrition-grid">${rows}</div>
@@ -3155,6 +3227,9 @@
           </div>
         </div>
       `;
+    }
+    if(nutritionHtml){
+      viewNutrition.innerHTML = nutritionHtml;
       viewNutrition.style.display = 'block';
     }else{
       viewNutrition.innerHTML = '';
@@ -3316,6 +3391,13 @@
         return `- ${[qty, i.unit, i.name].filter(Boolean).join(' ')}`;
       })
     });
+    const nutrizioneUtente = r.nutrizioneUtente || null;
+    if(nutrizioneUtente){
+      const nutritionLines = NUTRITION_FIELDS
+        .filter(f => nutrizioneUtente[f.key] !== null && nutrizioneUtente[f.key] !== undefined)
+        .map(f => `${f.label}: ${roundNice(nutrizioneUtente[f.key])}${f.unit}`);
+      sections.push({ heading: 'Valori nutrizionali (per porzione)', lines: nutritionLines });
+    }
     const nutrizioneCrea = getNutrizioneCrea(r);
     if(nutrizioneCrea){
       const nutritionLines = NUTRITION_FIELDS
@@ -3387,6 +3469,41 @@
     }
     const r = recipes.find(x=>x.id === e.recipeId);
     return r ? r.name : '(ricetta eliminata)';
+  }
+
+  /** Valori nutrizionali di una voce pianificata, calcolati per la quantità
+   * di quella voce: per un prodotto Dispensa, sui grammi/kg indicati
+   * nell'entry (i suoi valori sono per 100 g); per una ricetta, sulle
+   * porzioni pianificate per la settimana (i suoi valori, se inseriti,
+   * sono per porzione). Ritorna null se non ci sono abbastanza dati per
+   * calcolare qualcosa di sensato, invece di indovinare un valore.*/
+  function nutrizionePerEntry(e){
+    if(e.dispensaItemId){
+      const it = dispensaItems.find(x=>x.id === e.dispensaItemId);
+      if(!it) return null;
+      const grammi = stimaGrammiIngrediente(e.qty, e.unit);
+      if(grammi === null) return null;
+      const fattore = grammi / 100;
+      const mappa = { kcal:'kcal', proteine:'protein', grassi:'fat', carboidrati:'carbs', fibre:'fiber', zuccheri:'sugar', sale:'salt' };
+      const risultato = {};
+      let almenoUno = false;
+      for(const [chiaveOut, chiaveIt] of Object.entries(mappa)){
+        const v = it[chiaveIt];
+        if(v !== '' && v !== null && v !== undefined){ risultato[chiaveOut] = parseFloat(v) * fattore; almenoUno = true; }
+        else{ risultato[chiaveOut] = null; }
+      }
+      return almenoUno ? risultato : null;
+    }
+    const r = recipes.find(x=>x.id === e.recipeId);
+    if(!r || !r.nutrizioneUtente) return null;
+    const fattore = planServings; // quante porzioni si stanno pianificando questa settimana
+    const risultato = {};
+    let almenoUno = false;
+    for(const [k, v] of Object.entries(r.nutrizioneUtente)){
+      if(v !== null && v !== undefined){ risultato[k] = v * fattore; almenoUno = true; }
+      else{ risultato[k] = null; }
+    }
+    return almenoUno ? risultato : null;
   }
   // Aggrega gli ingredienti di un elenco di { recipe, scale } in un'unica lista per la spesa.
   // "includeExtras" (facoltativo, di base true) aggiunge anche i promemoria degli ingredienti
@@ -4361,11 +4478,21 @@
     const consumeControl = e.consumed
       ? `<span class="plan-entry-consumed" title="Consumato: tolto dalla Dispensa dove possibile">✓</span><button class="icon-btn plan-entry-undo-consume" data-entry-id="${escapeAttr(e.id)}" title="Annulla: ripristina in Dispensa quanto tolto">↺</button>`
       : `<button class="icon-btn plan-entry-consume" data-entry-id="${escapeAttr(e.id)}" title="Segna come consumato e aggiorna la Dispensa">✓</button>`;
+    const nutrizione = nutrizionePerEntry(e);
+    const nutrizioneHtml = nutrizione ? `<div class="plan-entry-nutrition">${
+      NUTRITION_FIELDS
+        .filter(f => nutrizione[f.key] !== null && nutrizione[f.key] !== undefined)
+        .map(f => `${f.label} ${roundNice(nutrizione[f.key])}${f.unit}`)
+        .join(' · ')
+    }</div>` : '';
     return `<div class="plan-entry">
-      ${e.time ? `<span class="plan-entry-time">${escapeHtml(e.time)}</span>` : ''}
-      <span class="plan-entry-name" ${nameAttr}>${name}</span>
-      ${consumeControl}
-      <button class="icon-btn plan-entry-remove" data-entry-id="${escapeAttr(e.id)}" title="Rimuovi">×</button>
+      <div class="plan-entry-main">
+        ${e.time ? `<span class="plan-entry-time">${escapeHtml(e.time)}</span>` : ''}
+        <span class="plan-entry-name" ${nameAttr}>${name}</span>
+        ${consumeControl}
+        <button class="icon-btn plan-entry-remove" data-entry-id="${escapeAttr(e.id)}" title="Rimuovi">×</button>
+      </div>
+      ${nutrizioneHtml}
     </div>`;
   }
 
@@ -4700,6 +4827,12 @@
   document.getElementById('dispensa-category-filter').addEventListener('change', renderDispensaList);
   document.getElementById('dispensa-nutrition-toggle-btn').addEventListener('click', (e)=>{
     const panel = document.getElementById('dispensa-nutrition-fields');
+    const showing = panel.style.display !== 'none';
+    panel.style.display = showing ? 'none' : 'flex';
+    e.currentTarget.classList.toggle('active', !showing);
+  });
+  document.getElementById('recipe-nutrition-toggle-btn').addEventListener('click', (e)=>{
+    const panel = document.getElementById('recipe-nutrition-fields');
     const showing = panel.style.display !== 'none';
     panel.style.display = showing ? 'none' : 'flex';
     e.currentTarget.classList.toggle('active', !showing);

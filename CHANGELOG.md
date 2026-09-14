@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.22.0] — Valori nutrizionali della ricetta (per porzione) e nella pianificazione
+
+### Aggiunto
+- **Valori nutrizionali per porzione inseribili a mano** su qualunque ricetta (Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri, Sale) — facoltativi, utili quando li conosci già da un'altra fonte. Restano un'informazione separata da quella ufficiale CREA (per 100 g del piatto), quando presente: possono comparire anche insieme
+- **Valori nutrizionali nella Pianificazione settimanale**: ogni voce pianificata (ricetta o prodotto Dispensa) mostra ora Kcal/Proteine/Grassi/Carboidrati/Fibre/Zuccheri/Sale calcolati per quella voce — per una ricetta, sulla base di "per quante persone" impostato in Pianificazione; per un prodotto Dispensa, sulla quantità indicata per quel pasto (quando espressa in grammi o kg)
+
+### Corretto
+- Modificando una ricetta importata da "CREA Menù" (es. per aggiungere una nota), i suoi valori nutrizionali ufficiali non vengono più persi al salvataggio
+
 ## [3.21.0] — Salvataggio su un file a tua scelta
 
 ### Aggiunto
