@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.21.0] — Salvataggio su un file a tua scelta
+
+### Aggiunto
+- **Collegamento a un file sul dispositivo** per il salvataggio di ricette, dispensa, pianificazione e lista della spesa, in aggiunta alla memoria del browser — utile per tenerli in una cartella sincronizzata con Google Drive, Dropbox o simili, o per portarli facilmente su un altro computer. Disponibile solo su Chrome, Edge e browser Chromium (limite della File System Access API, non supportata da Firefox/Safari)
+- Alla prima apertura del sito (quando il browser lo supporta), una finestra chiede subito dove salvare: creare un nuovo file, aprirne uno esistente (stesso formato del backup JSON), oppure continuare solo con la memoria del browser
+- Il file collegato si può cambiare o scollegare in qualsiasi momento da "📦 Backup e CSV"
+- Se il browser richiede una riconferma d'accesso al file (misura di sicurezza standard), compare un avviso con un pulsante "Riconnetti"
+- La memoria del browser resta comunque sempre aggiornata come rete di sicurezza, anche quando un file è collegato
+
 ## [3.20.1] — Correzione: finestra dello scanner bloccata senza fotocamera
 
 ### Corretto

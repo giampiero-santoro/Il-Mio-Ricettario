@@ -25,8 +25,9 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 19. [Modificare ed eliminare](#modificare-ed-eliminare)
 20. [Dispensa](#dispensa)
 21. [Salvataggio dei dati](#salvataggio-dei-dati)
-22. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
-23. [Domande frequenti](#domande-frequenti)
+22. [Salvataggio su un file a tua scelta (facoltativo)](#salvataggio-su-un-file-a-tua-scelta-facoltativo)
+23. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
+24. [Domande frequenti](#domande-frequenti)
 
 ## Avvio
 
@@ -229,6 +230,15 @@ Tutto è salvato nel `localStorage` del browser che stai usando:
 - I dati **non si sincronizzano** automaticamente tra browser o dispositivi diversi — usa il backup per trasferirli
 - Se cancelli i dati di navigazione del browser (cache, cookie, dati dei siti), tutto viene perso
 - Lo spazio disponibile non è illimitato (di solito qualche MB): le foto delle ricette vengono ridimensionate e compresse automaticamente per occuparne meno. Se nonostante questo lo spazio dovesse esaurirsi, un avviso ti informa che il salvataggio non è andato a buon fine, invece di fallire senza dirtelo — a quel punto conviene esportare subito un backup e liberare un po' di spazio (es. riducendo il numero di foto)
+
+## Salvataggio su un file a tua scelta (facoltativo)
+
+Oltre alla memoria del browser, puoi collegare un file sul tuo dispositivo dove ricette, dispensa, pianificazione e lista della spesa si salvano automaticamente — utile se vuoi tenerli in una cartella sincronizzata con Google Drive, Dropbox o simili, o semplicemente preferisci vederli come un file vero e proprio invece che nascosti nel browser. **Disponibile solo su Chrome, Edge e browser basati su Chromium** (non su Firefox o Safari, per un limite di quei browser).
+
+- Alla prima apertura del sito (se il browser lo supporta) compare subito una finestra che chiede dove salvare: puoi **creare un nuovo file**, **aprirne uno che hai già** (ad esempio un backup esportato in precedenza — usa lo stesso formato), oppure **continuare solo con la memoria del browser** senza essere interpellato di nuovo
+- Una volta collegato, ogni modifica si salva automaticamente anche lì, in aggiunta alla memoria del browser (che resta sempre aggiornata come rete di sicurezza: se il file diventasse irraggiungibile, non perdi nulla)
+- Alla riapertura del sito, il browser potrebbe chiederti di **riconfermare l'accesso al file** (è una misura di sicurezza dei browser stessi, non qualcosa che dipende dal sito): comparirà un piccolo avviso con un pulsante "Riconnetti" in alto alla pagina
+- Puoi cambiare file o tornare al solo browser in qualsiasi momento da **"📦 Backup e CSV" → "🗂️ Collega/Cambia file di salvataggio"** o **"🔌 Scollega"**
 
 ## Dove vengono salvati e caricati i file
 

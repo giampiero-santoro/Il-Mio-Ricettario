@@ -606,6 +606,11 @@
 
 <div class="book">
 
+  <div id="file-reconnect-banner" style="display:none;background:var(--parchment-light);border:1px solid var(--gold);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;align-items:center;gap:10px;justify-content:space-between;">
+    <span id="file-reconnect-text">🔓 Il file dei dati salvati ha bisogno di conferma per riconnettersi.</span>
+    <button type="button" class="btn-gold btn-small" id="file-reconnect-btn">Riconnetti</button>
+  </div>
+
   <div id="recipes-view">
 
   <div class="toolbar">
@@ -627,6 +632,10 @@
           <button id="export-btn">⬇ Esporta backup</button>
           <button id="import-btn">⬆ Importa backup</button>
           <input type="file" id="import-file-input" accept="application/json" style="display:none;">
+          <div class="menu-divider"></div>
+          <div class="menu-info" id="file-storage-status-text">Salvataggio: solo in questo browser</div>
+          <button id="file-storage-link-btn">🗂️ Collega un file di salvataggio…</button>
+          <button id="file-storage-unlink-btn" style="display:none;">🔌 Scollega (torna al solo browser)</button>
           <div class="menu-divider"></div>
           <button id="export-csv-btn">⬇ Esporta CSV</button>
           <button id="import-csv-btn">⬆ Importa CSV</button>
@@ -1122,6 +1131,29 @@
   </div>
 </div>
 
+<!-- ============ SCELTA DOVE SALVARE I DATI ============ -->
+<div class="overlay" id="storage-choice-overlay">
+  <div class="modal">
+    <button class="close-x" id="storage-choice-close" aria-label="Chiudi">×</button>
+    <h2>Dove vuoi salvare i tuoi dati?</h2>
+    <div style="font-size:14px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">
+      Per impostazione predefinita, ricette, dispensa e pianificazione restano
+      nella memoria di questo browser. Puoi invece collegare un file sul tuo
+      dispositivo — anche dentro una cartella sincronizzata con Google Drive,
+      Dropbox o simili — così ogni modifica si salva automaticamente lì, e
+      potrai riaprirlo da un altro browser o computer.
+      <br><br>
+      <span style="font-style:italic;">Disponibile solo su Chrome, Edge e browser simili — su questo browser potrebbe non funzionare.</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button type="button" class="btn-gold" id="storage-choice-new-btn">📄 Crea un nuovo file per i dati</button>
+      <button type="button" class="btn-ghost" id="storage-choice-open-btn">📂 Apri un file dati che ho già</button>
+      <button type="button" class="btn-ghost" id="storage-choice-skip-btn">💾 Continua solo con la memoria del browser</button>
+    </div>
+    <div id="storage-choice-status" style="font-size:13px;color:var(--ink-soft);margin-top:12px;"></div>
+  </div>
+</div>
+
 <!-- ============ VIEW MODAL ============ -->
 <div class="overlay" id="view-overlay">
   <div class="modal">
@@ -1373,14 +1405,263 @@
       return false;
     }
   }
-  function saveRecipes(){ return safeStorageSet(STORAGE_KEY, JSON.stringify(recipes)); }
-  function saveWeek(){ return safeStorageSet(WEEK_KEY, JSON.stringify(weekPlan)); }
-  function saveMealTypes(){ return safeStorageSet(MEALTYPES_KEY, JSON.stringify(mealTypes)); }
+  function saveRecipes(){ const ok = safeStorageSet(STORAGE_KEY, JSON.stringify(recipes)); scriviSuFileCollegato(); return ok; }
+  function saveWeek(){ const ok = safeStorageSet(WEEK_KEY, JSON.stringify(weekPlan)); scriviSuFileCollegato(); return ok; }
+  function saveMealTypes(){ const ok = safeStorageSet(MEALTYPES_KEY, JSON.stringify(mealTypes)); scriviSuFileCollegato(); return ok; }
   function savePantry(text){ return safeStorageSet(PANTRY_KEY, text); }
   function savePlanServings(){ return safeStorageSet(PLAN_SERVINGS_KEY, String(planServings)); }
   function savePreviousWeek(plan){ return safeStorageSet(PREV_WEEK_KEY, JSON.stringify(plan)); }
-  function saveDispensaItems(){ return safeStorageSet(DISPENSA_ITEMS_KEY, JSON.stringify(dispensaItems)); }
-  function saveShoppingExtra(){ return safeStorageSet(SHOPPING_EXTRA_KEY, JSON.stringify(shoppingExtraItems)); }
+  function saveDispensaItems(){ const ok = safeStorageSet(DISPENSA_ITEMS_KEY, JSON.stringify(dispensaItems)); scriviSuFileCollegato(); return ok; }
+  function saveShoppingExtra(){ const ok = safeStorageSet(SHOPPING_EXTRA_KEY, JSON.stringify(shoppingExtraItems)); scriviSuFileCollegato(); return ok; }
+
+  // ================================================================
+  // Salvataggio su file collegato (File System Access API)
+  // ----------------------------------------------------------------
+  // In aggiunta (non al posto) della memoria del browser: se l'utente
+  // sceglie di collegare un file sul proprio dispositivo, ogni modifica
+  // a ricette/pianificazione/dispensa/lista spesa viene scritta anche
+  // lì, con lo stesso formato del backup JSON già esistente. La memoria
+  // del browser resta comunque sempre aggiornata come rete di sicurezza.
+  //
+  // Disponibile solo nei browser con la File System Access API
+  // (Chrome, Edge e simili — non Firefox/Safari): dove non c'è, tutto
+  // il codice qui sotto resta semplicemente inattivo.
+  // ================================================================
+  const STORAGE_CHOICE_DISMISSED_KEY = 'mc_ricettario_scelta_storage_saltata_v1';
+  const FILE_HANDLE_DB_NAME = 'IlMioRicettarioFileHandleDB';
+  const FILE_HANDLE_STORE = 'handles';
+  const FILE_HANDLE_KEY = 'datiPrincipali';
+
+  let fileCollegatoHandle = null;
+  let fileCollegatoInAttesaDiPermesso = null; // handle trovato ma non ancora ri-autorizzato
+  let scriviSuFileTimeoutId = null;
+
+  function apriHandleDB(){
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(FILE_HANDLE_DB_NAME, 1);
+      req.onupgradeneeded = () => { req.result.createObjectStore(FILE_HANDLE_STORE); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function salvaHandleFileSalvato(handle){
+    const db = await apriHandleDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+      tx.objectStore(FILE_HANDLE_STORE).put(handle, FILE_HANDLE_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function leggiHandleFileSalvato(){
+    const db = await apriHandleDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(FILE_HANDLE_STORE, 'readonly');
+      const req = tx.objectStore(FILE_HANDLE_STORE).get(FILE_HANDLE_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function cancellaHandleFileSalvato(){
+    const db = await apriHandleDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+      tx.objectStore(FILE_HANDLE_STORE).delete(FILE_HANDLE_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  function datiCompletiPerFile(){
+    return { recipes, weekPlan, mealTypes, dispensaItems, shoppingExtraItems };
+  }
+
+  function aggiornaControlliMenuStorage(){
+    const statusEl = document.getElementById('file-storage-status-text');
+    const linkBtn = document.getElementById('file-storage-link-btn');
+    const unlinkBtn = document.getElementById('file-storage-unlink-btn');
+    if (fileCollegatoHandle) {
+      statusEl.textContent = `Salvataggio: file "${fileCollegatoHandle.name}"`;
+      linkBtn.textContent = '🗂️ Cambia file di salvataggio…';
+      unlinkBtn.style.display = '';
+    } else {
+      statusEl.textContent = 'Salvataggio: solo in questo browser';
+      linkBtn.textContent = '🗂️ Collega un file di salvataggio…';
+      unlinkBtn.style.display = 'none';
+    }
+  }
+
+  function scriviSuFileCollegato(){
+    if (!fileCollegatoHandle) return;
+    clearTimeout(scriviSuFileTimeoutId);
+    scriviSuFileTimeoutId = setTimeout(async () => {
+      try {
+        const writable = await fileCollegatoHandle.createWritable();
+        await writable.write(JSON.stringify(datiCompletiPerFile(), null, 2));
+        await writable.close();
+      } catch (err) {
+        console.error('Errore scrivendo sul file di salvataggio collegato:', err);
+        // Non blocca nulla: i dati restano comunque salvati nella memoria
+        // del browser (safeStorageSet è già stato chiamato prima di questa).
+      }
+    }, 600); // debounce: raggruppa più modifiche ravvicinate in un solo salvataggio su disco
+  }
+
+  /** Applica il contenuto di un file collegato alle chiavi del browser
+   * corrispondenti (stesso formato del backup JSON già esistente). */
+  async function caricaDatiDaFileCollegato(handle){
+    const file = await handle.getFile();
+    const testo = await file.text();
+    const dati = JSON.parse(testo);
+    if (Array.isArray(dati.recipes)) safeStorageSet(STORAGE_KEY, JSON.stringify(dati.recipes));
+    if (dati.weekPlan) safeStorageSet(WEEK_KEY, JSON.stringify(dati.weekPlan));
+    if (Array.isArray(dati.mealTypes)) safeStorageSet(MEALTYPES_KEY, JSON.stringify(dati.mealTypes));
+    if (Array.isArray(dati.dispensaItems)) safeStorageSet(DISPENSA_ITEMS_KEY, JSON.stringify(dati.dispensaItems));
+    if (Array.isArray(dati.shoppingExtraItems)) safeStorageSet(SHOPPING_EXTRA_KEY, JSON.stringify(dati.shoppingExtraItems));
+  }
+
+  function mostraBannerRiconnessione(handle){
+    fileCollegatoInAttesaDiPermesso = handle;
+    document.getElementById('file-reconnect-text').textContent =
+      `🔓 Il file "${handle.name}" ha bisogno di conferma per riconnettersi.`;
+    document.getElementById('file-reconnect-banner').style.display = 'flex';
+  }
+
+  document.getElementById('file-reconnect-btn').addEventListener('click', async () => {
+    if (!fileCollegatoInAttesaDiPermesso) return;
+    try {
+      const permesso = await fileCollegatoInAttesaDiPermesso.requestPermission({ mode: 'readwrite' });
+      if (permesso === 'granted') {
+        await caricaDatiDaFileCollegato(fileCollegatoInAttesaDiPermesso);
+        fileCollegatoHandle = fileCollegatoInAttesaDiPermesso;
+        fileCollegatoInAttesaDiPermesso = null;
+        document.getElementById('file-reconnect-banner').style.display = 'none';
+        aggiornaControlliMenuStorage();
+        location.reload(); // il modo più semplice e sicuro per rileggere tutto con i nuovi dati
+      } else {
+        alert('Permesso non concesso: il file resta scollegato per questa sessione. Puoi riprovare o collegarne un altro dal menu "📦 Backup e CSV".');
+      }
+    } catch (err) {
+      console.error('Errore nel richiedere il permesso sul file collegato:', err);
+      alert('Non è stato possibile riconnettersi al file. Puoi collegarne un altro dal menu "📦 Backup e CSV".');
+    }
+  });
+
+  /** All'avvio: se un file era già stato collegato in precedenza, prova a
+   * ricollegarlo automaticamente (senza bisogno di un nuovo clic, quando il
+   * browser lo permette) e ne carica il contenuto PRIMA che l'app legga la
+   * memoria del browser, così l'app parte già con i dati del file. */
+  async function inizializzaStorageFileAllAvvio(){
+    if (!('showSaveFilePicker' in window)) return;
+    let handle;
+    try {
+      handle = await leggiHandleFileSalvato();
+    } catch (err) {
+      console.error('Impossibile leggere il file collegato salvato in precedenza:', err);
+      return;
+    }
+    if (!handle) return;
+    try {
+      const permesso = await handle.queryPermission({ mode: 'readwrite' });
+      if (permesso === 'granted') {
+        await caricaDatiDaFileCollegato(handle);
+        fileCollegatoHandle = handle;
+      } else {
+        mostraBannerRiconnessione(handle);
+      }
+    } catch (err) {
+      console.error('Errore nel controllare il permesso sul file collegato:', err);
+    }
+  }
+
+  /** Mostra la scelta iniziale "dove vuoi salvare i dati?" solo se: l'API è
+   * disponibile, non c'è già un file collegato, e l'utente non l'ha già
+   * saltata in precedenza. */
+  function mostraSceltaStorageSeNecessario(){
+    if (!('showSaveFilePicker' in window)) return;
+    if (fileCollegatoHandle || fileCollegatoInAttesaDiPermesso) return;
+    if (localStorage.getItem(STORAGE_CHOICE_DISMISSED_KEY)) return;
+    document.getElementById('storage-choice-overlay').classList.add('active');
+  }
+
+  function chiudiSceltaStorage(){
+    document.getElementById('storage-choice-overlay').classList.remove('active');
+  }
+
+  document.getElementById('storage-choice-close').addEventListener('click', () => {
+    // Chiudere con la × equivale a "per ora niente": richiederà di nuovo al prossimo avvio,
+    // a differenza del pulsante esplicito "Continua solo con la memoria del browser".
+    chiudiSceltaStorage();
+  });
+
+  document.getElementById('storage-choice-skip-btn').addEventListener('click', () => {
+    safeStorageSet(STORAGE_CHOICE_DISMISSED_KEY, '1');
+    chiudiSceltaStorage();
+  });
+
+  document.getElementById('storage-choice-new-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('storage-choice-status');
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'il-mio-ricettario-dati.json',
+        types: [{ description: 'File dati Il Mio Ricettario', accept: { 'application/json': ['.json'] } }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(JSON.stringify(datiCompletiPerFile(), null, 2));
+      await writable.close();
+      // Il file è già creato e scritto a questo punto: quello che segue
+      // (ricordarlo per la prossima visita) è un extra, il cui eventuale
+      // fallimento non deve annullare il collegamento appena riuscito.
+      fileCollegatoHandle = handle;
+      aggiornaControlliMenuStorage();
+      safeStorageSet(STORAGE_CHOICE_DISMISSED_KEY, '1');
+      chiudiSceltaStorage();
+      try {
+        await salvaHandleFileSalvato(handle);
+      } catch (err) {
+        console.error('File collegato correttamente, ma non è stato possibile ricordarlo per la prossima visita:', err);
+      }
+    } catch (err) {
+      if (err && err.name === 'AbortError') return; // l'utente ha annullato la finestra, nessun errore da mostrare
+      console.error('Errore creando il file di salvataggio:', err);
+      statusEl.textContent = 'Non è stato possibile creare il file: riprova, oppure continua con la memoria del browser.';
+    }
+  });
+
+  document.getElementById('storage-choice-open-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('storage-choice-status');
+    try {
+      const [handle] = await window.showOpenFilePicker({
+        types: [{ description: 'File dati Il Mio Ricettario', accept: { 'application/json': ['.json'] } }]
+      });
+      const confermato = confirm('Aprire questo file sostituirà quello che vedi ora (ricette, dispensa, pianificazione) con il contenuto salvato nel file. Continuare?');
+      if (!confermato) return;
+      await caricaDatiDaFileCollegato(handle);
+      safeStorageSet(STORAGE_CHOICE_DISMISSED_KEY, '1');
+      try {
+        await salvaHandleFileSalvato(handle);
+      } catch (err) {
+        console.error('File aperto correttamente, ma non è stato possibile ricordarlo per la prossima visita:', err);
+      }
+      location.reload();
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      console.error('Errore aprendo il file di salvataggio:', err);
+      statusEl.textContent = 'Non è stato possibile aprire il file: verifica che sia un file dati valido di questo sito.';
+    }
+  });
+
+  document.getElementById('file-storage-link-btn').addEventListener('click', () => {
+    document.getElementById('storage-choice-status').textContent = '';
+    document.getElementById('storage-choice-overlay').classList.add('active');
+  });
+
+  document.getElementById('file-storage-unlink-btn').addEventListener('click', async () => {
+    if (!confirm('Scollegare il file? I dati restano comunque salvati nella memoria di questo browser, ma non verranno più scritti nel file.')) return;
+    fileCollegatoHandle = null;
+    try { await cancellaHandleFileSalvato(); } catch (err) { console.error(err); }
+    aggiornaControlliMenuStorage();
+  });
 
   // Le versioni precedenti salvavano una sola ricetta per giorno (stringa).
   // La convertiamo in una lista di voci { id, recipeId, mealType, time }.
@@ -4699,13 +4980,18 @@
   });
 
   // ---------- Init ----------
-  loadRecipes();
-  recipes = recipes.map(migrateRecipe);
-  saveRecipes();
-  migrateWeekPlan();
-  planServingsInput.value = planServings;
-  updatePantryPanelSub();
-  switchView('recipes');
+  (async function avviaApp(){
+    await inizializzaStorageFileAllAvvio();
+    loadRecipes();
+    recipes = recipes.map(migrateRecipe);
+    saveRecipes();
+    migrateWeekPlan();
+    planServingsInput.value = planServings;
+    updatePantryPanelSub();
+    switchView('recipes');
+    aggiornaControlliMenuStorage();
+    mostraSceltaStorageSeNecessario();
+  })();
 })();
 </script>
 </body>
