@@ -2,6 +2,27 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.25.0] — Il CSS ora è in un file separato
+
+### Tecnico
+- Tutto lo stile grafico (compresi i 5 temi selezionabili) è stato spostato da dentro `index.html` a un nuovo file `style.css`, collegato con un semplice `<link>`. `index.html` passa da 274 KB a 235 KB. Nessun cambiamento visibile: stesso identico aspetto, stessa identica funzionalità — solo un primo passo per rendere il progetto più leggero da mantenere man mano che cresce. `style.css` è ora tra i file essenziali elencati in [MANIFEST.md](MANIFEST.md)
+
+## [3.24.1] — Correzione: categorie sbagliate per prodotti Open Food Facts
+
+### Corretto
+- Un prodotto come una crema spalmabile alle nocciole poteva finire classificato come "frutta secca" invece che tra i dolci/snack, quando il suo tag Open Food Facts era "hazelnut-spreads" senza un tag esplicito per il cioccolato: la regola per la frutta secca cercava semplicemente "nut" come sotto-stringa, che compare anche dentro "hazelnut". Aggiunta una regola dedicata a creme spalmabili, marmellate, miele e gelati, controllata prima di quella per la frutta secca
+- Aggiunte più parole chiave per il riconoscimento automatico della categoria (pesce e frutti di mare, formaggi specifici, altre carni, legumi, frutta e verdura specifiche, cereali) — sempre un default suggerito, mai vincolante
+- Completata la mappatura dalle 19 categorie CREA alle 15 categorie pratiche della Dispensa: alcune categorie CREA (es. "Carni fresche") non avevano una destinazione e cadevano sempre su "Altro" anche quando esisteva un abbinamento migliore disponibile
+
+## [3.24.0] — Temi grafici selezionabili
+
+### Aggiunto
+- **5 temi grafici** selezionabili da "📦 Backup e CSV" → "🎨 Tema grafico": Originale (noce e oro, l'aspetto di sempre), Mediterranea (chiaro, terracotta e blu mare), Bosco d'autunno (verde bosco, crema, ruggine), Trattoria moderna (minimal, crema e rosso pomodoro), Cantina (scuro, vino e bordeaux)
+- La scelta si applica a tutto il sito e resta salvata per le visite successive; i font aggiuntivi dei nuovi temi si scaricano solo la prima volta che vengono scelti, non all'avvio del sito
+
+### Tecnico
+- Tutti i colori "di struttura" del sito (sfondo pagina, testata, pulsanti di navigazione, ombreggiature della pergamena) sono stati portati su variabili CSS dedicate: i colori delle categorie di ricette/dispensa restano invece fissi in ogni tema, per continuità visiva
+
 ## [3.23.0] — Totali nutrizionali per pasto, giorno e settimana
 
 ### Aggiunto

@@ -5,593 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
 <title>Il Mio Ricettario</title>
+<script>
+  // Applica subito il tema salvato (se diverso da quello originale), prima
+  // che il resto della pagina venga disegnato: evita un lampo del tema
+  // sbagliato per una frazione di secondo. Il caricamento del font
+  // corrispondente resta invece a carico dello script principale più sotto.
+  (function(){
+    try {
+      var t = localStorage.getItem('mc_ricettario_tema_v1');
+      if (t && t !== 'osteria') document.documentElement.setAttribute('data-tema', t);
+    } catch(e) {}
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&family=Great+Vibes&display=swap" rel="stylesheet">
-<style>
-
-  :root{
-    color-scheme: light;
-    --wood-dark:#241610;
-    --wood:#3a2718;
-    --wood-deep:#160d07;
-    --parchment:#f3e8cd;
-    --parchment-light:#fbf4e1;
-    --ink:#2b1f13;
-    --ink-soft:#6b5942;
-    --gold:#b8892c;
-    --gold-bright:#e2b45a;
-    --gold-deep:#8c6a2f;
-    --brass:#8c6a2f;
-    --line:#d3c298;
-    --shadow: rgba(18,10,4,0.45);
-    --green:#4f8a3d;
-    --orange:#cf7a2c;
-    --red:#9c3434;
-  }
-
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    position:relative;
-    min-height:100vh;
-    font-family:'Crimson Pro', serif;
-    color:var(--ink);
-    padding:36px 16px 90px;
-  }
-  /* Sfondo su pseudo-elemento fisso invece che background-attachment:fixed
-     sul body: su Safari iOS, background-attachment:fixed può bloccare o
-     rendere instabile lo scroll di pagine lunghe (es. molti risultati in
-     "CREA Alimenti"). Stesso effetto visivo, scroll sempre libero. */
-  body::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    z-index:-1;
-    background:
-      radial-gradient(1100px 520px at 50% -8%, rgba(226,180,90,0.16), transparent 60%),
-      radial-gradient(ellipse at top, #523923 0%, var(--wood-dark) 55%, var(--wood-deep) 100%);
-  }
-  h1,h2,h3,.display{font-family:'Cormorant Garamond', serif;}
-
-  ::selection{background:var(--gold-bright); color:#2c1d0d;}
-  ::-webkit-scrollbar{width:10px;height:10px;}
-  ::-webkit-scrollbar-track{background:transparent;}
-  ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold-bright),var(--gold-deep));border-radius:8px;border:2px solid var(--parchment);}
-
-  /* ---------- Intestazione ---------- */
-  .masthead{max-width:960px;margin:0 auto 22px;text-align:center;color:var(--parchment-light);}
-  .masthead .eyebrow{letter-spacing:.42em;text-transform:uppercase;font-size:11px;color:var(--gold-bright);margin-bottom:8px;text-shadow:0 1px 4px rgba(0,0,0,.4);}
-  .masthead h1{
-    font-size:56px;font-weight:700;margin:0 0 6px;letter-spacing:.04em;line-height:1;
-    background:linear-gradient(180deg,#f9ecc8 0%,#e9c06a 55%,#b8892c 100%);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 3px 8px rgba(0,0,0,.4));
-  }
-  .masthead-ornament{display:flex;align-items:center;justify-content:center;gap:14px;color:var(--gold-bright);font-size:13px;margin:4px 0 8px;text-shadow:0 0 10px rgba(226,180,90,.6);}
-  .masthead-ornament span{display:block;height:1px;width:100px;}
-  .masthead-ornament span:first-child{background:linear-gradient(90deg,transparent,var(--gold-bright));}
-  .masthead-ornament span:last-child{background:linear-gradient(90deg,var(--gold-bright),transparent);}
-  .masthead .sub{font-family:'Great Vibes', cursive;font-size:27px;color:#e8d3a3;text-shadow:0 2px 6px rgba(0,0,0,.35);}
-
-  /* ---------- Navigazione viste ---------- */
-  .view-nav{display:flex;gap:10px;justify-content:center;max-width:960px;margin:0 auto 26px;flex-wrap:wrap;}
-  .view-nav-btn{
-    background:rgba(250,243,224,0.07);
-    border:1px solid rgba(226,180,90,0.35);
-    color:#e8d6ae;
-    border-radius:24px; padding:9px 22px; font-size:14px; font-weight:600;
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-    transition:background .18s ease, transform .18s ease, box-shadow .18s ease, color .18s ease;
-  }
-  .view-nav-btn:hover{background:rgba(250,243,224,0.16); transform:translateY(-1px);}
-  .view-nav-btn.active{
-    background:linear-gradient(180deg,var(--gold-bright),var(--gold) 60%,var(--gold-deep));
-    color:#2c1d0d; border-color:transparent;
-    box-shadow:0 6px 18px rgba(184,137,44,0.45), inset 0 1px 0 rgba(255,255,255,0.4);
-  }
-
-  /* ---------- Libro / pergamena ---------- */
-  .book{
-    max-width:960px;margin:0 auto;background:var(--parchment);
-    border:1px solid var(--line);border-radius:14px;
-    box-shadow:
-      0 40px 80px var(--shadow),
-      0 10px 26px rgba(18,10,4,0.30),
-      inset 0 0 0 6px var(--parchment-light),
-      inset 0 0 70px rgba(160,120,60,0.12);
-    padding:30px;
-    background-image:repeating-linear-gradient(0deg, rgba(160,120,60,0.035) 0px, rgba(160,120,60,0.035) 1px, transparent 1px, transparent 26px);
-  }
-
-  /* ---------- Pannelli ---------- */
-  .panel{
-    background:linear-gradient(180deg, rgba(226,180,90,0.15), rgba(226,180,90,0.05));
-    border:1px solid rgba(184,137,44,0.45);
-    border-left:4px solid var(--gold);
-    border-radius:8px;
-    padding:16px 18px;
-    margin-bottom:18px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 8px rgba(44,29,13,0.06);
-  }
-  .panel-header{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
-  .panel-icon{font-size:22px;line-height:1;filter:drop-shadow(0 2px 3px rgba(44,29,13,.2));}
-  .panel-header h3{margin:0 0 2px;font-size:21px;color:var(--ink);}
-  .panel-sub{font-size:13px;color:var(--ink-soft);font-style:italic;}
-  .panel-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  .panel-row input[type="text"]{flex:1;min-width:220px;}
-  .panel-row select{min-width:0;max-width:100%;}
-
-  /* ---------- Toolbar ---------- */
-  .toolbar{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
-    border-bottom:1px solid transparent;
-    background:linear-gradient(90deg,transparent,var(--gold) 20%,var(--gold) 80%,transparent) bottom / 100% 2px no-repeat;
-    padding-bottom:16px;margin-bottom:20px;
-  }
-  .toolbar-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  .search-wrap{flex:1;min-width:200px;position:relative;}
-
-  /* ---------- Menu a tendina ---------- */
-  .menu-wrap{position:relative;display:inline-block;}
-  .menu-dropdown{
-    display:none;flex-direction:column;gap:2px;position:absolute;top:100%;left:0;margin-top:8px;
-    background:linear-gradient(180deg,var(--parchment-light),#f4ead0);
-    border:1px solid var(--brass);border-radius:10px;
-    box-shadow:0 14px 34px rgba(44,29,13,0.30);min-width:210px;z-index:60;padding:6px;
-    animation:modalIn .18s ease;
-  }
-  .menu-dropdown.open{display:flex;}
-  .menu-dropdown button{
-    background:transparent;border:none;text-align:left;padding:9px 10px;border-radius:6px;
-    font-family:'Crimson Pro',serif;font-size:14.5px;color:var(--wood);cursor:pointer;width:100%;
-    transition:background .12s ease;
-  }
-  .menu-dropdown button:hover{background:rgba(140,106,47,0.14);}
-  .menu-divider{height:1px;background:var(--line);margin:5px 2px;}
-  .menu-info{font-size:11.5px;color:var(--ink-soft);padding:4px 10px 8px;border-bottom:1px solid var(--line);margin-bottom:4px;}
-  .menu-info.warning{color:#a33322;font-weight:600;}
-  .schedule-dropdown{min-width:230px;padding:12px;}
-  .schedule-field{display:flex;flex-direction:column;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:9px;}
-  .schedule-field select, .schedule-field input{margin-top:3px;padding:6px 8px;font-size:14px;width:100%;}
-  .schedule-status{font-size:12.5px;color:var(--brass);font-weight:600;margin-top:8px;text-align:center;}
-  #advanced-filters-toggle.active{background:var(--brass);color:#fff;border-color:var(--brass);}
-  @media (max-width:600px){
-    .menu-dropdown{left:0;right:0;min-width:0;}
-  }
-
-  /* ---------- Campi ---------- */
-  input[type="text"], select, textarea, input[type="number"], input[type="date"]{
-    font-family:'Crimson Pro', serif;background:#fffdf4;
-    border:1px solid var(--line);border-radius:6px;padding:9px 12px;font-size:15px;color:var(--ink);
-    transition:border-color .15s ease, box-shadow .15s ease;
-  }
-  input[type="time"]{
-    font-family:'Crimson Pro', serif;background:#fffdf4;
-    border:1px solid var(--line);border-radius:6px;padding:9px 12px;font-size:15px;color:var(--ink);
-    -webkit-appearance:none;appearance:none;
-    transition:border-color .15s ease, box-shadow .15s ease;
-  }
-  input:focus, select:focus, textarea:focus{
-    outline:none;border-color:var(--gold);
-    box-shadow:0 0 0 3px rgba(226,180,90,0.28);
-  }
-  #search{width:100%;}
-  #category-filter{min-width:170px;}
-
-  /* ---------- Bottoni ---------- */
-  button{
-    font-family:'Crimson Pro', serif;cursor:pointer;border:none;border-radius:6px;padding:10px 18px;font-size:14px;letter-spacing:.03em;
-    -webkit-tap-highlight-color:transparent;
-    transition:transform .15s ease, filter .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
-  }
-  .btn-gold{
-    background:linear-gradient(180deg,#eec573, var(--gold) 60%, var(--gold-deep));
-    color:#2c1d0d;font-weight:600;
-    box-shadow:0 3px 0 var(--gold-deep), 0 8px 18px rgba(184,137,44,0.35), inset 0 1px 0 rgba(255,255,255,0.45);
-  }
-  .btn-gold:hover{transform:translateY(-1px); filter:brightness(1.06);}
-  .btn-gold:active{transform:translateY(1px); box-shadow:0 1px 0 var(--gold-deep), 0 4px 10px rgba(184,137,44,0.30);}
-  .btn-ghost{background:transparent;border:1px solid var(--ink-soft);color:var(--ink-soft);}
-  .btn-ghost:hover{background:rgba(0,0,0,0.05); transform:translateY(-1px);}
-  .btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);}
-  .btn-danger:hover{background:rgba(156,52,52,0.10);}
-  .btn-small{padding:5px 10px;font-size:12px;}
-  button:disabled{opacity:.45;cursor:not-allowed; transform:none !important;}
-
-  /* ---------- Lista ricette / card ---------- */
-  #recipe-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(235px,1fr));gap:18px;}
-  .card{
-    background:linear-gradient(180deg,#fdf8ea, var(--parchment-light));
-    border:1px solid var(--line);
-    border-left:5px solid var(--cat-color, var(--brass));border-radius:10px;
-    padding:16px;position:relative;cursor:pointer;
-    box-shadow:0 1px 2px rgba(44,29,13,.08), 0 6px 14px rgba(44,29,13,.06);
-    transition:transform .18s ease, box-shadow .18s ease;
-    animation:cardIn .35s ease both;
-  }
-  .card:hover{transform:translateY(-4px);box-shadow:0 16px 30px rgba(44,29,13,.20);}
-  .card .thumb{
-    width:100%;height:110px;object-fit:cover;border-radius:6px;margin-bottom:8px;border:1px solid var(--line);
-    box-shadow:0 3px 8px rgba(44,29,13,.10);
-  }
-  .card .cat-tag, .crea-menu-dettaglio .cat-tag{
-    display:inline-block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#fff;
-    background:linear-gradient(180deg, color-mix(in srgb, var(--cat-color, var(--brass)) 88%, white), var(--cat-color, var(--brass)));
-    border-radius:20px;padding:3px 10px;margin-bottom:8px;font-weight:600;
-    box-shadow:0 2px 5px rgba(44,29,13,.18);
-  }
-  .card .pressure-badge, .card .robot-badge, .card .traditional-badge{
-    display:inline-block;font-size:14px;margin-left:6px;margin-bottom:8px;vertical-align:middle;
-  }
-  .dispensa-qty{font-size:13px;color:var(--ink-soft);}
-  .dispensa-expiry{
-    display:inline-block;font-size:12px;margin-top:6px;color:var(--ink-soft);
-    background:rgba(90,74,55,.08);border-radius:12px;padding:2px 10px;
-  }
-  .dispensa-expiry.soon{background:rgba(207,122,44,.15);color:#a5641f;font-weight:600;}
-  .dispensa-expiry.expired{background:rgba(156,52,52,.13);color:var(--red);font-weight:600;}
-  .dispensa-notes{font-size:12px;color:var(--ink-soft);font-style:italic;margin-top:6px;}
-  .card .star{
-    position:absolute;top:12px;right:12px;font-size:18px;background:none;border:none;padding:2px;
-    color:var(--line); transition:transform .15s ease, color .15s ease;
-  }
-  .card .star:hover{transform:scale(1.25);}
-  .card .star.active{color:var(--gold-bright); text-shadow:0 0 10px rgba(226,180,90,.65);}
-  .card h3{margin:0 0 6px;font-size:22px;color:var(--ink);line-height:1.15;}
-  .card .meta{font-size:12.5px;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;}
-  .card .last-made{
-    display:inline-block;font-size:11.5px;color:var(--brass);margin-top:8px;font-style:italic;
-    background:rgba(184,137,44,0.10); border:1px solid rgba(184,137,44,0.25);
-    border-radius:12px; padding:2px 10px;
-  }
-  .empty-state{grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--ink-soft);font-style:italic;font-size:16px;}
-  .recipe-picker-list{max-height:55vh;overflow-y:auto;margin-top:6px;border-top:1px solid var(--line);}
-  .recipe-picker-item{
-    display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer;
-    border-radius:4px; transition:background .12s ease;
-  }
-  .recipe-picker-item:hover{background:rgba(140,106,47,0.12);}
-  .recipe-picker-item .cat-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;box-shadow:0 1px 3px rgba(44,29,13,.3);}
-  .recipe-picker-item .name{flex:1;font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--ink);}
-  .recipe-picker-item .meta{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
-  .recipe-picker-empty{padding:24px 4px;text-align:center;color:var(--ink-soft);font-style:italic;}
-
-  .card .match-badge{
-    display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:6px;
-    box-shadow:0 2px 5px rgba(44,29,13,.15);
-  }
-  .match-badge.ready{background:linear-gradient(180deg,#63a04e,var(--green));color:#fff;}
-  .match-badge.missing{background:linear-gradient(180deg,#dd8a3d,var(--orange));color:#fff;}
-  .card .missing-list{font-size:12px;color:var(--red);margin-top:6px;}
-  .card .missing-list b{color:var(--red);}
-
-  /* ---------- Overlay e modali ---------- */
-  .overlay{
-    position:fixed;inset:0;background:rgba(18,10,4,0.62);
-    backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
-    display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;z-index:50;
-  }
-  .overlay.active{display:flex; animation:fadeIn .2s ease;}
-  .modal{
-    background:linear-gradient(180deg,#fdf8ea, var(--parchment-light));
-    max-width:680px;width:100%;border-radius:12px;border:1px solid var(--line);
-    box-shadow:0 40px 90px rgba(0,0,0,.55), 0 0 0 1px rgba(226,180,90,.20);
-    padding:28px;position:relative;
-    animation:modalIn .25s ease;
-  }
-  .modal h2{margin-top:0;font-size:28px;color:var(--ink);border-bottom:1px solid var(--line);padding-bottom:10px;}
-  .field{margin-bottom:14px;}
-  .field label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--brass);margin-bottom:5px;font-weight:600;}
-  .field input, .field select, .field textarea{width:100%;}
-  .row{display:flex;gap:12px;}
-  .row > .field{flex:1;}
-  textarea{resize:vertical;min-height:70px;line-height:1.5;}
-
-  .list-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
-  .list-row input{flex:1;}
-  .list-row input.qty{flex:0 0 70px;}
-  .list-row input.unit{flex:0 0 70px;}
-  .remove-row{background:transparent;border:none;color:var(--red);font-size:18px;padding:2px 8px;line-height:1;border-radius:4px;}
-  .remove-row:hover{background:rgba(156,52,52,0.10);}
-  .add-row-btn{font-size:13px;background:transparent;border:1px dashed var(--brass);color:var(--brass);padding:6px 12px;border-radius:6px;}
-  .add-row-btn:hover{background:rgba(140,106,47,0.10);}
-  .ingredients-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  #dispensa-nutrition-toggle-btn.active{background:var(--brass);color:#fff;}
-  .ingredient-block{margin-bottom:8px;}
-  .ingredient-nutrition{
-    display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;padding:8px;border:1px dashed var(--line);border-radius:6px;
-    background:rgba(255,255,255,0.45);
-  }
-  .ingredient-nutrition .mini{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);}
-  .ingredient-nutrition .mini input{width:64px;padding:5px 6px;font-size:13px;}
-  .ingredient-nutrition .mini input.ing-crea-search{width:100%;min-width:180px;}
-
-  /* Ricerca CREA: menu a tendina agganciato da attachCreaAutocomplete() in crea-nutrition.js */
-  .crea-autocomplete-wrapper{position:relative;}
-  .crea-autocomplete-dropdown{
-    position:absolute;z-index:40;top:calc(100% + 4px);left:0;right:0;margin:0;padding:4px;
-    list-style:none;background:var(--parchment-light);border:1px solid var(--gold);border-radius:6px;
-    max-height:220px;overflow-y:auto;box-shadow:0 6px 18px var(--shadow);
-    text-transform:none;letter-spacing:normal;
-  }
-  .crea-autocomplete-item{
-    padding:6px 8px;border-radius:4px;cursor:pointer;display:flex;justify-content:space-between;
-    gap:10px;align-items:baseline;font-size:13px;
-  }
-  .crea-autocomplete-item:hover{background:rgba(184,137,44,0.16);}
-  .crea-autocomplete-nome{font-family:'Crimson Pro',serif;font-weight:500;color:var(--ink);}
-  .crea-autocomplete-dettagli{font-size:11px;color:var(--ink-soft);white-space:nowrap;}
-
-  /* Pulsante "ℹ️ scheda completa" accanto alla ricerca CREA nella riga ingrediente */
-  .crea-scheda-btn{
-    flex:0 0 auto;border:1px solid var(--gold);background:var(--parchment-light);
-    border-radius:6px;padding:0 10px;font-size:15px;cursor:pointer;color:var(--ink);
-    display:none; /* compare solo dopo aver collegato un alimento CREA alla riga */
-  }
-  .crea-scheda-btn.visibile{display:inline-block;}
-
-  /* Contenuto della scheda nutrizionale completa (dentro l'overlay dedicato) */
-  .crea-scheda-completa{font-family:'Crimson Pro',serif;color:var(--ink);}
-  .crea-scheda-titolo{font-family:'Cormorant Garamond',serif;font-size:26px;margin:0 0 2px;color:var(--wood);}
-  .crea-scheda-sottotitolo{font-size:13px;color:var(--ink-soft);margin-bottom:14px;}
-  .crea-scheda-sezione{margin-bottom:16px;}
-  .crea-scheda-sezione h4{
-    font-family:'Cormorant Garamond',serif;font-size:17px;margin:0 0 6px;color:var(--gold-deep);
-    border-bottom:1px solid var(--line);padding-bottom:4px;
-  }
-  .crea-scheda-tabella{width:100%;border-collapse:collapse;font-size:14px;}
-  .crea-scheda-tabella tr:nth-child(odd){background:rgba(184,137,44,0.06);}
-  .crea-scheda-tabella td{padding:3px 8px;}
-  .crea-scheda-tabella td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;}
-  .crea-scheda-fonte{
-    margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
-    font-size:12px;color:var(--ink-soft);
-  }
-  .crea-scheda-fonte a{color:var(--gold-deep);}
-
-  /* Picker di importazione ricette CREA: riusa lo stile di .recipe-picker-item
-     ma con checkbox per la selezione multipla */
-  .crea-ricetta-picker-item{
-    display:flex;align-items:center;gap:10px;padding:9px 6px;border-radius:6px;cursor:pointer;
-  }
-  .crea-ricetta-picker-item:hover{background:rgba(140,106,47,0.12);}
-  .crea-ricetta-picker-item .name{flex:1;font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--ink);}
-  .crea-ricetta-picker-item .meta{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
-
-  /* Righe elenco per le viste "CREA Alimenti" e "CREA Menù" (liste lunghe,
-     stile compatto ma coerente col resto del sito) */
-  .crea-elenco-riga{
-    display:flex;align-items:center;gap:12px;padding:12px 10px;border-bottom:1px solid var(--line);
-    cursor:pointer;
-  }
-  .crea-elenco-riga:hover{background:rgba(184,137,44,0.08);}
-  .crea-elenco-riga .cat-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;box-shadow:0 1px 3px rgba(44,29,13,.3);}
-  .crea-elenco-riga .nome{flex:1;font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink);}
-  .crea-elenco-riga .meta{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
-  .crea-elenco-vuoto{padding:24px 4px;text-align:center;color:var(--ink-soft);font-style:italic;}
-  .crea-elenco-troncato{padding:10px 4px;text-align:center;color:var(--ink-soft);font-size:12px;font-style:italic;}
-
-  /* Dettaglio di una ricetta CREA (vista "CREA Menù") */
-  .crea-menu-dettaglio h2{margin:0 0 2px;}
-  .crea-menu-dettaglio .crea-menu-meta{font-size:13px;color:var(--ink-soft);margin-bottom:14px;}
-  .crea-menu-dettaglio h4{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-deep);
-    border-bottom:1px solid var(--line);padding-bottom:4px;margin:18px 0 8px;}
-  .crea-menu-dettaglio ul{margin:0;padding-left:20px;}
-  .crea-menu-dettaglio li{margin-bottom:4px;}
-  .crea-menu-dettaglio .crea-menu-prep{white-space:pre-wrap;line-height:1.5;}
-  .nutrition-summary{
-    margin:14px 0 18px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;
-    background:linear-gradient(180deg,rgba(226,180,90,0.10),rgba(226,180,90,0.03));
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.4);
-  }
-  .nutrition-summary h4{margin:0 0 8px;font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--wood);}
-  .nutrition-grid{display:flex;flex-wrap:wrap;gap:10px 18px;}
-  .nutrition-grid div{font-size:13px;color:var(--ink);}
-  .nutrition-grid b{color:var(--brass);}
-  .nutrition-note{font-size:11.5px;color:var(--ink-soft);font-style:italic;margin-top:8px;}
-
-  .step-block{border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:10px;background:rgba(255,255,255,0.45);box-shadow:0 1px 4px rgba(44,29,13,.05);}
-  .step-row-bottom{display:flex;gap:10px;align-items:flex-end;margin-top:8px;flex-wrap:wrap;}
-  .step-row-bottom .mini{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
-  .step-row-bottom .mini input{width:90px;padding:5px 6px;font-size:13px;}
-  .robot-toggle-btn{background:transparent;border:1px solid var(--brass);color:var(--brass);border-radius:14px;padding:6px 12px;font-size:12.5px;}
-  .robot-toggle-btn.active{background:var(--brass);color:#fff;}
-  .pressure-toggle-btn{background:transparent;border:1px solid var(--brass);color:var(--brass);border-radius:14px;padding:6px 12px;font-size:12.5px;}
-  .pressure-toggle-btn.active{background:var(--brass);color:#fff;}
-  .step-settings{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
-  .step-settings .mini{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
-  .step-settings .mini input, .step-settings .mini select{width:72px;padding:5px 6px;font-size:13px;}
-
-  .photo-preview{max-width:160px;max-height:110px;border-radius:6px;border:1px solid var(--line);display:block;margin-top:8px;box-shadow:0 4px 10px rgba(44,29,13,.12);}
-
-  .modal-actions{display:flex;justify-content:space-between;margin-top:20px;gap:10px;flex-wrap:wrap;}
-
-  /* ---------- Vista ricetta ---------- */
-  #view-modal .servings-control{
-    display:flex;align-items:center;gap:10px;
-    background:linear-gradient(180deg,rgba(226,180,90,0.16),rgba(226,180,90,0.06));
-    border:1px solid var(--gold);border-radius:24px;padding:8px 14px;margin:14px 0 14px;width:fit-content;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.4);
-  }
-  .servings-control button{width:28px;height:28px;padding:0;border-radius:50%;background:linear-gradient(180deg,var(--gold-bright),var(--gold-deep));color:#2c1d0d;font-weight:700;box-shadow:0 2px 5px rgba(44,29,13,.2);}
-  .servings-control button:hover{transform:scale(1.1);}
-  .servings-control .count{font-weight:600;min-width:70px;text-align:center;}
-
-  .view-top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
-  .view-photo{width:100%;max-height:220px;object-fit:cover;border-radius:8px;border:1px solid var(--line);margin:10px 0 4px;box-shadow:0 6px 16px rgba(44,29,13,.14);}
-  .last-made-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13.5px;color:var(--ink-soft);flex-wrap:wrap;}
-
-  #view-ingredients{list-style:none;padding:0;margin:0 0 22px;}
-  #view-ingredients li{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:6px 0;font-size:16px;}
-  #view-ingredients li .amt{color:var(--brass);font-weight:600;}
-
-  .view-step{display:flex;gap:14px;margin-bottom:16px;align-items:flex-start;}
-  .view-step .num{
-    flex:0 0 30px;height:30px;border-radius:50%;
-    background:linear-gradient(180deg,#4a3320,#2b1d14);
-    color:var(--gold-bright);
-    display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:15px;
-    box-shadow:0 2px 6px rgba(44,29,13,.3), inset 0 1px 0 rgba(226,180,90,.35);
-  }
-  .view-step .txt{flex:1;padding-top:2px;}
-  .step-meta{
-    display:inline-flex;gap:10px;margin-top:6px;font-size:12px;color:var(--wood);
-    background:linear-gradient(180deg,#f7edd4,#f0e2bd);
-    border:1px solid var(--brass);border-radius:20px;padding:4px 12px;align-items:center;flex-wrap:wrap;
-    box-shadow:0 1px 3px rgba(44,29,13,.08);
-  }
-  .step-meta span b{color:var(--brass);}
-  .step-timer-btn{background:none;border:1px solid var(--brass);color:var(--brass);border-radius:12px;padding:2px 10px;font-size:11px;}
-  .step-timer-btn:hover{background:rgba(140,106,47,0.12);}
-  .step-timer-display{font-weight:700;color:var(--red);}
-
-  .view-notes{border-top:1px solid var(--line);margin-top:10px;padding-top:14px;font-style:italic;color:var(--ink-soft);}
-
-  .close-x{position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;color:var(--ink-soft);padding:4px 8px;border-radius:6px;line-height:1;}
-  .close-x:hover{background:rgba(0,0,0,0.06); color:var(--ink);}
-
-  footer{text-align:center;color:#a08a5f;font-size:12px;margin-top:28px;font-style:italic;}
-
-  /* ---------- Modalità cucina guidata ---------- */
-  .cook-overlay{
-    position:fixed;inset:0;z-index:80;display:none;
-    background:
-      radial-gradient(1000px 480px at 50% 0%, rgba(226,180,90,0.14), transparent 60%),
-      linear-gradient(180deg,#2c1c11, var(--wood-deep));
-    flex-direction:column;align-items:center;justify-content:center;padding:30px 16px;color:var(--parchment-light);
-    text-align:center;
-  }
-  .cook-overlay.active{display:flex; animation:fadeIn .25s ease;}
-  .cook-overlay .cook-progress{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-bright);margin-bottom:14px;}
-  .cook-overlay .cook-step-text{font-size:clamp(22px,4vw,34px);max-width:760px;line-height:1.35;margin-bottom:22px;font-family:'Cormorant Garamond',serif;}
-  .cook-overlay .cook-dial{
-    font-size:16px;color:var(--parchment);
-    background:rgba(255,255,255,0.07);
-    border:1px solid rgba(226,180,90,0.5);border-radius:24px;padding:8px 20px;margin-bottom:24px;
-    display:flex;gap:16px;flex-wrap:wrap;justify-content:center;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);
-  }
-  .cook-nav{display:flex;gap:14px;align-items:center;}
-  .cook-nav button{padding:12px 22px;font-size:15px;}
-  .cook-release-row{display:flex;align-items:center;gap:16px;justify-content:center;margin:6px 0 14px;}
-  .cook-timer-small{font-size:26px;margin-bottom:0;}
-  .cook-timer{font-size:44px;font-weight:700;color:var(--gold-bright);margin-bottom:10px;font-family:'Cormorant Garamond',serif;text-shadow:0 0 24px rgba(226,180,90,.35);}
-  .cook-exit{
-    position:absolute;top:20px;right:24px;background:rgba(255,255,255,0.06);
-    border:1px solid rgba(242,230,201,0.6);color:var(--parchment-light);
-    border-radius:20px;padding:6px 16px;font-size:13px;
-  }
-  .cook-exit:hover{background:rgba(255,255,255,0.14);}
-
-  /* ---------- Pianificazione settimanale ---------- */
-  .planning-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
-  .planning-header h2{margin:0 0 2px;font-size:27px;color:var(--ink);}
-
-  .plan-day-card{
-    background:linear-gradient(180deg,#fdf8ea, var(--parchment-light));
-    border:1px solid var(--line);border-radius:12px;padding:20px 22px;
-    box-shadow:0 6px 18px rgba(44,29,13,0.10);
-    animation:cardIn .3s ease both;
-  }
-  .plan-day-card h3{
-    margin:0 0 14px;font-size:27px;color:var(--brass);text-align:center;
-    padding-bottom:10px;
-    background:linear-gradient(90deg,transparent,var(--gold) 30%,var(--gold) 70%,transparent) bottom / 100% 1px no-repeat;
-  }
-  .plan-meal-block{padding:10px 0;border-top:1px dashed var(--line);}
-  .plan-meal-block:first-of-type{border-top:none;padding-top:0;}
-  .plan-meal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
-  .plan-meal-name{font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--ink-soft);}
-  .plan-meal-actions{display:flex;gap:2px;flex:0 0 auto;}
-  .icon-btn{background:none;border:none;color:var(--ink-soft);font-size:13px;padding:2px 6px;border-radius:4px;}
-  .icon-btn:hover{color:var(--brass); background:rgba(140,106,47,0.10);}
-  .plan-entry-consume:hover{color:var(--green);}
-  .plan-entry-consumed{color:var(--green);font-size:13px;padding:2px 6px;flex:0 0 auto;font-weight:700;}
-  .plan-entry-list{margin-bottom:8px;}
-  .plan-entry{padding:4px 0;border-bottom:1px dotted var(--line);font-size:14.5px;}
-  .plan-entry-main{display:flex;align-items:center;gap:8px;}
-  .plan-entry-nutrition{font-size:11.5px;color:var(--ink-soft);margin:2px 0 0 2px;}
-  .plan-meal-total{font-size:12px;color:var(--brass);font-weight:600;margin:6px 0 2px;text-align:right;}
-  .plan-day-total{font-size:13px;color:var(--brass);font-weight:600;text-align:center;margin:-4px 0 14px;}
-  .week-totals-day{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dotted var(--line);font-size:13px;}
-  .week-totals-day-name{font-family:'Cormorant Garamond',serif;font-size:16px;flex:0 0 auto;}
-  .week-totals-day-values{color:var(--ink-soft);text-align:right;}
-  .plan-entry-time{
-    font-weight:700;color:var(--brass);font-size:11.5px;
-    background:linear-gradient(180deg,#f7edd4,#f0e2bd);
-    border:1px solid var(--line);border-radius:10px;padding:1px 8px;flex:0 0 auto;
-  }
-  .plan-entry-name{flex:1;cursor:pointer;}
-  .plan-entry-name:hover{text-decoration:underline;}
-  .plan-entry-empty{font-size:13px;font-style:italic;color:var(--ink-soft);padding:2px 0;}
-  .plan-add-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-  .plan-add-row select{flex:1;min-width:140px;}
-  .plan-add-row input[type="time"]{width:110px;}
-  .plan-day-nav{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
-  .plan-day-tabs{display:flex;gap:6px;flex:1;overflow-x:auto;padding-bottom:2px;}
-  .plan-day-tab{
-    flex:0 0 auto;
-    background:rgba(255,255,255,0.35);
-    border:1px solid var(--brass);color:var(--brass);
-    border-radius:16px;padding:7px 14px;font-size:13.5px;font-weight:600;white-space:nowrap;
-    transition:all .15s ease;
-  }
-  .plan-day-tab:hover{background:rgba(140,106,47,0.10);}
-  .plan-day-tab.active{
-    background:linear-gradient(180deg,var(--gold-bright),var(--gold-deep));
-    color:#fff;border-color:transparent;
-    box-shadow:0 4px 12px rgba(184,137,44,0.40);
-  }
-  .plan-day-nav-arrow{
-    flex:0 0 auto;background:rgba(255,255,255,0.35);border:1px solid var(--line);color:var(--brass);
-    border-radius:50%;width:34px;height:34px;font-size:16px;padding:0;
-  }
-  .plan-day-nav-arrow:hover{background:rgba(140,106,47,0.12);}
-  .tag-checks{display:flex;flex-wrap:wrap;gap:6px 14px;}
-  .tag-checks label{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:400;text-transform:none;letter-spacing:normal;}
-  .tag-checks input{width:auto;}
-  .tag-filter-chip{background:rgba(255,255,255,0.35);border:1px solid var(--brass);color:var(--brass);border-radius:14px;padding:5px 13px;font-size:12.5px;}
-  .tag-filter-chip:hover{background:rgba(140,106,47,0.10);}
-  .tag-filter-chip.active{background:var(--brass);color:#fff;}
-  .filter-section-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:7px;font-weight:600;}
-  .view-tag-chip{
-    display:inline-block;background:linear-gradient(180deg,#f7edd4,#f0e2bd);
-    border:1px solid var(--brass);color:var(--brass);border-radius:12px;padding:2px 10px;font-size:11.5px;margin-right:6px;
-    box-shadow:0 1px 3px rgba(44,29,13,.08);
-  }
-
-  .shopping-list-items{list-style:none;padding:0;margin:0;}
-  .shopping-list-items li{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dotted var(--line);font-size:15px;}
-  .shopping-list-items li.checked span{text-decoration:line-through;color:var(--ink-soft);}
-  .shopping-list-items li .amt{color:var(--brass);font-weight:600;margin-left:auto;}
-  .shopping-list-items li.covered>span{text-decoration:line-through;color:var(--ink-soft);}
-  .shopping-pantry-note{flex-basis:100%;font-size:12.5px;color:var(--ink-soft);margin:-2px 0 0 30px;}
-  .shopping-subtract-btn{margin-left:8px;background:none;border:none;color:var(--brass);font-weight:600;text-decoration:underline;cursor:pointer;padding:0;font-size:12.5px;}
-  .shopping-subtract-btn:hover{color:var(--ink);}
-
-  /* ---------- Animazioni ---------- */
-  @keyframes cardIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
-  @keyframes modalIn{from{opacity:0; transform:translateY(14px) scale(.98);} to{opacity:1; transform:none;}}
-  @keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
-
-  /* ---------- Responsive ---------- */
-  @media (max-width:600px){
-    body{padding:24px 12px 70px;}
-    .masthead h1{font-size:38px;}
-    .masthead .sub{font-size:22px;}
-    .masthead-ornament span{width:60px;}
-    .book{padding:20px 14px;}
-    .row{flex-direction:column;}
-    .toolbar{flex-direction:column;align-items:stretch;}
-    .panel-row{flex-direction:column;align-items:stretch;}
-    .panel-row select{width:100%;}
-  }
-  @media (prefers-reduced-motion: reduce){
-    .card,.modal,.menu-dropdown,.plan-day-card{animation:none; transition:none;}
-    .card{transition:none;}
-  }
-
-</style>
+<link rel="stylesheet" href="style.css">
 <base target="_blank">
 </head>
 <body>
@@ -647,6 +75,15 @@
           <button id="export-csv-btn">⬇ Esporta CSV</button>
           <button id="import-csv-btn">⬆ Importa CSV</button>
           <input type="file" id="import-csv-file-input" accept=".csv,text/csv" style="display:none;">
+          <div class="menu-divider"></div>
+          <div class="menu-info">🎨 Tema grafico</div>
+          <select id="tema-select" style="width:100%;margin-top:4px;">
+            <option value="osteria">Originale (noce e oro)</option>
+            <option value="mediterranea">Mediterranea</option>
+            <option value="bosco">Bosco d'autunno</option>
+            <option value="trattoria">Trattoria moderna</option>
+            <option value="cantina">Cantina</option>
+          </select>
         </div>
       </div>
     </div>
@@ -963,7 +400,7 @@
       <div id="off-preview" style="display:none;align-items:center;gap:10px;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--parchment-light);">
         <img id="off-preview-img" src="" alt="" style="width:44px;height:44px;object-fit:contain;border-radius:4px;">
         <div style="flex:1;font-size:13px;">
-          <div id="off-preview-nome" style="font-family:'Cormorant Garamond',serif;font-size:16px;"></div>
+          <div id="off-preview-nome" style="font-family:var(--font-titoli);font-size:16px;"></div>
           <div id="off-preview-marca" style="color:var(--ink-soft);"></div>
         </div>
         <span id="off-preview-nutriscore" class="cat-tag" style="display:none;"></span>
@@ -1358,14 +795,18 @@
   };
   // Mappa (euristica) dalle 19 categorie del dataset CREA alle 15 categorie
   // di Dispensa: solo un default suggerito, resta modificabile come qualsiasi
-  // altro campo del prodotto.
+  // altro campo del prodotto. Le categorie CREA senza un corrispondente
+  // sensato in Dispensa (Alimenti Etnici, Frattaglie, Prodotti della pesca,
+  // Fast-food a base di carne, Ricette Italiane) restano volutamente fuori
+  // da questa mappa: cadono su "Altro" invece di un abbinamento forzato.
   const CREA_TO_PANTRY_CATEGORY = {
     'Frutta': 'Frutta', 'Verdure e ortaggi': 'Verdura', 'Uova': 'Uova',
-    'Carni trasformate e conservate': 'Salumi', 'Formaggi e latticini': 'Latticini e pronti',
-    'Latte e yogurt': 'Latticini e pronti', 'Cereali e derivati': 'Pasta, riso e cereali',
+    'Carni fresche': 'Salumi', 'Carni trasformate e conservate': 'Salumi',
+    'Formaggi e latticini': 'Latticini e pronti', 'Latte e yogurt': 'Latticini e pronti',
+    'Cereali e derivati': 'Pasta, riso e cereali',
     'Legumi': 'Legumi', 'Frutta secca a guscio e semi oleaginosi': 'Snack e dolciumi',
     'Oli e grassi': 'Oli, aceti e grassi', 'Dolci': 'Snack e dolciumi',
-    'Bevande alcoliche': 'Bevande',
+    'Bevande alcoliche': 'Bevande', 'Prodotti vari': 'Altro',
   };
   function mappaCategoriaCreaDispensa(categoriaCrea) {
     return CREA_TO_PANTRY_CATEGORY[categoriaCrea] || 'Altro';
@@ -2341,6 +1782,47 @@
     backupReminderText.classList.toggle('warning', days > 14);
   }
   updateBackupReminder();
+
+  // ---------- Tema grafico ----------
+  const TEMA_STORAGE_KEY = 'mc_ricettario_tema_v1';
+  // Solo i temi con font diversi da quelli già caricati in <head> (Cormorant
+  // Garamond/Crimson Pro/Great Vibes) hanno bisogno di un link aggiuntivo:
+  // "osteria" (originale) e "cantina" li riusano, quindi non compaiono qui.
+  const TEMA_FONT_URLS = {
+    mediterranea: 'https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Karla:wght@400;500;600&display=swap',
+    bosco: 'https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=Mulish:wght@400;600&display=swap',
+    trattoria: 'https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap',
+  };
+  const temaSelect = document.getElementById('tema-select');
+
+  function caricaFontTema(tema){
+    const url = TEMA_FONT_URLS[tema];
+    if(!url) return; // tema senza font aggiuntivi da caricare (osteria, cantina)
+    if(document.querySelector(`link[data-tema-font="${tema}"]`)) return; // già caricato in precedenza
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    link.setAttribute('data-tema-font', tema);
+    document.head.appendChild(link);
+  }
+
+  function applicaTema(tema, salvaScelta){
+    if(tema === 'osteria') document.documentElement.removeAttribute('data-tema');
+    else document.documentElement.setAttribute('data-tema', tema);
+    caricaFontTema(tema);
+    if(temaSelect) temaSelect.value = tema;
+    if(salvaScelta) safeStorageSet(TEMA_STORAGE_KEY, tema);
+  }
+
+  if(temaSelect){
+    temaSelect.addEventListener('change', () => applicaTema(temaSelect.value, true));
+  }
+
+  // Applica di nuovo (senza ri-salvare) il tema già impostato nello script
+  // anti-lampo in <head>: qui serve solo per caricare il font giusto e
+  // sincronizzare il <select> del menu, il colore è già quello corretto.
+  applicaTema(localStorage.getItem(TEMA_STORAGE_KEY) || 'osteria', false);
+
   dataMenuBtn.addEventListener('click', (e)=>{
     e.stopPropagation();
     dataMenuDropdown.classList.toggle('open');

@@ -11,23 +11,26 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 5. [Impostazioni robot per i passaggi (facoltative)](#impostazioni-robot-per-i-passaggi-facoltative)
 6. [Impostazioni pentola a pressione (facoltative)](#impostazioni-pentola-a-pressione-facoltative)
 7. [Valori nutrizionali della ricetta](#valori-nutrizionali-della-ricetta)
-8. [Tag dietetici](#tag-dietetici)
-9. [Visualizzare e scalare le porzioni](#visualizzare-e-scalare-le-porzioni)
-10. [Ricerca, filtri ed esclusione ingredienti](#ricerca-filtri-ed-esclusione-ingredienti)
-11. [Cosa posso cucinare?](#cosa-posso-cucinare)
-12. [Preferite, cronologia e contatore preparazioni](#preferite-cronologia-e-contatore-preparazioni)
-13. [Modalità cucina guidata e timer](#modalità-cucina-guidata-e-timer)
-14. [Pianificazione settimanale](#pianificazione-settimanale)
-15. [Lista della spesa](#lista-della-spesa)
-16. [Backup: esportazione e importazione](#backup-esportazione-e-importazione)
-17. [Esportazione PDF](#esportazione-pdf)
-18. [Esportare e importare CSV](#esportare-e-importare-csv)
-19. [Modificare ed eliminare](#modificare-ed-eliminare)
-20. [Dispensa](#dispensa)
-21. [Salvataggio dei dati](#salvataggio-dei-dati)
-22. [Salvataggio su un file a tua scelta (facoltativo)](#salvataggio-su-un-file-a-tua-scelta-facoltativo)
-23. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
-24. [Domande frequenti](#domande-frequenti)
+8. [🌾 CREA Alimenti](#crea-alimenti)
+9. [🇮🇹 CREA Menù](#crea-menù)
+10. [Tag dietetici](#tag-dietetici)
+11. [Visualizzare e scalare le porzioni](#visualizzare-e-scalare-le-porzioni)
+12. [Ricerca, filtri ed esclusione ingredienti](#ricerca-filtri-ed-esclusione-ingredienti)
+13. [Cosa posso cucinare?](#cosa-posso-cucinare)
+14. [Preferite, cronologia e contatore preparazioni](#preferite-cronologia-e-contatore-preparazioni)
+15. [Modalità cucina guidata e timer](#modalità-cucina-guidata-e-timer)
+16. [Pianificazione settimanale](#pianificazione-settimanale)
+17. [Lista della spesa](#lista-della-spesa)
+18. [Backup: esportazione e importazione](#backup-esportazione-e-importazione)
+19. [Esportazione PDF](#esportazione-pdf)
+20. [Esportare e importare CSV](#esportare-e-importare-csv)
+21. [Modificare ed eliminare](#modificare-ed-eliminare)
+22. [Dispensa](#dispensa)
+23. [Tema grafico](#tema-grafico)
+24. [Salvataggio dei dati](#salvataggio-dei-dati)
+25. [Salvataggio su un file a tua scelta (facoltativo)](#salvataggio-su-un-file-a-tua-scelta-facoltativo)
+26. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
+27. [Domande frequenti](#domande-frequenti)
 
 ## Avvio
 
@@ -94,6 +97,24 @@ Ci sono invece due modi in cui i valori nutrizionali possono comparire nella sch
 - **Ufficiali CREA**: solo per le ricette importate da **"🇮🇹 CREA Menù"** (vedi la sezione dedicata più avanti in questa guida) — quelli misurati ufficialmente dal CREA sul piatto finito, per 100 g, mostrati così come sono e chiaramente attribuiti alla fonte
 
 Una ricetta scritta a mano senza questi valori semplicemente non mostra quella sezione — non viene inventato nulla.
+
+## 🌾 CREA Alimenti
+
+Una vista dedicata (nella barra di navigazione in alto) per consultare liberamente i 900 alimenti della banca dati ufficiale CREA — indipendentemente da qualunque ricetta.
+
+- **Cerca per nome** (es. "farro", "parmigiano", "pomodoro") o **filtra per una delle 19 categorie ufficiali CREA** (Cereali e derivati, Formaggi e latticini, Frutta...); l'elenco resta vuoto finché non fai una delle due cose, per non mostrarti 900 righe tutte insieme
+- I risultati si fermano ai primi 200 per volta: se ce ne sono altri, un avviso in fondo te lo segnala — affina la ricerca per restringerli
+- Clicca su un alimento per aprirne la **scheda completa**: tutte le proprietà misurate da CREA per quell'alimento (macronutrienti, zuccheri singoli, minerali, vitamine, acidi grassi, aminoacidi, altri composti), non solo Kcal/Proteine/Grassi/Carboidrati/Fibre/Zuccheri/Sale — la stessa scheda che si apre premendo "ℹ️" quando colleghi un ingrediente o un prodotto Dispensa a CREA
+
+## 🇮🇹 CREA Menù
+
+Una vista dedicata per sfogliare, una per una, le 56 ricette ufficiali del Centro di ricerca Alimenti e Nutrizione (Pizza Napoletana STG, Ragù alla bolognese, Falafel, Hummus, Cannoli siciliani...).
+
+- **Cerca per nome** o **filtra per categoria** (quella dell'app: Primi, Secondi, Dolci...) — assegnata in automatico da un'euristica sul nome, la stessa usata quando importi dal menu "Importa ricetta"
+- Clicca su una ricetta per aprirne il **dettaglio**: ingredienti con le quantità originali della fonte, preparazione per intero, e i valori nutrizionali ufficiali CREA del piatto finito (per 100 g)
+- Da lì, **"+ Importa nel Ricettario"** la aggiunge alla tua raccolta con un clic — esattamente come dal picker multiplo di "📋 Importa ricetta ▾ → 🇮🇹 Da ricette CREA", inclusa la stessa protezione contro i doppioni (se una ricetta con lo stesso nome è già tua, l'importazione viene saltata)
+
+Sono entrambe vetrine di **sola consultazione** della fonte ufficiale, separate dal tuo Ricettario e dalla tua Dispensa: per personalizzare una ricetta o un alimento (note, foto, modifiche) importalo prima nel Ricettario o in Dispensa, e modificalo lì.
 
 ## Tag dietetici
 
@@ -228,6 +249,18 @@ Un prodotto della Dispensa si può anche pianificare direttamente come pasto nel
 I prodotti della Dispensa sono inclusi nel backup JSON, insieme alle ricette e alla pianificazione.
 
 Lo scanner da fotocamera richiede l'autorizzazione del browser e funziona solo in pagine servite in HTTPS (GitHub Pages lo è di default) — se la fotocamera non è disponibile, resta sempre utilizzabile il campo per incollare il codice a barre a mano.
+
+## Tema grafico
+
+Dal menu **"📦 Backup e CSV"**, in fondo, puoi scegliere tra 5 temi grafici per tutto il sito:
+
+- **Originale (noce e oro)** — l'aspetto di sempre: legno scuro, pergamena, oro
+- **Mediterranea** — chiaro e luminoso, terracotta e blu mare
+- **Bosco d'autunno** — verde bosco profondo, crema, ruggine
+- **Trattoria moderna** — minimal, crema chiarissimo con un solo accento rosso pomodoro
+- **Cantina** — scuro come l'originale, ma con toni di vino e bordeaux al posto del legno
+
+La scelta si applica subito a tutto il sito (testata, pulsanti, ricette, dispensa, pianificazione...) e resta salvata per le prossime visite. I primi 3 temi (tutti tranne l'Originale e la Cantina, che riusano gli stessi font già presenti) scaricano i loro font la prima volta che li scegli: un attimo di attesa, poi restano disponibili subito alle volte successive.
 
 ## Salvataggio dei dati
 
