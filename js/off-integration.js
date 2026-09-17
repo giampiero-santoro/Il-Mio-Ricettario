@@ -51,23 +51,23 @@ const OffIntegration = (() => {
       Array.isArray(categoriesTagsOrText) ? categoriesTagsOrText.join(' ') : (categoriesTagsOrText || '')
     );
     const regole = [
-      [/dessert|dolc|biscott|cake|pasticceria|cioccolat|chocolate/, 'Dolci'],
+      [/dessert|dolc|biscott|cake|pasticceria|cioccolat|chocolate|nutella|jam|marmalade|marmellat|honey|miele|gelato|ice.?cream|sorbet|wafer|cracker/, 'Dolci'],
       [/beer|birra|wine|vino|alcohol|alcolic|liquor|spirit/, 'Bevande alcoliche'],
       // Nota: CREA non ha una categoria "bevande" generica (solo quelle
-      // alcoliche) — succhi, bibite e acqua restano volutamente su
-      // "Prodotti vari" (il default) invece di un'etichetta indovinata.
-      [/fish|pesce|tuna|tonno|salmon|salmone|seafood/, 'Prodotti della pesca'],
+      // alcoliche) — succhi, bibite, acqua, caffè e tè restano volutamente
+      // su "Prodotti vari" (il default) invece di un'etichetta indovinata.
+      [/fish|pesce|tuna|tonno|salmon|salmone|seafood|gambero|shrimp|calamar|polpo|octopus|cozz|mussel/, 'Prodotti della pesca'],
       [/egg|uov/, 'Uova'],
-      [/cheese|formagg|latticin/, 'Formaggi e latticini'],
-      [/milk|latte|yogurt|yoghurt/, 'Latte e yogurt'],
-      [/meat|carne|beef|manzo|pork|maiale|chicken|pollo|salame|salumi|prosciutto|wurstel|sausage/, 'Carni trasformate e conservate'],
-      [/legum|bean|fagiol|lentil|lenticchi|cecio|ceci|chickpea/, 'Legumi'],
-      [/nut|noc|almond|mandorl|walnut|seed|seme/, 'Frutta secca a guscio e semi oleaginosi'],
-      [/oil|oli[ov]|grass|butter|burro/, 'Oli e grassi'],
-      [/fruit|frutt/, 'Frutta'],
-      [/vegetable|verdur|ortagg/, 'Verdure e ortaggi'],
-      [/cereal|pasta|rice|riso|bread|pane|flour|farina/, 'Cereali e derivati'],
-      [/fast-food|fastfood|burger|pizza/, 'Fast-food a base di carne'],
+      [/cheese|formagg|latticin|mozzarella|ricotta|parmigian|grana/, 'Formaggi e latticini'],
+      [/milk|latte|yogurt|yoghurt|kefir/, 'Latte e yogurt'],
+      [/meat|carne|beef|manzo|pork|maiale|chicken|pollo|tacchino|turkey|salame|salumi|prosciutto|wurstel|sausage|bacon|pancetta|coniglio|rabbit/, 'Carni trasformate e conservate'],
+      [/legum|bean|fagiol|lentil|lenticchi|cecio|ceci|chickpea|piselli|pea\b|hummus/, 'Legumi'],
+      [/almond|mandorl|walnut|hazelnut|nocciol|pistacchio|pistachio|cashew|anacard|\bnut\b|\bnuts\b|\bnoc\b|seed|seme|semi\b/, 'Frutta secca a guscio e semi oleaginosi'],
+      [/\boil\b|\boli[ov]\b|olive oil|olio|grass|butter|burro|margarina|margarine/, 'Oli e grassi'],
+      [/fruit|frutt|mela|apple|banana|arancia|orange|pera\b|pear\b|uva\b|grape/, 'Frutta'],
+      [/vegetable|verdur|ortagg|pomodoro|tomato|zucchin|carota|carrot|insalata|lettuce|spinaci|spinach/, 'Verdure e ortaggi'],
+      [/cereal|pasta|rice|riso|bread|pane|flour|farina|couscous|orzo|farro|quinoa/, 'Cereali e derivati'],
+      [/fast-food|fastfood|burger|pizza|kebab/, 'Fast-food a base di carne'],
     ];
     for (const [re, categoria] of regole) {
       if (re.test(testo)) return categoria;
