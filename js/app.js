@@ -250,9 +250,26 @@
   function mostraBannerRiconnessione(handle){
     fileCollegatoInAttesaDiPermesso = handle;
     document.getElementById('file-reconnect-text').textContent =
-      `🔓 Il file "${handle.name}" ha bisogno di conferma per riconnettersi.`;
+      `🔓 Il file "${handle.name}" ha bisogno di conferma per riconnettersi (i browser la richiedono a ogni sessione, per sicurezza). Intanto i dati restano salvati nel browser.`;
     document.getElementById('file-reconnect-banner').style.display = 'flex';
   }
+
+  // "Non ora": nasconde il banner per questa sessione, il file resta collegato
+  // e tornerà a proporsi alla prossima apertura.
+  document.getElementById('file-reconnect-later-btn').addEventListener('click', () => {
+    document.getElementById('file-reconnect-banner').style.display = 'none';
+  });
+
+  // "Non chiedere più": scollega davvero il file, così il banner non ricompare
+  // più. I dati restano nella memoria del browser, come sempre.
+  document.getElementById('file-reconnect-stop-btn').addEventListener('click', async () => {
+    if (!confirm('Vuoi smettere di usare il file di salvataggio?\n\nI tuoi dati restano salvati nella memoria di questo browser e non perdi nulla. Potrai ricollegare un file quando vuoi da "📦 Backup e CSV".')) return;
+    fileCollegatoInAttesaDiPermesso = null;
+    fileCollegatoHandle = null;
+    try { await cancellaHandleFileSalvato(); } catch (err) { console.error(err); }
+    document.getElementById('file-reconnect-banner').style.display = 'none';
+    aggiornaControlliMenuStorage();
+  });
 
   document.getElementById('file-reconnect-btn').addEventListener('click', async () => {
     if (!fileCollegatoInAttesaDiPermesso) return;
