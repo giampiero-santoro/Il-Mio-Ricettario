@@ -50,9 +50,9 @@ Se chiudi il modulo (con la "×" o toccando fuori) mentre hai scritto qualcosa s
 
 ## Importare una ricetta da testo
 
-1. Premi **"📋 Importa ricetta ▾"** e scegli **"Da testo o link"**
-2. Incolla il testo di una ricetta trovata online, in un libro, o altrove — oppure, per un riconoscimento più preciso, il codice sorgente della pagina web che la contiene (tasto destro sulla pagina → "Visualizza sorgente", poi Ctrl/Cmd+A e copia)
-3. Premi **"Analizza e compila"**: il ricettario cerca prima dati strutturati nella pagina (usati da molti siti di ricette) e, se non li trova, prova un riconoscimento più libero dal testo
+1. Premi **"📋 Importa ricetta ▾"** e scegli **"Da testo"**
+2. Incolla il testo di una ricetta — copiato da un sito, trascritto da un libro, o scritto di tuo pugno
+3. Premi **"Analizza e compila"**: il ricettario prova a riconoscere nome, ingredienti e passaggi dal testo
 4. Si apre il modulo di modifica già precompilato: **controlla e correggi ogni campo** — soprattutto quantità e categoria — prima di premere "Salva ricetta". Il riconoscimento automatico è un aiuto, non è mai perfetto
 
 ## Esportare e importare una singola ricetta
@@ -277,7 +277,8 @@ Oltre alla memoria del browser, puoi collegare un file sul tuo dispositivo dove 
 
 - Alla prima apertura del sito (se il browser lo supporta) compare subito una finestra che chiede dove salvare: puoi **creare un nuovo file**, **aprirne uno che hai già** (ad esempio un backup esportato in precedenza — usa lo stesso formato), oppure **continuare solo con la memoria del browser** senza essere interpellato di nuovo
 - Una volta collegato, ogni modifica si salva automaticamente anche lì, in aggiunta alla memoria del browser (che resta sempre aggiornata come rete di sicurezza: se il file diventasse irraggiungibile, non perdi nulla)
-- Alla riapertura del sito, il browser potrebbe chiederti di **riconfermare l'accesso al file** (è una misura di sicurezza dei browser stessi, non qualcosa che dipende dal sito): comparirà un piccolo avviso con un pulsante "Riconnetti" in alto alla pagina
+- Alla riapertura del sito, il browser chiede di **riconfermare l'accesso al file**: comparirà un avviso in alto alla pagina con tre scelte — **"Riconnetti"** (concedi di nuovo l'accesso), **"Non ora"** (nascondi l'avviso per questa volta, il file resta collegato) e **"Non chiedere più"** (scollega il file e smetti di ricevere l'avviso; i dati restano comunque nel browser).
+  Questa richiesta è una misura di sicurezza dei browser stessi, non qualcosa che dipende dal sito: i browser concedono l'accesso a un file solo finché la scheda resta aperta, quindi la riconferma va data a ogni nuova sessione. Se ti dà fastidio, "Non chiedere più" è la scelta giusta: continuerai a usare il sito normalmente, salvando nella memoria del browser, e potrai esportare un backup quando vuoi
 - Puoi cambiare file o tornare al solo browser in qualsiasi momento da **"📦 Backup e CSV" → "🗂️ Collega/Cambia file di salvataggio"** o **"🔌 Scollega"**
 
 ## Dove vengono salvati e caricati i file

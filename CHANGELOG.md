@@ -2,6 +2,16 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.27.0] — Testi più leggibili su cellulare, importazione semplificata, avviso di riconnessione gestibile
+
+### Modificato
+- **Testi più grandi sugli schermi piccoli**: tutte le scritte di servizio (etichette, note, righe di dettaglio) sono state portate su quattro misure controllabili da un punto solo, e ingrandite sui cellulari. Anche i campi di inserimento ora sono di almeno 16px, la soglia sotto la quale i browser mobili ingrandiscono la pagina da soli quando ci si scrive dentro
+- **Importazione da testo semplificata**: tolti i riferimenti all'incollare il codice sorgente delle pagine web. Ora la voce di menu si chiama semplicemente "📋 Da testo"
+- Sottotitolo del sito accorciato in "Le tue ricette annotate, adattate, tramandate"
+
+### Corretto
+- **L'avviso di riconnessione al file di salvataggio ora si può chiudere**: prima offriva solo "Riconnetti", quindi su Chrome (che chiede la riconferma a ogni sessione, per sua scelta di sicurezza) ricompariva a ogni apertura senza alternative. Ora ci sono anche **"Non ora"** (nascondi per questa volta) e **"Non chiedere più"** (scollega il file e smetti di ricevere l'avviso; i dati restano nel browser). L'avviso spiega anche perché la richiesta arriva
+
 ## [3.26.0] — La logica dell'app ora è in un file separato
 
 ### Tecnico

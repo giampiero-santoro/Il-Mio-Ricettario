@@ -28,7 +28,7 @@
   <div class="eyebrow">Ricettario personale</div>
   <div class="masthead-ornament"><span></span>✦<span></span></div>
   <h1>Il Mio Ricettario</h1>
-  <div class="sub">Le tue ricette, da ogni fonte — annotate, adattate, tramandate</div>
+  <div class="sub">Le tue ricette annotate, adattate, tramandate</div>
 </div>
 
 <div class="view-nav">
@@ -41,9 +41,13 @@
 
 <div class="book">
 
-  <div id="file-reconnect-banner" style="display:none;background:var(--parchment-light);border:1px solid var(--gold);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;align-items:center;gap:10px;justify-content:space-between;">
-    <span id="file-reconnect-text">🔓 Il file dei dati salvati ha bisogno di conferma per riconnettersi.</span>
-    <button type="button" class="btn-gold btn-small" id="file-reconnect-btn">Riconnetti</button>
+  <div id="file-reconnect-banner" style="display:none;background:var(--parchment-light);border:1px solid var(--gold);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:var(--fs-md);align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;">
+    <span id="file-reconnect-text" style="flex:1 1 220px;">🔓 Il file dei dati salvati ha bisogno di conferma per riconnettersi.</span>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button type="button" class="btn-gold btn-small" id="file-reconnect-btn">Riconnetti</button>
+      <button type="button" class="btn-ghost btn-small" id="file-reconnect-later-btn">Non ora</button>
+      <button type="button" class="btn-ghost btn-small" id="file-reconnect-stop-btn" title="Scollega il file: i dati restano comunque salvati nel browser">Non chiedere più</button>
+    </span>
   </div>
 
   <div id="recipes-view">
@@ -54,7 +58,7 @@
       <div class="menu-wrap">
         <button class="btn-ghost" id="import-menu-btn">📋 Importa ricetta ▾</button>
         <div class="menu-dropdown" id="import-menu-dropdown">
-          <button id="paste-import-btn">📋 Da testo o link</button>
+          <button id="paste-import-btn">📋 Da testo</button>
           <button id="import-recipe-file-btn">📄 Da file (.json)</button>
           <button id="crea-ricette-open-btn">🇮🇹 Da ricette CREA</button>
           <input type="file" id="import-recipe-file-input" accept=".json,application/json" style="display:none;">
@@ -486,10 +490,10 @@
     <button class="close-x" id="paste-import-close" aria-label="Chiudi">×</button>
     <h2>Importa ricetta da testo</h2>
     <p style="font-size:13.5px;color:var(--ink-soft);margin-top:-6px;line-height:1.5;">
-      Incolla qui il testo di una ricetta, oppure il codice sorgente della pagina web che la contiene (tasto destro sulla pagina → "Visualizza sorgente", poi Ctrl/Cmd+A e copia). Se la pagina include dati strutturati il riconoscimento sarà più preciso; in ogni caso, prima di salvare potrai correggere ogni campo.
+      Incolla qui il testo di una ricetta: il ricettario prova a riconoscere da solo nome, ingredienti e passaggi. Prima di salvare potrai correggere ogni campo.
     </p>
     <div class="field">
-      <textarea id="paste-import-text" rows="10" placeholder="Incolla qui il testo o il sorgente della ricetta…"></textarea>
+      <textarea id="paste-import-text" rows="10" placeholder="Incolla qui il testo della ricetta…"></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="paste-import-cancel">Annulla</button>
