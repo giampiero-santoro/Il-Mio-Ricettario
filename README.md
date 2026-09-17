@@ -48,7 +48,7 @@ Un ricettario personale, digitale e privato, per organizzare le tue ricette da q
 8. Esplora **"🌾 CREA Alimenti"** e **"🇮🇹 CREA Menù"** per consultare liberamente la banca dati e le ricette ufficiali CREA, indipendentemente dalle tue ricette
 9. Prima di cambiare browser o dispositivo, usa **"Esporta backup"** per salvare un file JSON con tutti i tuoi dati
 
-Nessuna installazione richiesta: è un singolo file HTML autosufficiente, affiancato dallo stile in `style.css`, dai file dati della banca dati CREA in `data/` e dagli script di ricerca in `js/`. Consulta [GUIDA.md](GUIDA.md) per le istruzioni dettagliate su ogni funzione, [MANIFEST.md](MANIFEST.md) per l'elenco di tutti i file da tenere allineati quando aggiorni il sito, e [CHANGELOG.md](CHANGELOG.md) per la cronologia delle versioni.
+Nessuna installazione richiesta: nessun build, nessuna dipendenza da installare — `index.html` con lo stile in `style.css` e gli script in `js/`, più i file dati della banca dati CREA in `data/`. Consulta [GUIDA.md](GUIDA.md) per le istruzioni dettagliate su ogni funzione, [MANIFEST.md](MANIFEST.md) per l'elenco di tutti i file da tenere allineati quando aggiorni il sito, e [CHANGELOG.md](CHANGELOG.md) per la cronologia delle versioni.
 
 ## 🛠️ Tecnologie
 

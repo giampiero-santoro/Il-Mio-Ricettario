@@ -2,6 +2,13 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.26.0] — La logica dell'app ora è in un file separato
+
+### Tecnico
+- Tutto il JavaScript dell'app è stato spostato da dentro `index.html` a un nuovo file `js/app.js`. `index.html` passa da 235 KB a 37 KB e torna a essere leggibile come struttura di pagine
+- Il codice **non** è stato spezzato internamente: resta un unico blocco, identico a prima, solo in un file proprio. Le sue 131 funzioni condividono tutte lo stesso ambito, quindi separarle davvero (es. "la Dispensa in un file suo") richiederebbe un lavoro di riscrittura ben più invasivo, con un rischio concreto di introdurre errori: non vale la pena finché il progetto funziona bene così
+- Nessun cambiamento visibile o funzionale: stesso identico sito
+
 ## [3.25.0] — Il CSS ora è in un file separato
 
 ### Tecnico
