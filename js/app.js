@@ -551,9 +551,60 @@
     const target = normalize(recipeIngredientName);
     return pantryList.some(p=> p && (target.includes(p) || p.includes(target)));
   }
-  function computeMatch(recipe, pantryList){
+  /**
+   * Confronta una ricetta con quello che c'è a disposizione.
+   * - `missing`: ingredienti che non risultano proprio disponibili
+   * - `insufficienti`: ingredienti presenti in Dispensa ma in quantità
+   *   inferiore a quella richiesta per le porzioni indicate. Il controllo
+   *   si può fare solo quando sia la ricetta sia il prodotto in Dispensa
+   *   hanno una quantità e un'unità confrontabile (g/kg, ml/l...): negli
+   *   altri casi l'ingrediente è considerato semplicemente disponibile,
+   *   invece di inventare un confronto non affidabile.
+   */
+  function computeMatch(recipe, pantryList, porzioniRichieste){
     const missing = recipe.ingredients.filter(ing=>!ingredientCovered(ing.name, pantryList)).map(i=>i.name);
-    return { missing };
+
+    const insufficienti = [];
+    const porzioni = parseFloat(porzioniRichieste);
+    const base = parseFloat(recipe.servings) || 1;
+    if(porzioni > 0){
+      const fattore = porzioni / base;
+      recipe.ingredients.forEach(ing=>{
+        if(missing.includes(ing.name)) return;           // già segnalato come mancante
+        const richiesta = parseFloat(ing.qty);
+        if(!richiesta || !ing.unit) return;              // ricetta senza quantità: niente da confrontare
+        const prodotto = trovaProdottoDispensaPerIngrediente(ing.name);
+        if(!prodotto) return;                            // disponibile ma non dalla Dispensa (es. scritto a mano)
+        const disponibile = parseFloat(prodotto.qty);
+        if(!disponibile && disponibile !== 0) return;    // in Dispensa non è indicata una quantità
+        const richiestaConvertita = convertQty(richiesta * fattore, ing.unit, prodotto.unit);
+        if(richiestaConvertita === null) return;         // unità non confrontabili automaticamente
+        if(disponibile < richiestaConvertita){
+          insufficienti.push({
+            nome: ing.name,
+            serve: Math.round(richiestaConvertita * 100) / 100,
+            hai: disponibile,
+            unita: prodotto.unit || ''
+          });
+        }
+      });
+    }
+    return { missing, insufficienti };
+  }
+
+  /** Cerca in Dispensa il prodotto che corrisponde a un ingrediente, prima
+   * per nome identico e poi, se il candidato è uno solo, per nome simile
+   * (stesso criterio prudente già usato altrove nel sito). */
+  function trovaProdottoDispensaPerIngrediente(nomeIngrediente){
+    const n = normalize(nomeIngrediente);
+    if(!n) return null;
+    const esatto = dispensaItems.find(it => normalize(it.name) === n);
+    if(esatto) return esatto;
+    const simili = dispensaItems.filter(it=>{
+      const nome = normalize(it.name);
+      return nome && (nome.includes(n) || n.includes(nome));
+    });
+    return simili.length === 1 ? simili[0] : null;
   }
 
   // Ingredienti di una ricetta non coperti da quello che c'è nella Dispensa (sezione "🥫 Dispensa")
@@ -755,6 +806,57 @@
     return !recipeHasRobot(r) && !recipeHasPressure(r);
   }
 
+  // ---------- Selezione multipla di ricette ----------
+  let selectionMode = false;
+  const ricetteSelezionate = new Set();
+
+  function aggiornaBarraSelezione(){
+    const n = ricetteSelezionate.size;
+    document.getElementById('selection-count').textContent =
+      n === 0 ? 'Nessuna ricetta selezionata' : `${n} ricett${n === 1 ? 'a selezionata' : 'e selezionate'}`;
+    document.getElementById('selection-delete-btn').disabled = (n === 0);
+  }
+
+  function impostaModalitaSelezione(attiva){
+    selectionMode = attiva;
+    if(!attiva) ricetteSelezionate.clear();
+    document.getElementById('selection-bar').style.display = attiva ? 'flex' : 'none';
+    document.getElementById('select-mode-btn').classList.toggle('active', attiva);
+    aggiornaBarraSelezione();
+    renderList();
+  }
+
+  document.getElementById('select-mode-btn').addEventListener('click', ()=> impostaModalitaSelezione(!selectionMode));
+  document.getElementById('selection-exit-btn').addEventListener('click', ()=> impostaModalitaSelezione(false));
+  document.getElementById('selection-none-btn').addEventListener('click', ()=>{
+    ricetteSelezionate.clear();
+    aggiornaBarraSelezione();
+    renderList();
+  });
+  document.getElementById('selection-all-btn').addEventListener('click', ()=>{
+    // Seleziona solo le ricette attualmente visibili nell'elenco (cioè che
+    // passano ricerca e filtri), non tutte quelle esistenti: è quello che
+    // ci si aspetta guardando lo schermo.
+    listEl.querySelectorAll('.card[data-recipe-id]').forEach(c => ricetteSelezionate.add(c.dataset.recipeId));
+    aggiornaBarraSelezione();
+    renderList();
+  });
+  document.getElementById('selection-delete-btn').addEventListener('click', ()=>{
+    const n = ricetteSelezionate.size;
+    if(n === 0) return;
+    const nomi = recipes.filter(r=>ricetteSelezionate.has(r.id)).map(r=>`• ${r.name}`).join('\n');
+    if(!confirm(`Eliminare ${n} ricett${n===1?'a':'e'}?\n\n${nomi}\n\nL'operazione non si può annullare.`)) return;
+    recipes = recipes.filter(r => !ricetteSelezionate.has(r.id));
+    // Toglie anche le voci pianificate che puntavano alle ricette eliminate,
+    // per non lasciare "(ricetta eliminata)" nella settimana.
+    DAYS.forEach(d=>{
+      if(weekPlan[d]) weekPlan[d] = weekPlan[d].filter(e => !e.recipeId || !ricetteSelezionate.has(e.recipeId));
+    });
+    saveRecipes(); saveWeek();
+    impostaModalitaSelezione(false);
+    renderPlanningDays();
+  });
+
   function renderList(){
     const q = searchEl.value.trim().toLowerCase();
     const cat = categoryFilterEl.value;
@@ -786,9 +888,11 @@
 
     if(pantryMode){
       const limit = pantryMissingLimit();
-      let scored = filtered.map(r=>({recipe:r, match: computeMatch(r, currentPantryMatchList())}));
+      const porzioniRichieste = parseInt(document.getElementById('pantry-servings').value, 10) || 0;
+      let scored = filtered.map(r=>({recipe:r, match: computeMatch(r, currentPantryMatchList(), porzioniRichieste)}));
       scored = scored.filter(({match}) => match.missing.length <= limit);
-      scored.sort((a,b)=> a.match.missing.length - b.match.missing.length);
+      scored.sort((a,b)=> (a.match.missing.length - b.match.missing.length)
+        || (a.match.insufficienti.length - b.match.insufficienti.length));
       if(scored.length === 0){
         const soglia = limit === Infinity ? '' : (limit === 0 ? ' già pronta con quello che hai' : ` con al massimo ${limit} ingredient${limit===1?'e':'i'} mancant${limit===1?'e':'i'}`);
         listEl.innerHTML = `<div class="empty-state">Nessuna ricetta${soglia} in questa categoria/ricerca. Prova ad alzare la soglia di ingredienti mancanti, oppure aggiungi qualcosa in Dispensa.</div>`;
@@ -799,14 +903,22 @@
         card.className = 'card';
         card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8c6a2f');
         const ready = match.missing.length === 0;
+        const scarso = match.insufficienti.length > 0;
+        const badge = ready
+          ? (scarso ? `<span class="match-badge scarso">⚠ Quantità scarse</span>`
+                    : `<span class="match-badge ready">✓ Puoi farla</span>`)
+          : `<span class="match-badge missing">Manca ${match.missing.length} ingr.</span>`;
         card.innerHTML = `
-          <span class="match-badge ${ready?'ready':'missing'}">${ready?'✓ Puoi farla':`Manca ${match.missing.length} ingr.`}</span>
+          ${badge}
           ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
           ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
           ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot né pentola a pressione">🔥</span>' : ''}
           <h3>${escapeHtml(r.name)}</h3>
           <div class="meta"><span>${r.servings} porzioni base</span>${r.time?`<span>· ${r.time} min</span>`:''}</div>
           ${!ready?`<div class="missing-list"><b>Ti manca:</b> ${match.missing.map(escapeHtml).join(', ')}</div>`:''}
+          ${scarso?`<div class="missing-list scarso"><b>Per ${porzioniRichieste} porzioni potrebbe non bastare:</b> ${
+            match.insufficienti.map(i=>`${escapeHtml(i.nome)} (servono ${roundNice(i.serve)} ${escapeHtml(i.unita)}, hai ${roundNice(i.hai)})`).join(', ')
+          }</div>`:''}
         `;
         card.addEventListener('click', ()=> openView(r.id));
         listEl.appendChild(card);
@@ -821,9 +933,14 @@
     filtered.forEach(r=>{
       const card = document.createElement('div');
       card.className = 'card';
+      card.dataset.recipeId = r.id;
+      const selezionata = ricetteSelezionate.has(r.id);
+      if(selectionMode && selezionata) card.classList.add('selezionata');
       card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8c6a2f');
       card.innerHTML = `
-        <button class="star ${r.favorite?'active':''}" data-id="${r.id}">★</button>
+        ${selectionMode
+          ? `<span class="card-select-box">${selezionata ? '☑️' : '⬜'}</span>`
+          : `<button class="star ${r.favorite?'active':''}" data-id="${r.id}">★</button>`}
         ${r.photo ? `<img class="thumb" src="${r.photo}" alt="${escapeAttr(r.name)}">` : ''}
         <span class="cat-tag">${escapeHtml(r.category)}</span>
         ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
@@ -837,13 +954,25 @@
         </div>
         ${r.lastMade ? `<div class="last-made">${lastMadeLabel(r.lastMade)}</div>` : ''}
       `;
-      card.querySelector('.star').addEventListener('click', (e)=>{
-        e.stopPropagation();
-        r.favorite = !r.favorite;
-        saveRecipes();
-        renderList();
+      const star = card.querySelector('.star');
+      if(star){
+        star.addEventListener('click', (e)=>{
+          e.stopPropagation();
+          r.favorite = !r.favorite;
+          saveRecipes();
+          renderList();
+        });
+      }
+      card.addEventListener('click', ()=>{
+        if(selectionMode){
+          if(ricetteSelezionate.has(r.id)) ricetteSelezionate.delete(r.id);
+          else ricetteSelezionate.add(r.id);
+          aggiornaBarraSelezione();
+          renderList();
+        } else {
+          openView(r.id);
+        }
       });
-      card.addEventListener('click', ()=> openView(r.id));
       listEl.appendChild(card);
     });
   }
@@ -987,6 +1116,18 @@
   document.addEventListener('click', (e)=>{
     if(importMenuDropdown.classList.contains('open') && !importMenuDropdown.contains(e.target) && e.target !== importMenuBtn){
       importMenuDropdown.classList.remove('open');
+    }
+  });
+
+  const appearanceMenuBtn = document.getElementById('appearance-menu-btn');
+  const appearanceMenuDropdown = document.getElementById('appearance-menu-dropdown');
+  appearanceMenuBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    appearanceMenuDropdown.classList.toggle('open');
+  });
+  document.addEventListener('click', (e)=>{
+    if(appearanceMenuDropdown.classList.contains('open') && !appearanceMenuDropdown.contains(e.target) && e.target !== appearanceMenuBtn){
+      appearanceMenuDropdown.classList.remove('open');
     }
   });
 
