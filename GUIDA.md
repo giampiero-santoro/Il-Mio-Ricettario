@@ -11,8 +11,8 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 5. [Impostazioni robot per i passaggi (facoltative)](#impostazioni-robot-per-i-passaggi-facoltative)
 6. [Impostazioni pentola a pressione (facoltative)](#impostazioni-pentola-a-pressione-facoltative)
 7. [Valori nutrizionali della ricetta](#valori-nutrizionali-della-ricetta)
-8. [🌾 CREA Alimenti](#crea-alimenti)
-9. [🇮🇹 CREA Menù](#crea-menù)
+8. [🌾 Valori Alimenti dal sito CREA](#valori-alimenti-dal-sito-crea)
+9. [🇮🇹 Ricette dal sito CREA](#ricette-dal-sito-crea)
 10. [Tag dietetici](#tag-dietetici)
 11. [Visualizzare e scalare le porzioni](#visualizzare-e-scalare-le-porzioni)
 12. [Ricerca, filtri ed esclusione ingredienti](#ricerca-filtri-ed-esclusione-ingredienti)
@@ -94,11 +94,11 @@ Il ricettario **non calcola** i valori nutrizionali di una ricetta sommando quel
 Ci sono invece due modi in cui i valori nutrizionali possono comparire nella scheda di una ricetta, anche insieme:
 
 - **Inseriti da te**: nel modulo di modifica, premi **"🍎 Valori nutrizionali (per porzione)"** per scrivere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale — facoltativi, utili quando li conosci già da un'altra fonte (un'etichetta, un sito). Sono sempre riferiti a **una singola porzione**
-- **Ufficiali CREA**: solo per le ricette importate da **"🇮🇹 CREA Menù"** (vedi la sezione dedicata più avanti in questa guida) — quelli misurati ufficialmente dal CREA sul piatto finito, per 100 g, mostrati così come sono e chiaramente attribuiti alla fonte
+- **Ufficiali CREA**: solo per le ricette importate da **"🇮🇹 Ricette dal sito CREA"** (vedi la sezione dedicata più avanti in questa guida) — quelli misurati ufficialmente dal CREA sul piatto finito, per 100 g, mostrati così come sono e chiaramente attribuiti alla fonte
 
 Una ricetta scritta a mano senza questi valori semplicemente non mostra quella sezione — non viene inventato nulla.
 
-## 🌾 CREA Alimenti
+## 🌾 Valori Alimenti dal sito CREA
 
 Una vista dedicata (nella barra di navigazione in alto) per consultare liberamente i 900 alimenti della banca dati ufficiale CREA — indipendentemente da qualunque ricetta.
 
@@ -106,7 +106,7 @@ Una vista dedicata (nella barra di navigazione in alto) per consultare liberamen
 - I risultati si fermano ai primi 200 per volta: se ce ne sono altri, un avviso in fondo te lo segnala — affina la ricerca per restringerli
 - Clicca su un alimento per aprirne la **scheda completa**: tutte le proprietà misurate da CREA per quell'alimento (macronutrienti, zuccheri singoli, minerali, vitamine, acidi grassi, aminoacidi, altri composti), non solo Kcal/Proteine/Grassi/Carboidrati/Fibre/Zuccheri/Sale — la stessa scheda che si apre premendo "ℹ️" quando colleghi un ingrediente o un prodotto Dispensa a CREA
 
-## 🇮🇹 CREA Menù
+## 🇮🇹 Ricette dal sito CREA
 
 Una vista dedicata per sfogliare, una per una, le 56 ricette ufficiali del Centro di ricerca Alimenti e Nutrizione (Pizza Napoletana STG, Ragù alla bolognese, Falafel, Hummus, Cannoli siciliani...).
 
@@ -140,12 +140,13 @@ Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi 
 Usa automaticamente i prodotti che hai già in **Dispensa** — non serve più riscriverli a mano:
 
 1. Se vuoi, scrivi nel campo anche altri ingredienti che hai ma non sono in Dispensa (es. erbe fresche, avanzi), separati da virgola — la lista resta salvata anche se chiudi e riapri il ricettario
-2. Scegli dal menu a tendina quanti ingredienti possono mancare: **"Solo ricette già pronte"** (zero mancanti), fino a un massimo di 1/2/3/5, oppure **"Qualsiasi risultato"** per non applicare limiti — la scelta resta salvata
-3. Premi **"Trova ricette"** (funziona anche a campo vuoto, se hai già qualcosa in Dispensa)
-4. Le ricette che rispettano la soglia scelta si ordinano per numero di ingredienti mancanti, con badge verde **"✓ Puoi farla"** o arancione **"Manca X ingr."**
-5. Premi **"Mostra tutte"** per tornare alla visualizzazione normale
+2. Indica **per quante porzioni** vuoi cucinare: le quantità di ogni ricetta vengono riscalate su quel numero e confrontate con le quantità che hai in Dispensa
+3. Scegli dal menu a tendina quanti ingredienti possono mancare: **"Solo ricette già pronte"** (zero mancanti), fino a un massimo di 1/2/3/5, oppure **"Qualsiasi risultato"** per non applicare limiti — la scelta resta salvata
+4. Premi **"Trova ricette"** (funziona anche a campo vuoto, se hai già qualcosa in Dispensa)
+5. Le ricette che rispettano la soglia scelta si ordinano per numero di ingredienti mancanti, con tre possibili badge: verde **"✓ Puoi farla"**, giallo **"⚠ Quantità scarse"** (hai tutti gli ingredienti, ma per quel numero di porzioni qualcuno potrebbe non bastare — sotto la ricetta trovi quali, con quanto serve e quanto ne hai) e arancione **"Manca X ingr."**
+6. Premi **"Mostra tutte"** per tornare alla visualizzazione normale
 
-Il confronto riconosce varianti semplici (es. "pomodoro" riconosce "pomodori pelati"), ma è un controllo testuale di base. Se aggiorni la Dispensa mentre questa vista è attiva, l'elenco delle ricette si aggiorna da solo.
+Il confronto sui nomi riconosce varianti semplici (es. "pomodoro" riconosce "pomodori pelati"), ma è un controllo testuale di base. Il controllo sulle **quantità** viene fatto solo quando è affidabile: servono una quantità e un'unità confrontabile (g/kg, ml/l...) sia nella ricetta sia nel prodotto in Dispensa. Se mancano, l'ingrediente viene considerato semplicemente disponibile, invece di dare un giudizio su un confronto non attendibile. Se aggiorni la Dispensa mentre questa vista è attiva, l'elenco delle ricette si aggiorna da solo.
 
 ## Preferite, cronologia e contatore preparazioni
 
@@ -231,6 +232,7 @@ Oltre al backup JSON completo, puoi scambiare le ricette in formato CSV (una rig
 - Dalla vista di una ricetta, **"Modifica"** per aprirla in modalità editing
 - **"⧉ Duplica"** crea una copia della ricetta (con "(copia)" nel nome) e la apre subito in modifica, senza toccare l'originale — comodo per creare varianti, es. una versione vegetariana, senza riscrivere tutto da capo
 - **"Elimina ricetta"** la rimuove definitivamente (chiede conferma) e la toglie automaticamente anche dalla pianificazione settimanale
+- Per eliminarne **più di una insieme**, premi **"☑️ Seleziona"** nella barra in alto al Ricettario: ogni ricetta mostra una casella, tocca quelle che vuoi eliminare (si evidenziano con un bordo dorato) e premi **"🗑 Elimina selezionate"**. Trovi anche **"Seleziona tutte"** — che seleziona le ricette attualmente visibili, cioè quelle che passano ricerca e filtri, non l'intera raccolta — e **"Annulla"** per uscire senza eliminare nulla. Viene chiesta conferma con l'elenco dei nomi, e anche qui le ricette eliminate spariscono dalla pianificazione
 
 ## Dispensa
 
@@ -252,7 +254,7 @@ Lo scanner da fotocamera richiede l'autorizzazione del browser e funziona solo i
 
 ## Tema grafico
 
-Dal menu **"📦 Backup e CSV"**, in fondo, puoi scegliere tra 5 temi grafici per tutto il sito:
+Dal menu **"🎨 Aspetto"** puoi scegliere tra 5 temi grafici per tutto il sito:
 
 - **Originale (noce e oro)** — l'aspetto di sempre: legno scuro, pergamena, oro
 - **Mediterranea** — chiaro e luminoso, terracotta e blu mare

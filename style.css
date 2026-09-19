@@ -322,6 +322,11 @@
   }
   .card .star:hover{transform:scale(1.25);}
   .card .star.active{color:var(--gold-bright); text-shadow:0 0 10px rgba(226,180,90,.65);}
+  /* Selezione multipla: la casella prende il posto della stellina */
+  .card .card-select-box{position:absolute;top:10px;right:12px;font-size:20px;line-height:1;}
+  .card.selezionata{box-shadow:0 0 0 2px var(--gold), 0 8px 20px var(--shadow-2);}
+  #select-mode-btn.active{background:var(--brass);color:#fff;}
+  #selection-delete-btn:disabled{opacity:.5;}
   .card h3{margin:0 0 6px;font-size:22px;color:var(--ink);line-height:1.15;}
   .card .meta{font-size:var(--fs-sm);color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;}
   .card .last-made{
@@ -347,7 +352,9 @@
   }
   .match-badge.ready{background:linear-gradient(180deg,#63a04e,var(--green));color:#fff;}
   .match-badge.missing{background:linear-gradient(180deg,#dd8a3d,var(--orange));color:#fff;}
+  .match-badge.scarso{background:linear-gradient(180deg,#e0b755,var(--gold-deep));color:#fff;}
   .card .missing-list{font-size:var(--fs-sm);color:var(--red);margin-top:6px;}
+  .card .missing-list.scarso{color:var(--gold-deep);}
   .card .missing-list b{color:var(--red);}
 
   /* ---------- Overlay e modali ---------- */

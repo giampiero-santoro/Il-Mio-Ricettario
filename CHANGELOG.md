@@ -2,6 +2,21 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.29.0] — Menu riorganizzati ed etichette più chiare
+
+### Modificato
+- **Nuovo menu "🎨 Aspetto"**, separato da "📦 Backup e CSV": contiene solo la scelta del tema grafico, prima mescolata tra backup e CSV
+- **"🔍 Filtri ▾" rinominato in "🔍 Cottura, tag ed esclusioni ▾"**, per capire subito cosa contiene senza doverlo aprire
+- **"🌾 CREA Alimenti" rinominato in "🌾 Valori Alimenti dal sito CREA"**
+- **"🇮🇹 CREA Menù" rinominato in "🇮🇹 Ricette dal sito CREA"**
+
+## [3.28.0] — Eliminazione multipla e porzioni in "Cosa posso cucinare?"
+
+### Aggiunto
+- **Eliminazione di più ricette insieme**: il pulsante "☑️ Seleziona" nella barra del Ricettario attiva la selezione multipla, con "Seleziona tutte" (limitato alle ricette visibili con i filtri attivi), "Deseleziona tutte" e "🗑 Elimina selezionate". La conferma elenca i nomi, e le ricette eliminate vengono tolte anche dalla pianificazione settimanale
+- **"Cosa posso cucinare?" ora chiede per quante porzioni**: le quantità della ricetta vengono riscalate su quel numero e confrontate con quelle in Dispensa. Oltre agli ingredienti mancanti compare un nuovo badge **"⚠ Quantità scarse"** per le ricette che hai tutte ma con qualche ingrediente che potrebbe non bastare, con il dettaglio di quanto serve e quanto ne hai
+- Il controllo sulle quantità viene fatto solo quando entrambe le unità sono confrontabili automaticamente (g/kg, ml/l...): negli altri casi l'ingrediente resta considerato disponibile, invece di dare un giudizio su un confronto non attendibile
+
 ## [3.27.0] — Testi più leggibili su cellulare, importazione semplificata, avviso di riconnessione gestibile
 
 ### Modificato

@@ -35,8 +35,8 @@
   <button class="view-nav-btn active" id="nav-recipes-btn">📖 Ricettario</button>
   <button class="view-nav-btn" id="nav-planning-btn">📅 Pianificazione</button>
   <button class="view-nav-btn" id="nav-dispensa-btn">🥫 Dispensa</button>
-  <button class="view-nav-btn" id="nav-crea-alimenti-btn">🌾 CREA Alimenti</button>
-  <button class="view-nav-btn" id="nav-crea-menu-btn">🇮🇹 CREA Menù</button>
+  <button class="view-nav-btn" id="nav-crea-alimenti-btn">🌾 Valori Alimenti dal sito CREA</button>
+  <button class="view-nav-btn" id="nav-crea-menu-btn">🇮🇹 Ricette dal sito CREA</button>
 </div>
 
 <div class="book">
@@ -79,8 +79,12 @@
           <button id="export-csv-btn">⬇ Esporta CSV</button>
           <button id="import-csv-btn">⬆ Importa CSV</button>
           <input type="file" id="import-csv-file-input" accept=".csv,text/csv" style="display:none;">
-          <div class="menu-divider"></div>
-          <div class="menu-info">🎨 Tema grafico</div>
+        </div>
+      </div>
+      <div class="menu-wrap">
+        <button class="btn-ghost" id="appearance-menu-btn">🎨 Aspetto ▾</button>
+        <div class="menu-dropdown" id="appearance-menu-dropdown">
+          <div class="menu-info">Tema grafico</div>
           <select id="tema-select" style="width:100%;margin-top:4px;">
             <option value="osteria">Originale (noce e oro)</option>
             <option value="mediterranea">Mediterranea</option>
@@ -90,7 +94,16 @@
           </select>
         </div>
       </div>
+      <button class="btn-ghost" id="select-mode-btn">☑️ Seleziona</button>
     </div>
+  </div>
+
+  <div id="selection-bar" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;background:var(--parchment-light);border:1px solid var(--gold);border-radius:8px;padding:10px 14px;margin-bottom:14px;">
+    <span id="selection-count" style="flex:1 1 140px;font-weight:600;">Nessuna ricetta selezionata</span>
+    <button type="button" class="btn-ghost btn-small" id="selection-all-btn">Seleziona tutte</button>
+    <button type="button" class="btn-ghost btn-small" id="selection-none-btn">Deseleziona tutte</button>
+    <button type="button" class="btn-gold btn-small" id="selection-delete-btn">🗑 Elimina selezionate</button>
+    <button type="button" class="btn-ghost btn-small" id="selection-exit-btn">Annulla</button>
   </div>
 
   <div class="panel">
@@ -103,6 +116,11 @@
     </div>
     <div class="panel-row">
       <input type="text" id="pantry-input" placeholder="Altri ingredienti che hai, separati da virgola (facoltativo)">
+      <label style="display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:var(--fs-md);">
+        Per
+        <input type="number" id="pantry-servings" min="1" value="4" style="width:64px;" title="Per quante porzioni vuoi cucinare: le quantità della ricetta vengono riscalate e confrontate con quelle in Dispensa">
+        porzioni
+      </label>
       <select id="pantry-missing-limit" title="Quanti ingredienti possono mancare">
         <option value="any">Qualsiasi risultato</option>
         <option value="0">Solo ricette pronte</option>
@@ -140,7 +158,7 @@
         <option value="most-made">Più preparate</option>
       </select>
       <button class="btn-ghost" id="favorites-filter-btn">★ Solo preferite</button>
-      <button class="btn-ghost" id="advanced-filters-toggle">🔍 Filtri ▾</button>
+      <button class="btn-ghost" id="advanced-filters-toggle">🔍 Cottura, tag ed esclusioni ▾</button>
     </div>
   </div>
 
