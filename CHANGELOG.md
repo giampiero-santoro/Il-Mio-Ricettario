@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.32.0] — Dispensa: prodotti in esaurimento
+
+### Aggiunto
+- Ogni prodotto può avere una quantità minima facoltativa. Quando la quantità disponibile raggiunge o scende sotto quella soglia, la relativa scheda viene evidenziata come **"In esaurimento"**.
+- Nuovo filtro **"⚠ In esaurimento"** nella Dispensa, utile per controllare rapidamente cosa ricomprare.
+
+### Corretto
+- Il collegamento **"Usa prima ciò che scade"** dalla Dispensa apre ora correttamente il Ricettario con le ricette pertinenti.
+
 ## [3.31.0] — Dashboard Oggi
 
 ### Aggiunto

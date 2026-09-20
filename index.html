@@ -232,6 +232,7 @@
       <div class="toolbar-group" style="flex:1;">
         <button class="btn-gold" id="new-dispensa-item-btn">+ Nuovo prodotto</button>
         <button class="btn-ghost" id="expiring-recipes-btn" title="Mostra le ricette che usano prodotti in scadenza entro 3 giorni">🍽 Usa prima ciò che scade</button>
+        <button class="btn-ghost" id="dispensa-low-stock-filter-btn" title="Mostra solo i prodotti in esaurimento">⚠ In esaurimento</button>
         <div class="search-wrap">
           <input type="text" id="dispensa-search" placeholder="Cerca prodotto…">
         </div>
@@ -474,6 +475,10 @@
       <div class="field">
         <label>Unità</label>
         <input type="text" id="d-unit" placeholder="es. pz, g, ml">
+      </div>
+      <div class="field">
+        <label>Avvisa sotto (facoltativo)</label>
+        <input type="number" id="d-min-qty" min="0" step="0.01" placeholder="es. 2">
       </div>
     </div>
 

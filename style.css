@@ -332,6 +332,7 @@
   }
   .dispensa-expiry.soon{background:rgba(207,122,44,.15);color:#a5641f;font-weight:600;}
   .dispensa-expiry.expired{background:rgba(156,52,52,.13);color:var(--red);font-weight:600;}
+  .dispensa-low-stock{background:rgba(207,122,44,.15);color:#a5641f;font-weight:600;border-radius:5px;padding:5px 8px;margin-top:6px;font-size:var(--fs-sm);}
   .dispensa-notes{font-size:var(--fs-sm);color:var(--ink-soft);font-style:italic;margin-top:6px;}
   .card .star{
     position:absolute;top:12px;right:12px;font-size:18px;background:none;border:none;padding:2px;
