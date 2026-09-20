@@ -2,6 +2,12 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.29.2] — Chiarezza sui valori nutrizionali
+
+### Corretto
+- Il modulo di modifica chiarisce ora che i valori nutrizionali della ricetta sono facoltativi, riferiti a una porzione e **non** vengono calcolati automaticamente dagli ingredienti. Restano possibili sia i dati inseriti manualmente sia quelli ufficiali CREA del piatto finito.
+- README e commenti tecnici sono stati allineati al comportamento effettivo dell'app. Rimossi inoltre i riferimenti a uno screenshot e a una licenza che non erano presenti nell'archivio.
+
 ## [3.29.1] — Filtro per tempo di preparazione
 
 ### Aggiunto

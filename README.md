@@ -2,14 +2,12 @@
 
 Un ricettario personale, digitale e privato, per organizzare le tue ricette da qualsiasi fonte. Nessun account, nessun server, nessun abbonamento: tutto resta sul tuo dispositivo.
 
-![Screenshot del ricettario](screenshot.png)
-
 ## ✨ Caratteristiche
 
 - **Passaggi con impostazioni robot facoltative**: scrivi ogni passaggio in modo normale; se usi un robot da cucina puoi aggiungere velocità, temperatura, tempo e modalità (Normale/Reverse/Turbo/Vapore) solo dove ti serve
 - **Passaggi con impostazioni pentola a pressione facoltative**: pressione (con l'unità che preferisci: Bar, PSI o kPa), tipo di rilascio, durata del rilascio con timer dedicato e liquido minimo richiesto; le ricette che le usano si riconoscono da un'etichetta 🍲 automatica
-- **Valori nutrizionali facoltativi per ingrediente** (Kcal, proteine, grassi, carboidrati, fibre, zuccheri, sale), inseriti manualmente oppure recuperati con un clic dalla **banca dati ufficiale CREA** (vedi sotto), e sommati automaticamente in un riepilogo per porzione che si scala da solo
-- **Banca dati nutrizionale CREA integrata**: cerca un alimento tra i 900 della banca dati ufficiale del Centro di ricerca Alimenti e Nutrizione (CREA) direttamente da ogni riga ingrediente o da ogni prodotto in Dispensa — i valori nutrizionali si compilano da soli, scalati sulla quantità che hai inserito. Per ogni alimento collegato è disponibile anche una scheda completa con tutte le proprietà misurate dalla fonte (zuccheri singoli, minerali, vitamine, acidi grassi, aminoacidi, altri composti), non solo i 7 valori usati nel calcolo
+- **Valori nutrizionali della ricetta facoltativi** (Kcal, proteine, grassi, carboidrati, fibre, zuccheri, sale), inseriti manualmente e sempre riferiti a una porzione. Non vengono calcolati sommando i valori degli ingredienti, perché la cottura può alterare peso e composizione del piatto.
+- **Banca dati nutrizionale CREA integrata**: cerca un alimento tra i 900 della banca dati ufficiale del Centro di ricerca Alimenti e Nutrizione (CREA) direttamente dagli ingredienti o dai prodotti in Dispensa. Per ogni alimento collegato è disponibile una scheda completa con tutte le proprietà misurate dalla fonte (zuccheri singoli, minerali, vitamine, acidi grassi, aminoacidi e altri composti). I valori ufficiali delle ricette CREA restano riferiti al piatto finito e sono mostrati con la loro fonte.
 - **🌾 CREA Alimenti**: una vista dedicata per sfogliare/cercare liberamente tutti i 900 alimenti della banca dati CREA, per categoria o per nome, con accesso diretto alla scheda nutrizionale completa di ciascuno — utile anche solo per consultazione, senza dover per forza essere dentro una ricetta
 - **🇮🇹 CREA Menù**: una vista dedicata con le 56 ricette ufficiali CREA (Pizza Napoletana STG, Ragù alla bolognese, Falafel, Hummus, Cannoli siciliani...), sfogliabili con ricerca e filtro per categoria; ogni ricetta mostra ingredienti, preparazione e valori nutrizionali ufficiali del piatto finito, con un pulsante per importarla nel tuo Ricettario quando vuoi tenerla
 - **Ingredienti duplicati**: se lo stesso ingrediente finisce per comparire due volte in una ricetta (stesso nome e unità), il ricettario te lo segnala al salvataggio e propone di unire le righe sommando le quantità
@@ -38,10 +36,10 @@ Un ricettario personale, digitale e privato, per organizzare le tue ricette da q
 
 ## 🚀 Come si usa
 
-1. Apri `index.html` in qualsiasi browser (Chrome, Firefox, Safari, Edge)
+1. Pubblica la cartella su un normale spazio web (per esempio GitHub Pages) e apri il sito dal suo indirizzo. Per una prova locale usa un piccolo server web: l'apertura diretta di `index.html` può impedire il caricamento dei file CREA in alcuni browser.
 2. Premi **"+ Nuova ricetta"** per scriverne una tua, oppure **"📋 Importa ricetta ▾"** per incollarla da un'altra fonte, importarla da file o scegliere tra le ricette ufficiali CREA
 3. Clicca su una ricetta per vederla in dettaglio, scalare le porzioni e seguire i passaggi
-4. Mentre scrivi gli ingredienti, usa **"🔎 Cerca su CREA"** per compilare da solo i valori nutrizionali in base alla quantità inserita, e **"ℹ️"** per vedere la scheda completa dell'alimento
+4. Mentre scrivi gli ingredienti, usa **"🔎 Cerca su CREA"** e **"ℹ️"** per consultare e collegare la scheda completa dell'alimento. I valori della ricetta, se disponibili, vanno inseriti o importati da una fonte riferita al piatto finito: non sono calcolati dagli ingredienti.
 5. Usa il pannello **"Cosa posso cucinare?"** per trovare ricette in base a quello che hai già in Dispensa (più eventuali altri ingredienti che scrivi a mano), ed **"Escludi ingredienti"** per filtrare quello che non vuoi usare
 6. Passa alla vista **"📅 Pianificazione"** per organizzare la settimana pasto per pasto e generare la lista della spesa
 7. Passa alla vista **"🥫 Dispensa"** per tenere traccia di cosa hai in frigo e in cucina (anche qui con ricerca CREA per i valori nutrizionali)
@@ -64,9 +62,9 @@ Nessuna installazione richiesta: nessun build, nessuna dipendenza da installare 
 - Il formato CSV è pensato per uno scambio semplice (una riga per ricetta): per un backup completo con pianificazione e fasce pasto usa il backup JSON.
 - I valori nutrizionali CREA sono forniti per 100 g di parte edibile, così come pubblicati dalla fonte ufficiale; le categorie e le porzioni assegnate automaticamente alle ricette importate sono un'euristica e vanno verificate.
 
-## 📄 Licenza
+## 📄 Licenza e dati
 
-Distribuito con licenza MIT — vedi il file [LICENSE](LICENSE). I dati nutrizionali CREA restano soggetti ai termini della fonte originale (alimentinutrizione.it) e del dataset Kaggle da cui sono stati derivati.
+I dati nutrizionali CREA restano soggetti ai termini della fonte originale (alimentinutrizione.it) e del dataset Kaggle da cui sono stati derivati. Prima di distribuire pubblicamente il progetto, aggiungi un file di licenza che esprima le condizioni desiderate.
 
 ---
 
