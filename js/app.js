@@ -63,6 +63,7 @@
   let pressureOnly = false;
   let robotOnly = false;
   let traditionalOnly = false;
+  let dispensaLowStockOnly = false;
 
   // cooking mode state
   let cookRecipe = null;
@@ -3783,17 +3784,29 @@
     const today = new Date().toISOString().slice(0,10);
     const soonLimit = addDays(today, 3);
     const expiringBtn = document.getElementById('expiring-recipes-btn');
+    const lowStockBtn = document.getElementById('dispensa-low-stock-filter-btn');
     const hasExpiring = dispensaItems.some(it => it.expiry && it.expiry >= today && it.expiry <= soonLimit);
     expiringBtn.disabled = !hasExpiring;
     expiringBtn.title = hasExpiring
       ? 'Mostra le ricette che usano prodotti in scadenza entro 3 giorni'
       : 'Non ci sono prodotti in scadenza entro 3 giorni';
+    lowStockBtn.classList.toggle('btn-gold', dispensaLowStockOnly);
+    lowStockBtn.classList.toggle('btn-ghost', !dispensaLowStockOnly);
+
+    const isLowStock = it => {
+      const qty = parseFloat(it.qty);
+      const minQty = parseFloat(it.minQty);
+      return !isNaN(qty) && !isNaN(minQty) && qty <= minQty;
+    };
 
     const filtered = dispensaItems.filter(it=>{
       if(cat && it.category !== cat) return false;
       if(q && !it.name.toLowerCase().includes(q)) return false;
+      if(dispensaLowStockOnly && !isLowStock(it)) return false;
       return true;
     }).sort((a,b)=>{
+      const aLow = isLowStock(a), bLow = isLowStock(b);
+      if(aLow !== bLow) return aLow ? -1 : 1;
       if(a.expiry && b.expiry) return a.expiry.localeCompare(b.expiry);
       if(a.expiry) return -1;
       if(b.expiry) return 1;
@@ -3823,6 +3836,9 @@
       const qtyKcalParts = [];
       if(it.qty || it.unit) qtyKcalParts.push(`${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}`.trim());
       const qtyKcalHtml = qtyKcalParts.length ? `<div class="dispensa-qty">${qtyKcalParts.join(' · ')}</div>` : '';
+      const lowStockHtml = isLowStock(it)
+        ? `<div class="dispensa-low-stock">⚠ In esaurimento: ne hai ${roundNice(it.qty)}${it.unit ? ' ' + escapeHtml(it.unit) : ''}${it.minQty !== '' && it.minQty !== undefined ? ` (soglia ${roundNice(it.minQty)}${it.unit ? ' ' + escapeHtml(it.unit) : ''})` : ''}</div>`
+        : '';
 
       // Valori nutrizionali: sempre per 100 g di prodotto (dato del prodotto,
       // indipendente da quanto ne hai in dispensa in questo momento).
@@ -3853,6 +3869,7 @@
         <span class="cat-tag">${escapeHtml(it.category)}</span>${offBadgeHtml}
         <h3 style="margin:2px 0 4px;font-size:19px;">${escapeHtml(it.name)}</h3>
         ${qtyKcalHtml}
+        ${lowStockHtml}
         ${nutrizioneHtml}
         ${creaInfoHtml}
         ${expiryHtml}
@@ -3879,6 +3896,7 @@
     document.getElementById('d-category').value = item ? item.category : 'Frutta';
     document.getElementById('d-qty').value = item ? (item.qty ?? '') : '';
     document.getElementById('d-unit').value = item ? (item.unit || '') : '';
+    document.getElementById('d-min-qty').value = item ? (item.minQty ?? '') : '';
     document.getElementById('d-expiry').value = item ? (item.expiry || '') : '';
     document.getElementById('d-notes').value = item ? (item.notes || '') : '';
     document.getElementById('d-kcal').value = item ? (item.kcal ?? '') : '';
@@ -3938,6 +3956,10 @@
   document.getElementById('dispensa-edit-close').addEventListener('click', confirmCloseDispensaEdit);
   document.getElementById('dispensa-search').addEventListener('input', renderDispensaList);
   document.getElementById('dispensa-category-filter').addEventListener('change', renderDispensaList);
+  document.getElementById('dispensa-low-stock-filter-btn').addEventListener('click', ()=>{
+    dispensaLowStockOnly = !dispensaLowStockOnly;
+    renderDispensaList();
+  });
   document.getElementById('expiring-recipes-btn').addEventListener('click', ()=>{
     const today = new Date().toISOString().slice(0,10);
     const soonLimit = addDays(today, 3);
@@ -3954,8 +3976,7 @@
     pantryMode = true;
     pantryResetBtn.style.display = 'inline-block';
     updatePantryPanelSub();
-    switchView('today');
-    renderList();
+    switchView('recipes');
   });
   document.getElementById('dispensa-nutrition-toggle-btn').addEventListener('click', (e)=>{
     const panel = document.getElementById('dispensa-nutrition-fields');
@@ -3979,6 +4000,7 @@
       category: document.getElementById('d-category').value,
       qty: document.getElementById('d-qty').value,
       unit: document.getElementById('d-unit').value.trim(),
+      minQty: document.getElementById('d-min-qty').value,
       expiry: document.getElementById('d-expiry').value || '',
       notes: document.getElementById('d-notes').value.trim(),
       kcal: document.getElementById('d-kcal').value,
@@ -4073,6 +4095,7 @@
       id: cryptoId(), name: item.name, category: 'Altro',
       qty: item.fromDispensaFlag ? '' : String(parseFloat(item.qty) || ''),
       unit: item.fromDispensaFlag ? '' : (item.unit || ''),
+      minQty: '',
       expiry: '', notes: '',
       kcal:'', protein:'', fat:'', carbs:'', fiber:'', sugar:'', salt:''
     });
