@@ -51,6 +51,11 @@
   let currentViewId = null;
   let currentServings = 4;
   let pantryMode = false;
+  // Quando l'utente parte dalla Dispensa per consumare i prodotti in scadenza,
+  // questa lista serve solo a dare priorità alle ricette pertinenti. Le quantità
+  // e la disponibilità continuano a essere valutate con tutta la Dispensa.
+  let priorityPantryNames = [];
+  let priorityPantryLabels = [];
   let sortMode = 'name-asc';
   let excludeItems = [];
   let activeTagFilters = new Set();
@@ -895,16 +900,26 @@
     if(pantryMode){
       const limit = pantryMissingLimit();
       const porzioniRichieste = parseInt(document.getElementById('pantry-servings').value, 10) || 0;
-      let scored = filtered.map(r=>({recipe:r, match: computeMatch(r, currentPantryMatchList(), porzioniRichieste)}));
+      let scored = filtered.map(r=>({
+        recipe:r,
+        match: computeMatch(r, currentPantryMatchList(), porzioniRichieste),
+        priorityMatches: priorityPantryNames.length
+          ? r.ingredients.filter(ing=>ingredientCovered(ing.name, priorityPantryNames)).map(ing=>ing.name)
+          : []
+      }));
+      if(priorityPantryNames.length) scored = scored.filter(({priorityMatches})=>priorityMatches.length > 0);
       scored = scored.filter(({match}) => match.missing.length <= limit);
-      scored.sort((a,b)=> (a.match.missing.length - b.match.missing.length)
+      scored.sort((a,b)=> (b.priorityMatches.length - a.priorityMatches.length)
+        || (a.match.missing.length - b.match.missing.length)
         || (a.match.insufficienti.length - b.match.insufficienti.length));
       if(scored.length === 0){
-        const soglia = limit === Infinity ? '' : (limit === 0 ? ' già pronta con quello che hai' : ` con al massimo ${limit} ingredient${limit===1?'e':'i'} mancant${limit===1?'e':'i'}`);
-        listEl.innerHTML = `<div class="empty-state">Nessuna ricetta${soglia} in questa categoria/ricerca. Prova ad alzare la soglia di ingredienti mancanti, oppure aggiungi qualcosa in Dispensa.</div>`;
+        const messaggio = priorityPantryNames.length
+          ? 'Nessuna ricetta usa i prodotti che scadono a breve con i filtri attuali. Prova a rimuovere filtri o ad aggiungere una ricetta che li utilizzi.'
+          : `Nessuna ricetta${limit === Infinity ? '' : (limit === 0 ? ' già pronta con quello che hai' : ` con al massimo ${limit} ingredient${limit===1?'e':'i'} mancant${limit===1?'e':'i'}`)} in questa categoria/ricerca. Prova ad alzare la soglia di ingredienti mancanti, oppure aggiungi qualcosa in Dispensa.`;
+        listEl.innerHTML = `<div class="empty-state">${messaggio}</div>`;
         return;
       }
-      scored.forEach(({recipe:r, match})=>{
+      scored.forEach(({recipe:r, match, priorityMatches})=>{
         const card = document.createElement('div');
         card.className = 'card';
         card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8c6a2f');
@@ -916,6 +931,7 @@
           : `<span class="match-badge missing">Manca ${match.missing.length} ingr.</span>`;
         card.innerHTML = `
           ${badge}
+          ${priorityMatches.length ? `<div class="match-badge ready" style="position:static;display:inline-block;margin:0 0 6px;">🍽 Usa prima: ${priorityMatches.map(escapeHtml).join(', ')}</div>` : ''}
           ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
           ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
           ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot né pentola a pressione">🔥</span>' : ''}
@@ -1035,6 +1051,10 @@
   }
   function updatePantryPanelSub(){
     const sub = document.getElementById('pantry-panel-sub');
+    if(priorityPantryNames.length){
+      sub.textContent = `Ricette che usano prima: ${priorityPantryLabels.join(', ')}`;
+      return;
+    }
     const n = dispensaItems.length;
     sub.textContent = n
       ? `Usa automaticamente i ${n} prodotti della tua Dispensa — aggiungi altro qui se serve`
@@ -1045,6 +1065,10 @@
       alert('La Dispensa è vuota: aggiungi qualche prodotto in Dispensa, oppure scrivi qui gli ingredienti che hai.');
       return;
     }
+    // Una ricerca normale ripristina l'elenco completo: il filtro "usa prima"
+    // è un aiuto temporaneo e non deve restare nascosto nelle ricerche successive.
+    priorityPantryNames = [];
+    priorityPantryLabels = [];
     pantryMode = true;
     pantryResetBtn.style.display = 'inline-block';
     savePantry(pantryInput.value);
@@ -1057,7 +1081,10 @@
   });
   pantryResetBtn.addEventListener('click', ()=>{
     pantryMode = false;
+    priorityPantryNames = [];
+    priorityPantryLabels = [];
     pantryResetBtn.style.display = 'none';
+    updatePantryPanelSub();
     renderList();
   });
   pantryMissingLimitEl.addEventListener('change', ()=>{
@@ -3297,23 +3324,75 @@
   });
 
   // ---------- Vista: Ricettario / Pianificazione ----------
+  function todayDayName(){
+    const jsDay = new Date().getDay(); // 0=domenica...6=sabato
+    return DAYS[jsDay === 0 ? 6 : jsDay - 1];
+  }
+
+  function renderToday(){
+    const content = document.getElementById('today-content');
+    const day = todayDayName();
+    const entries = (weekPlan[day] || []).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+    const today = new Date().toISOString().slice(0,10);
+    const soonLimit = addDays(today, 3);
+    const expiring = dispensaItems
+      .filter(it => it.expiry && it.expiry >= today && it.expiry <= soonLimit)
+      .sort((a,b)=>a.expiry.localeCompare(b.expiry));
+    const weekEntries = DAYS.flatMap(d=>weekPlan[d] || []);
+    const plannedRecipes = weekEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
+    const shoppingCount = buildAggregatedShoppingItems(
+      plannedRecipes.map(r=>({recipe:r, scale:planServings / (r.servings || 1)}))
+    ).length;
+    const dateLabel = new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+    const mealsHtml = entries.length ? entries.map(e=>{
+      const name = escapeHtml(planEntryName(e));
+      return `<li><span class="today-time">${escapeHtml(e.time || '—')}</span><b>${name}</b> <span class="today-meal">· ${escapeHtml(e.mealType || 'Pasto')}</span></li>`;
+    }).join('') : '<p class="today-empty">Nessun pasto pianificato per oggi.</p>';
+    const expiryHtml = expiring.length ? expiring.slice(0,4).map(it=>{
+      const date = new Date(it.expiry + 'T00:00:00').toLocaleDateString('it-IT', {day:'numeric', month:'short'});
+      return `<li><b>${escapeHtml(it.name)}</b> <span class="today-expiry-soon">· scade ${date}</span></li>`;
+    }).join('') : '<p class="today-empty">Nessun prodotto in scadenza nei prossimi 3 giorni.</p>';
+    const shoppingText = shoppingCount
+      ? `${shoppingCount} voci da verificare per i pasti pianificati.`
+      : (shoppingExtraItems.length ? `${shoppingExtraItems.length} promemoria dalla Dispensa.` : 'Nessuna lista della spesa da preparare.');
+    content.innerHTML = `
+      <div class="today-heading">
+        <div><h2>☀️ Oggi</h2><p>${escapeHtml(dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1))}</p></div>
+        <button type="button" class="btn-gold" id="today-plan-btn">📅 Organizza la settimana</button>
+      </div>
+      <div class="today-grid">
+        <section class="today-card"><h3>🍽 I pasti di oggi</h3><ul class="today-list">${mealsHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-meals-btn">Apri pianificazione</button></div></section>
+        <section class="today-card"><h3>🥫 Da consumare prima</h3><ul class="today-list">${expiryHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-expiry-btn">Apri Dispensa</button></div></section>
+        <section class="today-card"><h3>🛒 Lista della spesa</h3><p class="today-empty">${escapeHtml(shoppingText)}</p><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-shopping-btn">Apri lista</button><button type="button" class="btn-ghost btn-small" id="today-recipes-btn">Cerca ricette</button></div></section>
+      </div>`;
+    document.getElementById('today-plan-btn').addEventListener('click', ()=>switchView('planning'));
+    document.getElementById('today-meals-btn').addEventListener('click', ()=>switchView('planning'));
+    document.getElementById('today-expiry-btn').addEventListener('click', ()=>switchView('dispensa'));
+    document.getElementById('today-recipes-btn').addEventListener('click', ()=>switchView('recipes'));
+    document.getElementById('today-shopping-btn').addEventListener('click', ()=>document.getElementById('generate-shopping-btn').click());
+  }
+
   function switchView(view){
+    document.getElementById('today-view').style.display = view === 'today' ? '' : 'none';
     document.getElementById('recipes-view').style.display = view === 'recipes' ? '' : 'none';
     document.getElementById('planning-view').style.display = view === 'planning' ? '' : 'none';
     document.getElementById('dispensa-view').style.display = view === 'dispensa' ? '' : 'none';
     document.getElementById('crea-alimenti-view').style.display = view === 'crea-alimenti' ? '' : 'none';
     document.getElementById('crea-menu-view').style.display = view === 'crea-menu' ? '' : 'none';
+    document.getElementById('nav-today-btn').classList.toggle('active', view === 'today');
     document.getElementById('nav-recipes-btn').classList.toggle('active', view === 'recipes');
     document.getElementById('nav-planning-btn').classList.toggle('active', view === 'planning');
     document.getElementById('nav-dispensa-btn').classList.toggle('active', view === 'dispensa');
     document.getElementById('nav-crea-alimenti-btn').classList.toggle('active', view === 'crea-alimenti');
     document.getElementById('nav-crea-menu-btn').classList.toggle('active', view === 'crea-menu');
+    if(view === 'today') renderToday();
     if(view === 'recipes') renderList();
     if(view === 'planning') renderPlanningDays();
     if(view === 'dispensa') renderDispensaList();
     if(view === 'crea-alimenti') apriVistaCreaAlimenti();
     if(view === 'crea-menu') apriVistaCreaMenu();
   }
+  document.getElementById('nav-today-btn').addEventListener('click', ()=> switchView('today'));
   document.getElementById('nav-recipes-btn').addEventListener('click', ()=> switchView('recipes'));
   document.getElementById('nav-planning-btn').addEventListener('click', ()=> switchView('planning'));
   document.getElementById('nav-dispensa-btn').addEventListener('click', ()=> switchView('dispensa'));
@@ -3703,6 +3782,12 @@
     const cat = document.getElementById('dispensa-category-filter').value;
     const today = new Date().toISOString().slice(0,10);
     const soonLimit = addDays(today, 3);
+    const expiringBtn = document.getElementById('expiring-recipes-btn');
+    const hasExpiring = dispensaItems.some(it => it.expiry && it.expiry >= today && it.expiry <= soonLimit);
+    expiringBtn.disabled = !hasExpiring;
+    expiringBtn.title = hasExpiring
+      ? 'Mostra le ricette che usano prodotti in scadenza entro 3 giorni'
+      : 'Non ci sono prodotti in scadenza entro 3 giorni';
 
     const filtered = dispensaItems.filter(it=>{
       if(cat && it.category !== cat) return false;
@@ -3853,6 +3938,25 @@
   document.getElementById('dispensa-edit-close').addEventListener('click', confirmCloseDispensaEdit);
   document.getElementById('dispensa-search').addEventListener('input', renderDispensaList);
   document.getElementById('dispensa-category-filter').addEventListener('change', renderDispensaList);
+  document.getElementById('expiring-recipes-btn').addEventListener('click', ()=>{
+    const today = new Date().toISOString().slice(0,10);
+    const soonLimit = addDays(today, 3);
+    const prodottiInScadenza = dispensaItems
+      .filter(it => it.expiry && it.expiry >= today && it.expiry <= soonLimit)
+      .map(it => it.name)
+      .filter(Boolean);
+    priorityPantryNames = prodottiInScadenza.map(normalize).filter(Boolean);
+    priorityPantryLabels = prodottiInScadenza;
+    if(!priorityPantryNames.length){
+      alert('Non ci sono prodotti in scadenza entro 3 giorni.');
+      return;
+    }
+    pantryMode = true;
+    pantryResetBtn.style.display = 'inline-block';
+    updatePantryPanelSub();
+    switchView('today');
+    renderList();
+  });
   document.getElementById('dispensa-nutrition-toggle-btn').addEventListener('click', (e)=>{
     const panel = document.getElementById('dispensa-nutrition-fields');
     const showing = panel.style.display !== 'none';
