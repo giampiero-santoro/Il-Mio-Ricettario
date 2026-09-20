@@ -129,8 +129,9 @@ Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi 
 - Il campo di ricerca cerca sia nel nome della ricetta sia negli ingredienti
 - Il menu a tendina filtra per categoria
 - Il menu a tendina accanto alla categoria cambia l'ordine della lista: Nome (A-Z o Z-A), Aggiunta di recente, Ultima preparata, Più preparate — di base è per nome (A-Z)
+- **Il menu "Qualsiasi tempo"** filtra per tempo di preparazione: entro 15 min, entro 30 min, entro 1 ora, oppure "Con tempo indicato" (mostra solo le ricette a cui hai effettivamente assegnato un tempo, qualunque esso sia). Una ricetta senza tempo indicato non compare in nessuna delle soglie, comprese "entro 15/30/60 min" — non viene considerata "veloce" solo perché non sai quanto ci vuole
 - **"★ Solo preferite"** mostra solo le ricette con la stellina
-- **"🔍 Filtri"** apre un pannello con altre opzioni, tenute nascoste di default per non affollare la pagina — il pulsante mostra tra parentesi quanti filtri sono attivi (es. "🔍 Filtri (2)"):
+- **"🔍 Cottura, tag ed esclusioni"** apre un pannello con altre opzioni, tenute nascoste di default per non affollare la pagina — il pulsante mostra tra parentesi quanti filtri sono attivi (es. "🔍 Cottura, tag ed esclusioni (2)"):
   - **Metodo di cottura**: "🍲 Pentola a pressione" (almeno un passaggio a pressione), "🤖 Robot" (almeno un passaggio con velocità, temperatura o una modalità diversa da Normale), "🔥 Tradizionale" (nessuna impostazione robot né pressione) — si possono combinare liberamente tra loro
   - **"Escludi ingredienti"**, che nasconde le ricette contenenti uno o più ingredienti scritti lì (separati da virgola) — utile per allergie o cose che non vuoi usare in quel momento
   - le "pillole" per il tag dietetico (puoi selezionarne più di una insieme)

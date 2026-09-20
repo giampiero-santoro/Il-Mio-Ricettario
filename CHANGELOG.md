@@ -2,6 +2,11 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.29.1] — Filtro per tempo di preparazione
+
+### Aggiunto
+- Nuovo filtro **"Qualsiasi tempo"** nel Ricettario: entro 15/30/60 minuti, oppure "Con tempo indicato" per vedere solo le ricette a cui hai assegnato un tempo. Una ricetta senza tempo indicato non rientra in nessuna soglia — non viene considerata "veloce" solo perché il tempo non è stato scritto
+
 ## [3.29.0] — Menu riorganizzati ed etichette più chiare
 
 ### Modificato
