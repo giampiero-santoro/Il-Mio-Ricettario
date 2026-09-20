@@ -514,6 +514,7 @@
   const listEl = document.getElementById('recipe-list');
   const searchEl = document.getElementById('search');
   const categoryFilterEl = document.getElementById('category-filter');
+  const timeFilterEl = document.getElementById('time-filter');
   const sortSelectEl = document.getElementById('sort-select');
   const favoritesFilterBtn = document.getElementById('favorites-filter-btn');
 
@@ -860,6 +861,7 @@
   function renderList(){
     const q = searchEl.value.trim().toLowerCase();
     const cat = categoryFilterEl.value;
+    const timeFilter = timeFilterEl.value;
     let filtered = recipes.filter(r=>{
       if(favoritesOnly && !r.favorite) return false;
       if(pressureOnly && !recipeHasPressure(r)) return false;
@@ -867,6 +869,10 @@
       if(traditionalOnly && !recipeIsTraditional(r)) return false;
       const matchesCat = !cat || r.category === cat;
       if(!matchesCat) return false;
+      if(timeFilter === 'has-time' && !r.time) return false;
+      if(timeFilter && timeFilter !== 'has-time'){
+        if(!r.time || r.time > parseInt(timeFilter, 10)) return false;
+      }
       if(activeTagFilters.size > 0){
         const rTags = r.tags || [];
         for(const t of activeTagFilters){ if(!rTags.includes(t)) return false; }
@@ -979,6 +985,7 @@
 
   searchEl.addEventListener('input', renderList);
   categoryFilterEl.addEventListener('change', renderList);
+  timeFilterEl.addEventListener('change', renderList);
   sortSelectEl.addEventListener('change', ()=>{
     sortMode = sortSelectEl.value;
     renderList();
