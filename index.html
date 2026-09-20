@@ -32,6 +32,7 @@
 </div>
 
 <div class="view-nav">
+  <button class="view-nav-btn" id="nav-today-btn">☀️ Oggi</button>
   <button class="view-nav-btn active" id="nav-recipes-btn">📖 Ricettario</button>
   <button class="view-nav-btn" id="nav-planning-btn">📅 Pianificazione</button>
   <button class="view-nav-btn" id="nav-dispensa-btn">🥫 Dispensa</button>
@@ -48,6 +49,10 @@
       <button type="button" class="btn-ghost btn-small" id="file-reconnect-later-btn">Non ora</button>
       <button type="button" class="btn-ghost btn-small" id="file-reconnect-stop-btn" title="Scollega il file: i dati restano comunque salvati nel browser">Non chiedere più</button>
     </span>
+  </div>
+
+  <div id="today-view" style="display:none;">
+    <div id="today-content"></div>
   </div>
 
   <div id="recipes-view">
@@ -226,6 +231,7 @@
     <div class="toolbar">
       <div class="toolbar-group" style="flex:1;">
         <button class="btn-gold" id="new-dispensa-item-btn">+ Nuovo prodotto</button>
+        <button class="btn-ghost" id="expiring-recipes-btn" title="Mostra le ricette che usano prodotti in scadenza entro 3 giorni">🍽 Usa prima ciò che scade</button>
         <div class="search-wrap">
           <input type="text" id="dispensa-search" placeholder="Cerca prodotto…">
         </div>

@@ -2,6 +2,18 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [3.31.0] — Dashboard Oggi
+
+### Aggiunto
+- Nuova schermata iniziale **"☀️ Oggi"**: riunisce i pasti pianificati per la giornata, i prodotti in scadenza entro tre giorni e un accesso diretto alla lista della spesa.
+- Collegamenti rapidi a Pianificazione, Dispensa, Ricettario e lista della spesa, per raggiungere le azioni quotidiane senza passare dai menu.
+
+## [3.30.0] — Usa prima ciò che scade
+
+### Aggiunto
+- Nella Dispensa il pulsante **"🍽 Usa prima ciò che scade"** si attiva quando ci sono prodotti con scadenza entro tre giorni. Apre il Ricettario e mostra le ricette che usano quei prodotti, dando precedenza a quelle che ne usano più di uno.
+- I prodotti già scaduti non vengono proposti per la preparazione. Il pulsante **"Mostra tutte"** riporta alla normale ricerca per disponibilità.
+
 ## [3.29.2] — Chiarezza sui valori nutrizionali
 
 ### Corretto

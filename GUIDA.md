@@ -247,6 +247,8 @@ La Dispensa è una sezione separata dal ricettario, per tenere traccia di quello
 
 Nell'elenco, i prodotti si ordinano da soli mettendo prima quelli con la scadenza più vicina: le scadenze già passate sono evidenziate in rosso, quelle entro 3 giorni in arancione. Se hai inserito i valori nutrizionali, compaiono tutti (Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri, Sale) nella card, sempre per 100 g di prodotto. Cerca per nome o filtra per categoria con i controlli in alto. Clicca su un prodotto per modificarlo o eliminarlo.
 
+Quando ci sono prodotti con scadenza entro 3 giorni, il pulsante **"🍽 Usa prima ciò che scade"** diventa disponibile: apre il Ricettario e propone solo le ricette che usano quegli alimenti, mettendo in alto quelle che ne usano di più. I prodotti già scaduti non vengono suggeriti per la preparazione. Premi **"Mostra tutte"** per tornare alla ricerca normale in base a ciò che hai in Dispensa.
+
 Un prodotto della Dispensa si può anche pianificare direttamente come pasto nella Pianificazione settimanale (vedi sezione successiva) — comodo per cose semplici come uno yogurt a colazione o della frutta come spuntino, senza dover creare una ricetta apposta.
 
 I prodotti della Dispensa sono inclusi nel backup JSON, insieme alle ricette e alla pianificazione.
