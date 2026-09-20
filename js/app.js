@@ -2088,12 +2088,11 @@
   }
   function plural(n, one, many){ return n === 1 ? one : many; }
 
-  // I valori nutrizionali per ricetta NON si calcolano più sommando i singoli
+  // I valori nutrizionali per ricetta NON si calcolano sommando i singoli
   // ingredienti crudi: la cottura altera in modo non prevedibile acqua, grassi
-  // e altri valori (es. la pasta assorbe acqua, un fritto assorbe olio), quindi
-  // una somma "a crudo" darebbe un numero preciso ma sbagliato. I valori
-  // nutrizionali compaiono quindi SOLO per le ricette importate da "CREA Menù",
-  // dove sono quelli misurati da CREA sul piatto finito (non calcolati da noi).
+  // e altri valori (es. la pasta assorbe acqua, un fritto assorbe olio). I dati
+  // mostrati sono quindi solo quelli inseriti dall'utente per porzione o quelli
+  // misurati da CREA sul piatto finito per 100 g; non sono calcolati da noi.
   const NUTRITION_FIELDS = [
     {key:'kcal', label:'Kcal', unit:''},
     {key:'proteine', label:'Proteine', unit:'g'},

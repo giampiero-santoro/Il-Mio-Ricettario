@@ -2,7 +2,7 @@
  * crea-nutrition.js
  * -------------------------------------------------------------------------
  * Modulo per "Il Mio Ricettario": ricerca degli alimenti nella banca dati
- * CREA e calcolo dinamico dei valori nutrizionali in base alle grammature.
+ * CREA e consultazione dei valori nutrizionali degli alimenti.
  *
  * Nessuna dipendenza esterna. Pensato per essere incluso con:
  *   <script src="js/crea-nutrition.js"></script>
@@ -14,9 +14,9 @@
  *   - CreaDB.isReady()               true se i dati sono gia' caricati
  *   - CreaDB.search(query, limit)    ricerca full-text semplice
  *   - CreaDB.getByCode(codice)       recupero diretto per food_code
- *   - CreaDB.scale(alimento, grammi) valori nutrizionali scalati ai grammi
- *   - CreaDB.sumIngredients(list)    somma i nutrienti di piu' ingredienti
- *     gia' scalati (utile per il riepilogo per porzione della ricetta)
+ *   - CreaDB.scale(alimento, grammi) valori dell'alimento scalati ai grammi
+ *   - CreaDB.sumIngredients(list)    utilità per eventuali consultazioni
+ *     alimentari; non è usata per calcolare i valori delle ricette
  *   - attachCreaAutocomplete(input, onSelect) collega un <input> di testo
  *     a un menu a tendina di risultati, stile "Il Mio Ricettario"
  */
