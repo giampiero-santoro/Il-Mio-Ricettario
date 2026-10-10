@@ -2,6 +2,14 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [4.1.6] — Doppioni nella lista della spesa e modo per svuotarla
+
+### Corretto
+- I promemoria "dalla dispensa" nella lista della spesa (ingredienti segnalati mancanti quando pianifichi una ricetta) potevano accumularsi come doppioni nel tempo — es. "Sale" o "Olio di semi" ripetuti due volte — e non venivano ripuliti da soli. Ora, all'apertura del sito, i doppioni già presenti vengono uniti automaticamente.
+
+### Aggiunto
+- Nuovo bottone **"🗑 Svuota lista"** nella finestra della lista della spesa: toglie tutte le spunte e tutti i promemoria "dalla dispensa" accumulati, per poter ripartire puliti e rigenerare la lista in base al giorno o alla settimana che serve (le ricette pianificate restano, solo spunte e promemoria vengono azzerati).
+
 ## [4.1.5] — Testo del bottone "Seleziona"
 
 ### Cambiato

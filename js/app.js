@@ -181,6 +181,21 @@
       const rawShoppingExtra = localStorage.getItem(SHOPPING_EXTRA_KEY);
       shoppingExtraItems = rawShoppingExtra ? JSON.parse(rawShoppingExtra) : [];
       if(!Array.isArray(shoppingExtraItems)) shoppingExtraItems = [];
+      // Ripulisce eventuali doppioni già accumulati (stesso nome e unità), rimasti da prima che
+      // l'aggiunta controllasse i duplicati: altrimenti restano per sempre nella lista della spesa.
+      const vistiExtra = new Set();
+      const senzaDoppioni = [];
+      shoppingExtraItems.forEach(x=>{
+        if(!x || !x.name) return;
+        const chiave = normalize(x.name) + '|' + normalize(x.unit || '');
+        if(vistiExtra.has(chiave)) return;
+        vistiExtra.add(chiave);
+        senzaDoppioni.push(x);
+      });
+      if(senzaDoppioni.length !== shoppingExtraItems.length){
+        shoppingExtraItems = senzaDoppioni;
+        safeStorageSet(SHOPPING_EXTRA_KEY, JSON.stringify(shoppingExtraItems));
+      }
     }catch(e){ shoppingExtraItems = []; }
     try{
       const rawNotes = localStorage.getItem(WEEK_NOTES_KEY);
@@ -5112,6 +5127,18 @@
     // Applica in un colpo solo tutte le sottrazioni disponibili (una per riga, dove il pulsante
     // "Sottrai dalla lista" è comparso), senza doverle toccare una per una.
     shoppingListItems.querySelectorAll('.shopping-subtract-action').forEach(btn => btn.click());
+  });
+  document.getElementById('shopping-reset-btn').addEventListener('click', ()=>{
+    // Svuota le spunte (che restano segnate finché non le togli a mano) e i promemoria "dalla
+    // dispensa" accumulati nel tempo: così si riparte puliti e si può rigenerare la lista per la
+    // giornata o la settimana che serve, senza doppioni o spunte di prodotti già comprati prima.
+    const ok = confirm('Svuotare la lista della spesa? Verranno tolte tutte le spunte e i promemoria "dalla dispensa" accumulati finora (le ricette pianificate restano, puoi rigenerare la lista subito dopo).');
+    if(!ok) return;
+    shoppingExtraItems = [];
+    shoppingCheckedItems = {};
+    saveShoppingExtra();
+    saveShoppingCheckedItems();
+    shoppingOverlay.classList.remove('active');
   });
 
   document.getElementById('export-shopping-pdf-btn').addEventListener('click', ()=>{
