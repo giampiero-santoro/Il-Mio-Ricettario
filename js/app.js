@@ -4359,7 +4359,7 @@
     }
     const pairs = dayRecipes.map(r => ({ recipe: r, scale: planServings / (r.servings || 1) }));
     const items = buildAggregatedShoppingItems(pairs, false);
-    openShoppingListOverlay(items, `Per ${planServings} persone — ${day}: ${dayRecipes.map(r=>r.name).join(', ')}`);
+    openShoppingListOverlay(items, `Per ${planServings} persone — ${escapeHtml(day)}: ${formatRicetteSubtitle(dayRecipes, 'volte in questo giorno')}`);
   }
 
   function openWeekTotalsOverlay(){
@@ -4969,10 +4969,29 @@
     return true;
   }
 
+  // Elenca le ricette pianificate una sola volta anche se compaiono più volte (es. la stessa
+  // ricetta a pranzo e cena, o in più giorni): le quantità nella lista sono già sommate da
+  // buildAggregatedShoppingItems, qui serve solo evitare che il nome si ripeta nel sottotitolo,
+  // segnalando invece in rosso quante volte è stata pianificata.
+  function formatRicetteSubtitle(plannedRecipes, periodLabel){
+    const counts = [];
+    const index = new Map();
+    plannedRecipes.forEach(r=>{
+      if(index.has(r.id)){ counts[index.get(r.id)].count++; }
+      else{ index.set(r.id, counts.length); counts.push({ name: r.name, count: 1 }); }
+    });
+    return counts.map(({name, count})=>{
+      const label = escapeHtml(name);
+      return count > 1
+        ? `${label} <span style="color:var(--red);font-weight:600;">(x${count} ${escapeHtml(periodLabel)})</span>`
+        : label;
+    }).join(', ');
+  }
+
   // Popola e apre il modal della lista della spesa con un elenco di voci già calcolato
   // (usata sia dalla lista della settimana, sia da quella di un giorno o di una singola ricetta).
   function openShoppingListOverlay(items, subtitleText){
-    shoppingSubtitle.textContent = subtitleText;
+    shoppingSubtitle.innerHTML = subtitleText;
     let dispensaSyncCount = 0;
     shoppingDispensaSyncNote.style.display = 'none';
     shoppingListItems.innerHTML = '';
@@ -5118,7 +5137,7 @@
     const pairs = plannedRecipes.map(r=>({ recipe: r, scale: planServings / (r.servings || 1) }));
     const items = buildAggregatedShoppingItems(pairs);
     const subtitle = plannedRecipes.length
-      ? `Per ${planServings} persone — ${plannedRecipes.map(r=>r.name).join(', ')}`
+      ? `Per ${planServings} persone — ${formatRicetteSubtitle(plannedRecipes, 'volte questa settimana')}`
       : 'Ingredienti segnalati mancanti dalla Dispensa';
     openShoppingListOverlay(items, subtitle);
   });
@@ -5142,13 +5161,26 @@
   });
 
   document.getElementById('export-shopping-pdf-btn').addEventListener('click', ()=>{
-    const items = Array.from(shoppingListItems.querySelectorAll('li')).map(li=>{
-      const name = li.querySelector('span:not(.amt)')?.textContent || '';
+    // Ricostruisce le sezioni per reparto ("🥦 FRUTTA E VERDURA" ecc.) leggendo l'elenco così
+    // com'è mostrato a video, intestazioni comprese: prima andavano perse perché il nome del
+    // reparto nell'intestazione non è dentro un <span> (solo il pallino colorato lo è), quindi
+    // il selettore usato per le righe normali non lo trovava.
+    const sections = [];
+    let currentLines = null;
+    Array.from(shoppingListItems.children).forEach(li=>{
+      if(li.classList.contains('shopping-reparto-header')){
+        currentLines = [];
+        sections.push({ heading: li.textContent.trim(), lines: currentLines });
+        return;
+      }
+      const spans = li.querySelectorAll('span');
+      const name = spans[0] ? spans[0].textContent : '';
       const amt = li.querySelector('.amt')?.textContent || '';
-      return amt.trim() ? `${name} — ${amt.trim()}` : name;
+      if(!name) return;
+      if(!currentLines){ currentLines = []; sections.push({ heading: null, lines: currentLines }); }
+      currentLines.push(`- ${amt.trim() ? `${name} — ${amt.trim()}` : name}`);
     });
-    if(!items.length){ alert('Genera prima la lista della spesa dalla settimana pianificata.'); return; }
-    const sections = [{ heading: null, lines: items.map(t => `- ${t}`) }];
+    if(!sections.some(s => s.lines.length)){ alert('Genera prima la lista della spesa dalla settimana pianificata.'); return; }
     const pdfStr = buildPdfFromSections('Lista della spesa', sections);
     downloadPdf(pdfStr, `lista-della-spesa-${new Date().toISOString().slice(0,10)}.pdf`);
   });

@@ -2,6 +2,12 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [4.1.7] — Categorie nel PDF e ricette ripetute nel sottotitolo
+
+### Corretto
+- Esportando la lista della spesa in PDF, le intestazioni di reparto (es. "Frutta", "Verdura") sparivano: restava solo il pallino colorato, senza il nome. Ora compaiono correttamente, come nella lista a schermo.
+- Se la stessa ricetta era pianificata più volte nella settimana (o nello stesso giorno), il suo nome compariva ripetuto nel sottotitolo della lista della spesa. Ora compare una sola volta, con accanto in rosso quante volte è stata pianificata (es. "Carbonara risottata (x2 volte questa settimana)"); le quantità nella lista restano già sommate come prima.
+
 ## [4.1.6] — Doppioni nella lista della spesa e modo per svuotarla
 
 ### Corretto
