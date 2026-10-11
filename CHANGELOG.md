@@ -2,6 +2,11 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [4.1.9] — Tipo di cottura nel PDF della ricetta
+
+### Aggiunto
+- Il PDF di ogni ricetta ora indica il tipo di cottura ("Tradizionale", "Robot da cucina", "Pentola a pressione", o più d'uno insieme se la ricetta li combina in passaggi diversi) — la stessa informazione già visibile a schermo con i simboli 🔥🤖🍲, prima assente nella stampa.
+
 ## [4.1.8] — Logo e firma dell'autore nei PDF
 
 ### Aggiunto

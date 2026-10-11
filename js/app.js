@@ -2827,9 +2827,16 @@
   function recipePdfSections(r, servings){
     const scale = servings / (r.servings || 1);
     const metaLine = `${r.category} · ${servings} porzioni${r.time ? ' · circa ' + r.time + ' min' : ''}`;
+    // Stesso criterio usato per i badge e i filtri a schermo (🔥🤖🍲): una ricetta può combinare
+    // più metodi se i suoi passaggi li usano in punti diversi (es. soffritto tradizionale e poi
+    // cottura a pressione).
+    const metodiCottura = [];
+    if(recipeIsTraditional(r)) metodiCottura.push('Tradizionale');
+    if(recipeHasRobot(r)) metodiCottura.push('Robot da cucina');
+    if(recipeHasPressure(r)) metodiCottura.push('Pentola a pressione');
     const sections = [{
       heading: null,
-      lines: [metaLine, (r.tags && r.tags.length) ? 'Tag: ' + r.tags.join(', ') : null, (r.allergens && r.allergens.length) ? 'Allergeni: ' + r.allergens.join(', ') : null].filter(Boolean)
+      lines: [metaLine, 'Cottura: ' + metodiCottura.join(' + '), (r.tags && r.tags.length) ? 'Tag: ' + r.tags.join(', ') : null, (r.allergens && r.allergens.length) ? 'Allergeni: ' + r.allergens.join(', ') : null].filter(Boolean)
     }];
     sections.push({
       heading: 'Ingredienti',
