@@ -143,6 +143,12 @@
     padding-top:16px; color:var(--nav-text); opacity:.55;
     font-size:var(--fs-xs); line-height:1.5; text-align:left;
   }
+  .sidebar-credit{
+    display:flex; align-items:center; gap:10px;
+    padding-top:16px; color:var(--nav-text); opacity:.7;
+    font-size:var(--fs-xs); line-height:1.4; text-align:left;
+  }
+  .sidebar-credit img{ width:34px; height:34px; flex:0 0 34px; border-radius:50%; }
   .app-main{flex:1 1 auto; min-width:0; padding:30px 34px 60px;}
 
   /* ---------- Interruttore tema chiaro/scuro ---------- */

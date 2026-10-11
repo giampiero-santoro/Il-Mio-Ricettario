@@ -2,6 +2,11 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [4.1.8] — Logo e firma dell'autore nei PDF
+
+### Aggiunto
+- Il logo "Clan Destino" e la firma "Giampiero Santoro" (già presenti in fondo alla barra laterale del sito) ora compaiono anche in calce a ogni pagina di tutti i PDF esportati: la singola ricetta, il ricettario completo, la lista della spesa e la pianificazione settimanale.
+
 ## [4.1.7] — Categorie nel PDF e ricette ripetute nel sottotitolo
 
 ### Corretto

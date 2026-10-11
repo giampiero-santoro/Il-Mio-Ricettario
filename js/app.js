@@ -3191,7 +3191,12 @@
     return `${i.name}${i.qty ? ' — ' + formatQtyForUnit(i.qty, i.unit) : ''}${i.unit ? ' ' + i.unit : ''}`;
   }
 
-  // ---------- Generatore PDF minimale (solo testo, multipagina, nessuna libreria esterna) ----------
+  // ---------- Generatore PDF minimale (testo + un piccolo logo in calce a ogni pagina, nessuna libreria esterna) ----------
+  // Logo "Clan Destino" (JPEG 140x140, sfondo bianco) incorporato come base64: nessun file
+  // esterno da scaricare al volo, il PDF resta generabile offline come il resto del sito.
+  const PDF_LOGO_JPEG_B64 = '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';
+  const PDF_LOGO_W = 140, PDF_LOGO_H = 140;
+
   function pdfSanitizeText(str){
     const map = {'’':"'", '‘':"'", '“':'"', '”':'"', '–':'-', '—':'-', '…':'...', '☐':'-'};
     let out = '';
@@ -3298,6 +3303,7 @@
 
     const fontObjId = 3, pagesObjId = 2, catalogObjId = 1;
     let objId = 4;
+    const logoObjId = objId++;
     const pageObjIds = [], contentObjIds = [];
     pages.forEach(()=>{ pageObjIds.push(objId++); contentObjIds.push(objId++); });
 
@@ -3305,16 +3311,36 @@
     objects[catalogObjId] = `<< /Type /Catalog /Pages ${pagesObjId} 0 R >>`;
     objects[pagesObjId] = `<< /Type /Pages /Kids [${pageObjIds.map(n=>n+' 0 R').join(' ')}] /Count ${pages.length} >>`;
     objects[fontObjId] = `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`;
+    // Logo incorporato come immagine JPEG grezza (filtro DCTDecode: i byte del file restano
+    // quelli, nessuna ricompressione) — atob() restituisce già una "stringa binaria" con un
+    // carattere per byte, lo stesso formato che downloadPdf si aspetta per l'intero PDF.
+    objects[logoObjId] = {
+      isStream: true,
+      extra: `/Type /XObject /Subtype /Image /Width ${PDF_LOGO_W} /Height ${PDF_LOGO_H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode`,
+      data: atob(PDF_LOGO_JPEG_B64)
+    };
 
     pages.forEach((pageCmds, i)=>{
       const pageId = pageObjIds[i], contentId = contentObjIds[i];
-      objects[pageId] = `<< /Type /Page /Parent ${pagesObjId} 0 R /Resources << /Font << /F1 ${fontObjId} 0 R >> >> /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Contents ${contentId} 0 R >>`;
+      objects[pageId] = `<< /Type /Page /Parent ${pagesObjId} 0 R /Resources << /Font << /F1 ${fontObjId} 0 R >> /XObject << /LogoCD ${logoObjId} 0 R >> >> /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Contents ${contentId} 0 R >>`;
       const streamLines = ['BT'];
       pageCmds.forEach(c=>{
         streamLines.push(`/F1 ${c.size} Tf`);
         streamLines.push(`1 0 0 1 ${(c.x !== undefined ? c.x : MARGIN_X).toFixed(2)} ${c.y.toFixed(2)} Tm`);
         streamLines.push(`(${pdfSanitizeText(c.text)}) Tj`);
       });
+      streamLines.push('ET');
+      // Logo "Clan Destino" + firma dell'autore in calce, identici su ogni pagina (il disegno
+      // di un'immagine con l'operatore "Do" deve stare fuori dal blocco di testo BT/ET).
+      const footerSize = 20, footerX = MARGIN_X, footerY = 20;
+      streamLines.push('q');
+      streamLines.push(`${footerSize} 0 0 ${footerSize} ${footerX} ${footerY} cm`);
+      streamLines.push('/LogoCD Do');
+      streamLines.push('Q');
+      streamLines.push('BT');
+      streamLines.push('/F1 7.5 Tf');
+      streamLines.push(`1 0 0 1 ${(footerX + footerSize + 6).toFixed(2)} ${(footerY + footerSize / 2 - 3).toFixed(2)} Tm`);
+      streamLines.push(`(${pdfSanitizeText('Clan Destino - Giampiero Santoro')}) Tj`);
       streamLines.push('ET');
       objects[contentId] = { isStream:true, data: streamLines.join('\n') };
     });
@@ -3329,7 +3355,8 @@
       if(typeof obj === 'string'){
         out += `${n} 0 obj\n${obj}\nendobj\n`;
       }else if(obj.isStream){
-        out += `${n} 0 obj\n<< /Length ${obj.data.length} >>\nstream\n${obj.data}\nendstream\nendobj\n`;
+        const dict = obj.extra ? `<< ${obj.extra} /Length ${obj.data.length} >>` : `<< /Length ${obj.data.length} >>`;
+        out += `${n} 0 obj\n${dict}\nstream\n${obj.data}\nendstream\nendobj\n`;
       }
     }
     const xrefStart = out.length;
