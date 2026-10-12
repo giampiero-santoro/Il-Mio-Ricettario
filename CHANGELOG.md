@@ -2,10 +2,30 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
-## [4.1.9] — Tipo di cottura nel PDF della ricetta
+## [4.2.2] — Corretto il contrasto col tema scuro in alcuni riquadri
+
+### Corretto
+- I riquadri "Valori nutrizionali" (sia della scheda prodotto in Dispensa sia degli ingredienti in Ricetta), i riquadri dei passaggi di preparazione (compresi quelli con le impostazioni robot/pentola a pressione/friggitrice ad aria) e il campo note dei pasti in Pianificazione avevano uno sfondo chiaro fisso che, col tema scuro, diventava un grigio poco leggibile su testo anch'esso grigio chiaro. Ora lo sfondo di questi riquadri segue il tema come il resto del sito.
+
+## [4.2.1] — Card Dispensa in stile ricetta, quadrate
+
+### Cambiato
+- Le card della Dispensa ora usano la stessa griglia a riquadri delle card Ricettario (prima erano un elenco a tutta larghezza): stessa illustrazione segnaposto colorata per categoria (o la foto del prodotto se trovata su Open Food Facts), stessa etichetta categoria, stesso stile del titolo.
+- Per mantenere le card compatte e quadrate come quelle delle ricette, i dettagli più corposi (valori nutrizionali per 100 g, scheda ufficiale CREA, note) non compaiono più direttamente sulla card ma restano a un click di distanza, aprendo la scheda del prodotto come sempre.
+- La card continua a mostrare a colpo d'occhio quantità, eventuale avviso "in esaurimento" e scadenza.
+
+## [4.2.0] — Friggitrice ad aria come nuovo metodo di cottura
 
 ### Aggiunto
-- Il PDF di ogni ricetta ora indica il tipo di cottura ("Tradizionale", "Robot da cucina", "Pentola a pressione", o più d'uno insieme se la ricetta li combina in passaggi diversi) — la stessa informazione già visibile a schermo con i simboli 🔥🤖🍲, prima assente nella stampa.
+- Nuovo metodo di cottura "🌀 Friggitrice ad aria", al pari di robot e pentola a pressione: ogni passaggio della ricetta può ora avere temperatura (fino a 230°C) e preriscaldamento.
+- Nuovo badge 🌀 sulle card e nella scheda ricetta, nuovo filtro "🌀 Friggitrice ad aria" tra i filtri avanzati, e comparsa automatica nella riga "Cottura:" dei PDF (anche in combinazione con altri metodi, es. "Robot da cucina + Friggitrice ad aria").
+- Il dettaglio di temperatura/preriscaldamento compare anche nel testo del passaggio esportato (PDF e CSV).
+- Una ricetta è ora "🔥 Tradizionale" solo se non usa robot, pentola a pressione né friggitrice ad aria.
+
+## [4.1.9] — Tipo di cottura nel PDF delle ricette
+
+### Aggiunto
+- Nel PDF di ogni ricetta (sia l'export della singola ricetta sia il ricettario completo) ora compare la riga "Cottura: …" con il metodo rilevato automaticamente dai passaggi della ricetta: 🔥 Tradizionale, 🤖 Robot da cucina, 🍲 Pentola a pressione, oppure la combinazione di più metodi se la ricetta li usa entrambi (es. "Robot da cucina + Pentola a pressione"). Prima questa informazione era visibile solo come badge a schermo, non nella stampa.
 
 ## [4.1.8] — Logo e firma dell'autore nei PDF
 

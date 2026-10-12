@@ -18,6 +18,15 @@
     'Spezie e condimenti': '#9c4b1f', 'Oli, aceti e grassi': '#8a7a2e', 'Bevande': '#3f6e9c',
     'Snack e dolciumi': '#b83a6b', 'Altro': '#3f6e79'
   };
+  // Icona di riserva per la card Dispensa quando il prodotto non ha una foto
+  // OFF: stessa logica delle illustrazioni-segnaposto delle card ricetta.
+  const PANTRY_CATEGORY_ICONS = {
+    'Frutta': '🍎', 'Verdura': '🥦', 'Uova': '🥚', 'Salumi': '🥓',
+    'Latticini e pronti': '🧀', 'Surgelati': '🧊', 'Pasta, riso e cereali': '🍝',
+    'Legumi': '🫘', 'Farine, zucchero e lieviti': '🌾', 'Conserve e scatolame': '🥫',
+    'Spezie e condimenti': '🧂', 'Oli, aceti e grassi': '🫒', 'Bevande': '🥤',
+    'Snack e dolciumi': '🍬', 'Altro': '🍽️'
+  };
   // Mappa (euristica) dalle 19 categorie del dataset CREA alle 15 categorie
   // di Dispensa: solo un default suggerito, resta modificabile come qualsiasi
   // altro campo del prodotto. Le categorie CREA senza un corrispondente
@@ -115,6 +124,7 @@
   let favoritesOnly = false;
   let pressureOnly = false;
   let robotOnly = false;
+  let airFryerOnly = false;
   let traditionalOnly = false;
   let dispensaLowStockOnly = false;
   let showArchivedOnly = false;
@@ -941,7 +951,7 @@
 
     const recipe = recipes.find(r => r.id === entry.recipeId);
     if(!recipe){ alert('La ricetta collegata non è più tra le tue ricette.'); return; }
-    const scale = planServings / (recipe.servings || 1);
+    const scale = entryServings(entry) / (recipe.servings || 1);
     const runningQty = new Map(); // prodotto Dispensa -> quantità via via aggiornata, per gestire più ingredienti che puntano allo stesso prodotto
     const toUpdate = [];
     const skipped = new Set();
@@ -1025,8 +1035,11 @@
   function recipeHasRobot(r){
     return (r.steps || []).some(s => !!(s.vel || s.temp || (s.mode && s.mode !== 'Normale')));
   }
+  function recipeHasAirFryer(r){
+    return (r.steps || []).some(s => !!(s.airFryerTemp || s.airFryerPreheat));
+  }
   function recipeIsTraditional(r){
-    return !recipeHasRobot(r) && !recipeHasPressure(r);
+    return !recipeHasRobot(r) && !recipeHasPressure(r) && !recipeHasAirFryer(r);
   }
 
   // ---------- Selezione multipla di ricette ----------
@@ -1100,6 +1113,7 @@
       if(favoritesOnly && !r.favorite) return false;
       if(pressureOnly && !recipeHasPressure(r)) return false;
       if(robotOnly && !recipeHasRobot(r)) return false;
+      if(airFryerOnly && !recipeHasAirFryer(r)) return false;
       if(traditionalOnly && !recipeIsTraditional(r)) return false;
       const matchesCat = !cat || r.category === cat;
       if(!matchesCat) return false;
@@ -1172,7 +1186,8 @@
           ${priorityMatches.length ? `<div class="match-badge ready" style="position:static;display:inline-block;margin:0 0 6px;">🍽 Usa prima: ${priorityMatches.map(escapeHtml).join(', ')}</div>` : ''}
           ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
           ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
-          ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot né pentola a pressione">🔥</span>' : ''}
+          ${recipeHasAirFryer(r) ? '<span class="airfryer-badge" title="Ha passaggi per friggitrice ad aria">🌀</span>' : ''}
+          ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot, pentola a pressione o friggitrice ad aria">🔥</span>' : ''}
           <h3>${escapeHtml(r.name)}</h3>
           <div class="meta"><span>${r.servings} porzioni base</span>${r.time?`<span>· ${r.time} min</span>`:''}</div>
           ${!ready?`<div class="missing-list"><b>Ti manca:</b> ${match.missing.map(escapeHtml).join(', ')}</div>`:''}
@@ -1208,7 +1223,8 @@
         <span class="cat-tag">${escapeHtml(r.category)}</span>
         ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
         ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
-        ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot né pentola a pressione">🔥</span>' : ''}
+        ${recipeHasAirFryer(r) ? '<span class="airfryer-badge" title="Ha passaggi per friggitrice ad aria">🌀</span>' : ''}
+        ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot, pentola a pressione o friggitrice ad aria">🔥</span>' : ''}
         <h3>${escapeHtml(r.name)}</h3>
         <div class="meta">
           <span>${r.servings} porzioni base</span>
@@ -1273,6 +1289,13 @@
   robotFilterBtn.addEventListener('click', ()=>{
     robotOnly = !robotOnly;
     robotFilterBtn.classList.toggle('active', robotOnly);
+    updateFiltersCount();
+    renderList();
+  });
+  const airFryerFilterBtn = document.getElementById('airfryer-filter-btn');
+  airFryerFilterBtn.addEventListener('click', ()=>{
+    airFryerOnly = !airFryerOnly;
+    airFryerFilterBtn.classList.toggle('active', airFryerOnly);
     updateFiltersCount();
     renderList();
   });
@@ -1462,7 +1485,7 @@
   const advFiltersToggle = document.getElementById('advanced-filters-toggle');
   const advFiltersPanel = document.getElementById('advanced-filters-panel');
   function updateFiltersCount(){
-    const count = (pressureOnly?1:0) + (robotOnly?1:0) + (traditionalOnly?1:0) + activeTagFilters.size + activeAllergenExclusions.size + (excludeItems.length?1:0);
+    const count = (pressureOnly?1:0) + (robotOnly?1:0) + (airFryerOnly?1:0) + (traditionalOnly?1:0) + activeTagFilters.size + activeAllergenExclusions.size + (excludeItems.length?1:0);
     advFiltersToggle.textContent = count ? `🔍 Filtri (${count}) ▾` : '🔍 Filtri ▾';
   }
   advFiltersToggle.addEventListener('click', ()=>{
@@ -2316,9 +2339,10 @@
   }
 
   function addStepRow(data){
-    data = data || {text:'',vel:'',temp:'',time:'',mode:'Normale',pressure:'',pressureUnit:'bar',pressureRelease:'Naturale',pressureReleaseMin:'',minLiquid:''};
+    data = data || {text:'',vel:'',temp:'',time:'',mode:'Normale',pressure:'',pressureUnit:'bar',pressureRelease:'Naturale',pressureReleaseMin:'',minLiquid:'',airFryerTemp:'',airFryerPreheat:false};
     const hasRobotData = !!(data.vel || data.temp || (data.mode && data.mode !== 'Normale'));
     const hasPressureData = !!(data.pressure || data.minLiquid || data.pressureReleaseMin || (data.pressureRelease && data.pressureRelease !== 'Naturale'));
+    const hasAirFryerData = !!(data.airFryerTemp || data.airFryerPreheat);
     const block = document.createElement('div');
     block.className = 'step-block';
     block.innerHTML = `
@@ -2327,10 +2351,11 @@
         <div class="mini">Durata (min)<input type="number" class="step-time" min="0" value="${data.time ?? ''}"></div>
         <button type="button" class="robot-toggle-btn ${hasRobotData?'active':''}">🤖 Impostazioni robot</button>
         <button type="button" class="pressure-toggle-btn ${hasPressureData?'active':''}">🍲 Impostazioni pentola a pressione</button>
+        <button type="button" class="airfryer-toggle-btn ${hasAirFryerData?'active':''}">🌀 Impostazioni friggitrice ad aria</button>
         <div style="flex:1;"></div>
         <button class="remove-row" title="Rimuovi passaggio">×</button>
       </div>
-      <div class="step-settings" style="display:${hasRobotData?'flex':'none'};">
+      <div class="step-settings robot-settings" style="display:${hasRobotData?'flex':'none'};">
         <div class="mini">Velocità<input type="number" class="step-vel" min="0" max="10" value="${data.vel ?? ''}"></div>
         <div class="mini">Temp. °C<input type="number" class="step-temp" min="0" max="130" value="${data.temp ?? ''}"></div>
         <div class="mini">Modalità
@@ -2361,16 +2386,28 @@
         <div class="mini step-release-min-wrap" style="display:${data.pressureRelease==='Rapido'?'none':'flex'};">Durata rilascio (min)<input type="number" class="step-pressure-release-min" min="0" value="${data.pressureReleaseMin ?? ''}"></div>
         <div class="mini">Liquido minimo (ml)<input type="number" class="step-min-liquid" min="0" value="${data.minLiquid ?? ''}"></div>
       </div>
+      <div class="step-settings airfryer-settings" style="display:${hasAirFryerData?'flex':'none'};">
+        <div class="mini">Temp. °C<input type="number" class="step-airfryer-temp" min="0" max="230" value="${data.airFryerTemp ?? ''}"></div>
+        <label class="mini" style="flex-direction:row;align-items:center;gap:6px;">
+          <input type="checkbox" class="step-airfryer-preheat" ${data.airFryerPreheat ? 'checked' : ''}> Preriscaldamento
+        </label>
+      </div>
     `;
     block.querySelector('.remove-row').addEventListener('click', ()=> block.remove());
     block.querySelector('.robot-toggle-btn').addEventListener('click', (e)=>{
-      const panel = block.querySelector('.step-settings:not(.pressure-settings)');
+      const panel = block.querySelector('.robot-settings');
       const showing = panel.style.display !== 'none';
       panel.style.display = showing ? 'none' : 'flex';
       e.currentTarget.classList.toggle('active', !showing);
     });
     block.querySelector('.pressure-toggle-btn').addEventListener('click', (e)=>{
       const panel = block.querySelector('.pressure-settings');
+      const showing = panel.style.display !== 'none';
+      panel.style.display = showing ? 'none' : 'flex';
+      e.currentTarget.classList.toggle('active', !showing);
+    });
+    block.querySelector('.airfryer-toggle-btn').addEventListener('click', (e)=>{
+      const panel = block.querySelector('.airfryer-settings');
       const showing = panel.style.display !== 'none';
       panel.style.display = showing ? 'none' : 'flex';
       e.currentTarget.classList.toggle('active', !showing);
@@ -2455,7 +2492,9 @@
       pressureUnit: block.querySelector('.step-pressure-unit').value,
       pressureRelease: block.querySelector('.step-pressure-release').value,
       pressureReleaseMin: block.querySelector('.step-pressure-release-min').value,
-      minLiquid: block.querySelector('.step-min-liquid').value
+      minLiquid: block.querySelector('.step-min-liquid').value,
+      airFryerTemp: block.querySelector('.step-airfryer-temp').value,
+      airFryerPreheat: block.querySelector('.step-airfryer-preheat').checked
     })).filter(s=>s.text);
 
     const tags = Array.from(fTagsWrap.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.value);
@@ -2594,6 +2633,7 @@
     const extraChips = [];
     if(recipeHasPressure(r)) extraChips.push('<span class="view-tag-chip">🍲 Pentola a pressione</span>');
     if(recipeHasRobot(r)) extraChips.push('<span class="view-tag-chip">🤖 Robot da cucina</span>');
+    if(recipeHasAirFryer(r)) extraChips.push('<span class="view-tag-chip">🌀 Friggitrice ad aria</span>');
     if(recipeIsTraditional(r)) extraChips.push('<span class="view-tag-chip">🔥 Tradizionale</span>');
     if(r.cookerType) extraChips.push(`<span class="view-tag-chip">${r.cookerType === 'Elettrica' ? '⚡' : '🔥'} ${escapeHtml(r.cookerType)}</span>`);
     viewTags.innerHTML = (r.tags || []).map(t=>`<span class="view-tag-chip">${escapeHtml(t)}</span>`).join('') + extraChips.join('');
@@ -2824,19 +2864,22 @@
   // di una singola ricetta rispetto a quello dell'intero ricettario) per una ricetta, alle
   // porzioni indicate. Condivisa tra l'esportazione di una singola ricetta e quella di tutto
   // il ricettario, così il contenuto di ciascuna ricetta resta identico nei due casi.
+  function recipeCookingMethodLabel(r){
+    const metodi = [];
+    if(recipeHasRobot(r)) metodi.push('Robot da cucina');
+    if(recipeHasPressure(r)) metodi.push('Pentola a pressione');
+    if(recipeHasAirFryer(r)) metodi.push('Friggitrice ad aria');
+    if(!metodi.length) metodi.push('Tradizionale');
+    return metodi.join(' + ');
+  }
+
   function recipePdfSections(r, servings){
     const scale = servings / (r.servings || 1);
     const metaLine = `${r.category} · ${servings} porzioni${r.time ? ' · circa ' + r.time + ' min' : ''}`;
-    // Stesso criterio usato per i badge e i filtri a schermo (🔥🤖🍲): una ricetta può combinare
-    // più metodi se i suoi passaggi li usano in punti diversi (es. soffritto tradizionale e poi
-    // cottura a pressione).
-    const metodiCottura = [];
-    if(recipeIsTraditional(r)) metodiCottura.push('Tradizionale');
-    if(recipeHasRobot(r)) metodiCottura.push('Robot da cucina');
-    if(recipeHasPressure(r)) metodiCottura.push('Pentola a pressione');
+    const cotturaLine = `Cottura: ${recipeCookingMethodLabel(r)}`;
     const sections = [{
       heading: null,
-      lines: [metaLine, 'Cottura: ' + metodiCottura.join(' + '), (r.tags && r.tags.length) ? 'Tag: ' + r.tags.join(', ') : null, (r.allergens && r.allergens.length) ? 'Allergeni: ' + r.allergens.join(', ') : null].filter(Boolean)
+      lines: [metaLine, cotturaLine, (r.tags && r.tags.length) ? 'Tag: ' + r.tags.join(', ') : null, (r.allergens && r.allergens.length) ? 'Allergeni: ' + r.allergens.join(', ') : null].filter(Boolean)
     }];
     sections.push({
       heading: 'Ingredienti',
@@ -3085,7 +3128,7 @@
     }
     const r = recipes.find(x=>x.id === e.recipeId);
     if(!r || !r.nutrizioneUtente) return null;
-    const fattore = planServings; // quante porzioni si stanno pianificando questa settimana
+    const fattore = e.servings || planServings; // porzioni di questo pasto, o il valore generale della settimana se non personalizzato
     const risultato = {};
     let almenoUno = false;
     for(const [k, v] of Object.entries(r.nutrizioneUtente)){
@@ -3093,6 +3136,23 @@
       else{ risultato[k] = null; }
     }
     return almenoUno ? risultato : null;
+  }
+
+  /** Porzioni effettive di un pasto pianificato: quelle personalizzate per
+   * quel pasto se presenti, altrimenti il valore generale della settimana
+   * impostato in alto nella pianificazione. */
+  function entryServings(e){
+    return e.servings || planServings;
+  }
+
+  /** Collega una voce pianificata (entry) alla sua ricetta e calcola il
+   * fattore di scala ingredienti/porzioni da usare per la lista della spesa
+   * e per i PDF, tenendo conto delle porzioni personalizzate per quel
+   * pasto. Ritorna null se la ricetta collegata non esiste più. */
+  function entryRecipePair(e){
+    const r = recipes.find(x=>x.id === e.recipeId);
+    if(!r) return null;
+    return { recipe: r, scale: entryServings(e) / (r.servings || 1), entry: e };
   }
 
   /** Somma una lista di oggetti nutrizionali (uscita di nutrizionePerEntry,
@@ -3185,11 +3245,10 @@
   function computeWeekPlanData(){
     const days = DAYS.map(day=>{
       const entries = (weekPlan[day] || []).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
-      return { day, entries: entries.map(e=>({ time: e.time || '', mealType: e.mealType, name: planEntryName(e) })) };
+      return { day, entries: entries.map(e=>({ time: e.time || '', mealType: e.mealType, name: planEntryName(e), servings: entryServings(e) })) };
     });
     const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
-    const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
-    const pairs = plannedRecipes.map(r=>({ recipe: r, scale: planServings / (r.servings || 1) }));
+    const pairs = allEntries.map(entryRecipePair).filter(Boolean);
     const shoppingItems = buildAggregatedShoppingItems(pairs);
     return { days, shoppingItems };
   }
@@ -3430,7 +3489,7 @@
     const sections = [{ heading: `Per ${planServings} persone`, lines: [] }];
     days.forEach(({day, entries})=>{
       const lines = entries.length
-        ? entries.map(e => `${e.time ? e.time + ' — ' : ''}${e.mealType}: ${e.name}`)
+        ? entries.map(e => `${e.time ? e.time + ' — ' : ''}${e.mealType}: ${e.name}${e.servings !== planServings ? ` (${e.servings} porzioni)` : ''}`)
         : ['Nessuna ricetta'];
       sections.push({ heading: day, lines });
     });
@@ -3582,6 +3641,8 @@
     if(s.vel) parts.push(`vel ${s.vel}`);
     if(s.temp) parts.push(`${s.temp}°C`);
     if(s.mode && s.mode !== 'Normale') parts.push(s.mode);
+    if(s.airFryerTemp) parts.push(`friggitrice ad aria ${s.airFryerTemp}°C${s.airFryerPreheat ? ', preriscaldata' : ''}`);
+    else if(s.airFryerPreheat) parts.push('friggitrice ad aria preriscaldata');
     return parts.length ? `${s.text} (${parts.join(', ')})` : s.text;
   }
   function csvStepTextToStep(raw){
@@ -4064,9 +4125,8 @@
       .filter(it => it.expiry && it.expiry >= today && it.expiry <= soonLimit)
       .sort((a,b)=>a.expiry.localeCompare(b.expiry));
     const weekEntries = DAYS.flatMap(d=>weekPlan[d] || []);
-    const plannedRecipes = weekEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
     const shoppingCount = buildAggregatedShoppingItems(
-      plannedRecipes.map(r=>({recipe:r, scale:planServings / (r.servings || 1)}))
+      weekEntries.map(entryRecipePair).filter(Boolean)
     ).length;
     const dateLabel = new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
     const mealsHtml = entries.length ? entries.map(e=>{
@@ -4370,10 +4430,14 @@
         .map(f => `${f.label} ${roundNice(nutrizione[f.key])}${f.unit}`)
         .join(' · ')
     }</div>` : '';
+    const servingsControl = e.dispensaItemId ? '' : `<span class="plan-entry-servings" title="Porzioni per questo pasto (di default il valore impostato in alto)">
+      <input type="number" class="plan-entry-servings-input" min="1" data-entry-id="${escapeAttr(e.id)}" value="${entryServings(e)}">
+    </span>`;
     return `<div class="plan-entry">
       <div class="plan-entry-main">
         ${e.time ? `<span class="plan-entry-time">${escapeHtml(e.time)}</span>` : ''}
         <span class="plan-entry-name" ${nameAttr}>${name}</span>
+        ${servingsControl}
         ${consumeControl}
         <button class="icon-btn plan-entry-remove" data-entry-id="${escapeAttr(e.id)}" title="Rimuovi">×</button>
       </div>
@@ -4384,16 +4448,17 @@
   // Genera e apre la lista della spesa per le sole ricette pianificate in un giorno specifico
   // (i pasti "dalla dispensa" sono esclusi, dato che non richiedono acquisti).
   function openDayShoppingList(day){
-    const dayRecipes = (weekPlan[day] || [])
-      .map(e => recipes.find(r => r.id === e.recipeId))
-      .filter(Boolean);
+    const dayPairs = (weekPlan[day] || []).map(entryRecipePair).filter(Boolean);
+    const dayRecipes = dayPairs.map(p => p.recipe);
     if(dayRecipes.length === 0){
       alert(`Nessuna ricetta pianificata per ${day}.`);
       return;
     }
-    const pairs = dayRecipes.map(r => ({ recipe: r, scale: planServings / (r.servings || 1) }));
-    const items = buildAggregatedShoppingItems(pairs, false);
-    openShoppingListOverlay(items, `Per ${planServings} persone — ${escapeHtml(day)}: ${formatRicetteSubtitle(dayRecipes, 'volte in questo giorno')}`);
+    const items = buildAggregatedShoppingItems(dayPairs, false);
+    const porzioniLabel = dayPairs.every(p => entryServings(p.entry) === entryServings(dayPairs[0].entry))
+      ? `Per ${entryServings(dayPairs[0].entry)} persone — `
+      : '';
+    openShoppingListOverlay(items, `${porzioniLabel}${escapeHtml(day)}: ${formatRicetteSubtitle(dayRecipes, 'volte in questo giorno')}`);
   }
 
   function openWeekTotalsOverlay(){
@@ -4528,6 +4593,25 @@
         openDispensaPicker(day, mealType, timeInput.value);
       });
     });
+    planningDaysEl.querySelectorAll('.plan-entry-servings-input').forEach(input=>{
+      input.addEventListener('change', ()=>{
+        const entryId = input.dataset.entryId;
+        let entry = null;
+        for(const d of DAYS){
+          const found = (weekPlan[d] || []).find(x=>x.id === entryId);
+          if(found){ entry = found; break; }
+        }
+        if(!entry) return;
+        const val = parseInt(input.value, 10);
+        if(!val || val < 1){ input.value = entryServings(entry); return; }
+        // Se il valore coincide con quello generale della settimana, non si salva una
+        // personalizzazione: così il pasto continua a seguire il valore "in alto" anche
+        // se viene cambiato in futuro, invece di restare fissato a quel numero.
+        entry.servings = (val === planServings) ? undefined : val;
+        saveWeek();
+        renderPlanningDays();
+      });
+    });
     planningDaysEl.querySelectorAll('.plan-entry-consume').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const entryId = btn.dataset.entryId;
@@ -4613,8 +4697,7 @@
     const badge = document.getElementById('planning-shopping-count');
     if(!badge) return;
     const allEntries = DAYS.flatMap(d => weekPlan[d] || []);
-    const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
-    const pairs = plannedRecipes.map(r=>({ recipe: r, scale: planServings / (r.servings || 1) }));
+    const pairs = allEntries.map(entryRecipePair).filter(Boolean);
     const count = buildAggregatedShoppingItems(pairs).length;
     if(count > 0){ badge.textContent = ` · ${count}`; badge.style.display = 'inline'; }
     else { badge.textContent = ''; badge.style.display = 'none'; }
@@ -4700,53 +4783,31 @@
       if(it.qty || it.unit) qtyKcalParts.push(`${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}`.trim());
       const qtyKcalHtml = qtyKcalParts.length ? `<div class="dispensa-qty">${qtyKcalParts.join(' · ')}</div>` : '';
       const lowStockHtml = isLowStock(it)
-        ? `<div class="dispensa-low-stock">⚠ In esaurimento: ne hai ${roundNice(it.qty)}${it.unit ? ' ' + escapeHtml(it.unit) : ''}${it.minQty !== '' && it.minQty !== undefined ? ` (soglia ${roundNice(it.minQty)}${it.unit ? ' ' + escapeHtml(it.unit) : ''})` : ''}</div>`
-        : '';
-
-      // Valori nutrizionali: sempre per 100 g di prodotto (dato del prodotto,
-      // indipendente da quanto ne hai in dispensa in questo momento).
-      const campiNutrizione = [
-        ['kcal', 'Kcal', ''], ['protein', 'Proteine', 'g'], ['fat', 'Grassi', 'g'],
-        ['carbs', 'Carb.', 'g'], ['fiber', 'Fibre', 'g'], ['sugar', 'Zuccheri', 'g'], ['salt', 'Sale', 'g'],
-      ];
-      const righeNutrizione = campiNutrizione
-        .filter(([campo]) => it[campo] !== '' && it[campo] !== undefined && it[campo] !== null)
-        .map(([campo, etichetta, unita]) => `<div>${etichetta}: <b>${roundNice(it[campo])}</b>${unita}</div>`)
-        .join('');
-      const nutrizioneHtml = righeNutrizione
-        ? `<div class="nutrition-summary" style="margin:6px 0;padding:8px 10px;"><div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px;">Per 100 g di prodotto</div><div class="nutrition-grid">${righeNutrizione}</div></div>`
-        : '';
-
-      const creaInfoHtml = it.creaCodice
-        ? `<button type="button" class="crea-scheda-btn visibile" data-codice="${escapeAttr(it.creaCodice)}" style="margin:2px 0 4px;" title="Tutti i valori nutrizionali CREA per 100 g">ℹ️ Scheda completa (CREA)</button>`
+        ? `<div class="dispensa-low-stock">⚠ In esaurimento</div>`
         : '';
       const offBadgeHtml = it.offNutriscore && NUTRISCORE_COLORI[it.offNutriscore]
-        ? `<span class="cat-tag" style="background:${NUTRISCORE_COLORI[it.offNutriscore]};margin-left:6px;">Nutri-Score ${escapeHtml(it.offNutriscore)}</span>`
-        : '';
-      const offImgHtml = it.offImmagine
-        ? `<img src="${escapeAttr(it.offImmagine)}" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:4px;float:right;margin:0 0 6px 8px;">`
+        ? `<span class="cat-tag" style="background:${NUTRISCORE_COLORI[it.offNutriscore]};">Nutri-Score ${escapeHtml(it.offNutriscore)}</span>`
         : '';
 
+      // Card compatta, in stile quadrato come le card ricetta: foto OFF (se
+      // presente) o un'illustrazione segnaposto nel colore della categoria,
+      // poi solo le info essenziali per riconoscere il prodotto a colpo
+      // d'occhio. Valori nutrizionali, scheda CREA e note restano nel
+      // dettaglio (si apre un click sulla card).
+      const thumbHtml = it.offImmagine
+        ? `<img class="thumb" src="${escapeAttr(it.offImmagine)}" alt="${escapeAttr(it.name)}">`
+        : `<div class="thumb thumb-placeholder" aria-hidden="true">${PANTRY_CATEGORY_ICONS[it.category] || '🍽️'}</div>`;
+
       card.innerHTML = `
-        ${offImgHtml}
+        ${thumbHtml}
         <span class="cat-tag">${escapeHtml(it.category)}</span>${offBadgeHtml}
-        <h3 style="margin:2px 0 4px;font-size:19px;">${escapeHtml(it.name)}</h3>
+        <h3>${escapeHtml(it.name)}</h3>
         ${qtyKcalHtml}
         ${lowStockHtml}
-        ${nutrizioneHtml}
-        ${creaInfoHtml}
         ${expiryHtml}
-        ${it.notes ? `<div class="dispensa-notes">${escapeHtml(it.notes)}</div>` : ''}
       `;
       card.addEventListener('click', ()=> openDispensaEdit(it));
       makeKeyboardClickable(card, it.name);
-      const creaInfoBtn = card.querySelector('.crea-scheda-btn');
-      if (creaInfoBtn) {
-        creaInfoBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          apriSchedaCrea(creaInfoBtn.dataset.codice);
-        });
-      }
       listEl.appendChild(card);
     });
   }
@@ -5161,17 +5222,18 @@
 
   document.getElementById('generate-shopping-btn').addEventListener('click', ()=>{
     const allEntries = DAYS.flatMap(day => weekPlan[day] || []);
-    const plannedRecipes = allEntries.map(e=>recipes.find(r=>r.id===e.recipeId)).filter(Boolean);
+    const pairs = allEntries.map(entryRecipePair).filter(Boolean);
+    const plannedRecipes = pairs.map(p => p.recipe);
     if(plannedRecipes.length === 0 && shoppingExtraItems.length === 0){
       alert(allEntries.length === 0
         ? 'Assegna almeno una ricetta a un giorno della settimana.'
         : 'Nessuna ricetta pianificata da cui generare la lista della spesa (i prodotti dalla dispensa non richiedono acquisti).');
       return;
     }
-    const pairs = plannedRecipes.map(r=>({ recipe: r, scale: planServings / (r.servings || 1) }));
     const items = buildAggregatedShoppingItems(pairs);
+    const porzioniUniformi = pairs.length && pairs.every(p => entryServings(p.entry) === entryServings(pairs[0].entry));
     const subtitle = plannedRecipes.length
-      ? `Per ${planServings} persone — ${formatRicetteSubtitle(plannedRecipes, 'volte questa settimana')}`
+      ? `${porzioniUniformi ? `Per ${entryServings(pairs[0].entry)} persone — ` : ''}${formatRicetteSubtitle(plannedRecipes, 'volte questa settimana')}`
       : 'Ingredienti segnalati mancanti dalla Dispensa';
     openShoppingListOverlay(items, subtitle);
   });
