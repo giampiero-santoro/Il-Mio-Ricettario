@@ -2,6 +2,22 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [4.2.4] — Correzioni minori emerse da un controllo generale
+
+### Corretto
+- **Bug**: esportando le ricette in CSV e poi reimportandole, le impostazioni della friggitrice ad aria sui passaggi andavano perse silenziosamente (non venivano rilette in fase di importazione). Ora il giro esporta→importa conserva correttamente temperatura e preriscaldamento, anche per un passaggio che usa solo la friggitrice ad aria senza robot né pentola a pressione.
+- Rimossa una regola di stile non più usata, rimasta dalla card Dispensa prima della sua recente semplificazione.
+
+### Aggiunto
+- I pulsanti della barra di navigazione laterale segnalano ora anche alla tecnologia assistiva (lettori di schermo) quale pagina è quella aperta al momento (attributo `aria-current`), non solo visivamente.
+
+## [4.2.3] — "Oggi" come pagina iniziale, più dettagli in "Da consumare prima"
+
+### Cambiato
+- La pagina iniziale del sito è ora **☀️ Oggi** (prima si apriva sempre sul Ricettario).
+- La card "Da consumare prima" nella pagina Oggi ora mostra, per ogni prodotto in scadenza: il pallino colorato della categoria, la quantità che ne hai, e quando scade in modo discorsivo ("Scade oggi", "Scade domani", "Scade tra N giorni") oltre alla data, con un colore più acceso per chi scade oggi o domani. Se i prodotti in scadenza sono più di 4 ora lo dice esplicitamente ("+ altri N prodotti…") invece di ometterli in silenzio.
+- Aggiunto il pulsante "🧑‍🍳 Trova ricette" nella stessa card: porta dritto al Ricettario in modalità "Cosa posso cucinare?" già filtrata sui prodotti in scadenza, così da trovare subito una ricetta che li usi.
+
 ## [4.2.2] — Corretto il contrasto col tema scuro in alcuni riquadri
 
 ### Corretto

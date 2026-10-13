@@ -11,6 +11,8 @@
   const SHOPPING_EXTRA_KEY = 'mc_ricettario_spesa_extra_v1';
   const WEEK_NOTES_KEY = 'mc_ricettario_note_settimana_v1';
   const SHOPPING_CHECKED_KEY = 'mc_ricettario_spesa_spuntate_v1';
+  const WEATHER_LOCATION_KEY = 'mc_ricettario_meteo_localita_v1';
+  const WEATHER_CACHE_KEY = 'mc_ricettario_meteo_cache_v1';
   const PANTRY_CATEGORY_COLORS = {
     'Frutta': '#d17b3f', 'Verdura': '#5c8a3a', 'Uova': '#d9a94a', 'Salumi': '#a13d3d',
     'Latticini e pronti': '#c9a227', 'Surgelati': '#4f7f8b', 'Pasta, riso e cereali': '#8a6642',
@@ -644,6 +646,20 @@
   }
   function normalize(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 
+  // Confronto "a parola intera" fra due testi gi\u00e0 normalizzati, usato dove serve riconoscere lo
+  // stesso prodotto/ingrediente (Dispensa <-> ricetta) senza i falsi positivi di un contains
+  // grezzo: "sale" non deve risultare contenuto in "insalata", n\u00e9 "pepe" in "peperone". Dopo
+  // normalize() restano solo lettere/cifre ascii, spazi e punteggiatura, quindi \b individua
+  // correttamente i confini anche per termini con pi\u00f9 parole (es. "farina 00").
+  function contieneTermineIntero(testoNorm, terminoNorm){
+    if(!testoNorm || !terminoNorm) return false;
+    if(testoNorm === terminoNorm) return true;
+    const escaped = terminoNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try{
+      return new RegExp(`\\b${escaped}\\b`).test(testoNorm);
+    }catch(err){ return false; }
+  }
+
   // ---------- Avviso di conferma (al posto del confirm() nativo del browser, per le azioni
   // che non si possono annullare: pi\u00f9 leggibile su pi\u00f9 righe e visivamente pi\u00f9 "pesante"
   // quando danger \u00e8 true, invece di un avviso identico per qualunque tipo di conferma) ----------
@@ -719,7 +735,7 @@
 
   function ingredientCovered(recipeIngredientName, pantryList){
     const target = normalize(recipeIngredientName);
-    return pantryList.some(p=> p && (target.includes(p) || p.includes(target)));
+    return pantryList.some(p=> p && (contieneTermineIntero(target, p) || contieneTermineIntero(p, target)));
   }
   /**
    * Confronta una ricetta con quello che c'è a disposizione.
@@ -772,7 +788,7 @@
     if(esatto) return esatto;
     const simili = dispensaItems.filter(it=>{
       const nome = normalize(it.name);
-      return nome && (nome.includes(n) || n.includes(nome));
+      return nome && (contieneTermineIntero(nome, n) || contieneTermineIntero(n, nome));
     });
     return simili.length === 1 ? simili[0] : null;
   }
@@ -817,7 +833,7 @@
     if(exact) return { match: exact, isApprox: false, ambiguous: [] };
     const fuzzy = dispensaItems.filter(it=>{
       const p = normalize(it.name);
-      return p && (target.includes(p) || p.includes(target));
+      return p && (contieneTermineIntero(target, p) || contieneTermineIntero(p, target));
     });
     if(fuzzy.length === 1) return { match: fuzzy[0], isApprox: true, ambiguous: [] };
     if(fuzzy.length > 1) return { match: null, isApprox: false, ambiguous: fuzzy };
@@ -3648,9 +3664,19 @@
   function csvStepTextToStep(raw){
     const m = /^(.*?)\s*\(([^()]*)\)\s*$/.exec(raw.trim());
     let text = raw.trim(), timeVal = '', velVal = '', tempVal = '', modeVal = 'Normale';
+    let airFryerTempVal = '', airFryerPreheatVal = false;
     if(m){
       text = m[1].trim();
-      const inner = m[2];
+      let inner = m[2];
+      // La parte "friggitrice ad aria …" va estratta e tolta dal resto PRIMA delle
+      // altre regex: altrimenti la sua temperatura verrebbe scambiata per quella
+      // del robot da cucina (entrambe scritte come "NNN°C" nello stesso testo).
+      const airFryerMatch = /friggitrice ad aria(?:\s+([\d.,]+)\s*°?C)?(,?\s*preriscaldata)?/i.exec(inner);
+      if(airFryerMatch){
+        if(airFryerMatch[1]) airFryerTempVal = airFryerMatch[1].replace(',','.');
+        if(airFryerMatch[2]) airFryerPreheatVal = true;
+        inner = inner.slice(0, airFryerMatch.index) + inner.slice(airFryerMatch.index + airFryerMatch[0].length);
+      }
       const timeMatch = /([\d.,]+)\s*min/i.exec(inner);
       if(timeMatch) timeVal = timeMatch[1].replace(',','.');
       const velMatch = /vel\.?\s*([\d.,]+)/i.exec(inner);
@@ -3660,7 +3686,7 @@
       const modeMatch = /(Reverse|Turbo|Vapore|Normale)/i.exec(inner);
       if(modeMatch) modeVal = modeMatch[1][0].toUpperCase() + modeMatch[1].slice(1).toLowerCase();
     }
-    return {text, vel:velVal, temp:tempVal, time:timeVal, mode:modeVal};
+    return {text, vel:velVal, temp:tempVal, time:timeVal, mode:modeVal, airFryerTemp:airFryerTempVal, airFryerPreheat:airFryerPreheatVal};
   }
 
   document.getElementById('export-csv-btn').addEventListener('click', ()=>{
@@ -4114,6 +4140,263 @@
     return DAYS[jsDay === 0 ? 6 : jsDay - 1];
   }
 
+  // ---------- Meteo (vista "Oggi") ----------
+  // Fonte dati: Open-Meteo (open-meteo.com), un servizio gratuito che non richiede
+  // chiave API e che aggrega le previsioni dei servizi meteorologici nazionali
+  // ufficiali (per l'Italia, in buona parte dati del DWD/ECMWF e di ICON — lo stesso
+  // tipo di modelli usati dai siti meteo "seri"), quindi affidabile e senza account.
+  // Nessun dato dell'utente viene inviato: solo latitudine/longitudine della
+  // località scelta.
+  const WMO_WEATHER_MAP = {
+    0: { icon: '☀️', label: 'Cielo sereno' },
+    1: { icon: '🌤️', label: 'Prevalentemente sereno' },
+    2: { icon: '⛅', label: 'Parzialmente nuvoloso' },
+    3: { icon: '☁️', label: 'Coperto' },
+    45: { icon: '🌫️', label: 'Nebbia' },
+    48: { icon: '🌫️', label: 'Nebbia con brina' },
+    51: { icon: '🌦️', label: 'Pioggerella leggera' },
+    53: { icon: '🌦️', label: 'Pioggerella moderata' },
+    55: { icon: '🌧️', label: 'Pioggerella intensa' },
+    56: { icon: '🌧️', label: 'Pioggerella gelata leggera' },
+    57: { icon: '🌧️', label: 'Pioggerella gelata intensa' },
+    61: { icon: '🌦️', label: 'Pioggia debole' },
+    63: { icon: '🌧️', label: 'Pioggia moderata' },
+    65: { icon: '🌧️', label: 'Pioggia forte' },
+    66: { icon: '🌧️', label: 'Pioggia gelata debole' },
+    67: { icon: '🌧️', label: 'Pioggia gelata forte' },
+    71: { icon: '🌨️', label: 'Neve debole' },
+    73: { icon: '🌨️', label: 'Neve moderata' },
+    75: { icon: '❄️', label: 'Neve forte' },
+    77: { icon: '❄️', label: 'Granelli di neve' },
+    80: { icon: '🌦️', label: 'Rovesci di pioggia deboli' },
+    81: { icon: '🌧️', label: 'Rovesci di pioggia moderati' },
+    82: { icon: '⛈️', label: 'Rovesci di pioggia violenti' },
+    85: { icon: '🌨️', label: 'Rovesci di neve deboli' },
+    86: { icon: '❄️', label: 'Rovesci di neve forti' },
+    95: { icon: '⛈️', label: 'Temporale' },
+    96: { icon: '⛈️', label: 'Temporale con grandine debole' },
+    99: { icon: '⛈️', label: 'Temporale con grandine forte' },
+  };
+  function meteoDaCodice(code){
+    return WMO_WEATHER_MAP[code] || { icon: '🌡️', label: 'Condizioni non disponibili' };
+  }
+
+  function loadWeatherLocation(){
+    try{
+      const raw = localStorage.getItem(WEATHER_LOCATION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(err){ return null; }
+  }
+  function saveWeatherLocation(loc){
+    safeStorageSet(WEATHER_LOCATION_KEY, JSON.stringify(loc));
+  }
+  function clearWeatherLocation(){
+    try{ localStorage.removeItem(WEATHER_LOCATION_KEY); }catch(err){}
+    try{ localStorage.removeItem(WEATHER_CACHE_KEY); }catch(err){}
+  }
+  function loadWeatherCache(){
+    try{
+      const raw = localStorage.getItem(WEATHER_CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(err){ return null; }
+  }
+  function saveWeatherCache(cache){
+    safeStorageSet(WEATHER_CACHE_KEY, JSON.stringify(cache));
+  }
+
+  const WEATHER_CACHE_MINUTI = 30;
+
+  // Interroga il geocoder di Open-Meteo per trasformare un nome di città nelle
+  // coordinate necessarie alla richiesta meteo. Nessuna chiave richiesta.
+  async function cercaLocalitaMeteo(nome){
+    const q = (nome || '').trim();
+    if(q.length < 2) return [];
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=it&format=json`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error(`Geocoding non raggiungibile (${res.status})`);
+    const data = await res.json();
+    return (data.results || []).map(r => ({
+      nome: r.name,
+      admin1: r.admin1 || '',
+      paese: r.country || '',
+      lat: r.latitude,
+      lon: r.longitude,
+    }));
+  }
+
+  async function scaricaMeteo(lat, lon){
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+      `&timezone=auto&forecast_days=1`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error(`Servizio meteo non raggiungibile (${res.status})`);
+    const data = await res.json();
+    return {
+      temp: data.current?.temperature_2m,
+      umidita: data.current?.relative_humidity_2m,
+      vento: data.current?.wind_speed_10m,
+      codice: data.current?.weather_code,
+      max: data.daily?.temperature_2m_max?.[0],
+      min: data.daily?.temperature_2m_min?.[0],
+      pioggiaProb: data.daily?.precipitation_probability_max?.[0],
+      aggiornatoIl: Date.now(),
+    };
+  }
+
+  function weatherCardHtml({ stato, localita, dati, errore }){
+    if(stato === 'senza-localita'){
+      return `
+        <h3><span class="today-icon">⛅</span> Meteo</h3>
+        <p class="today-empty">Imposta una località per vedere le previsioni di oggi.</p>
+        <div class="today-weather-setup">
+          <button type="button" class="btn-ghost btn-small" id="weather-geo-btn">📍 Usa la mia posizione</button>
+          <div class="today-weather-search">
+            <input type="text" id="weather-city-input" placeholder="…oppure cerca una città">
+            <button type="button" class="btn-ghost btn-small" id="weather-city-search-btn">Cerca</button>
+          </div>
+          <div id="weather-city-results" class="today-weather-results"></div>
+        </div>
+        <p class="nutrition-note">Dati forniti da Open-Meteo, gratuito e senza registrazione.</p>
+      `;
+    }
+    if(stato === 'caricamento'){
+      return `
+        <h3><span class="today-icon">⛅</span> Meteo</h3>
+        <p class="today-empty">Caricamento previsioni${localita ? ` per ${escapeHtml(localita.nome)}` : ''}…</p>
+      `;
+    }
+    if(stato === 'errore'){
+      return `
+        <h3><span class="today-icon">⛅</span> Meteo</h3>
+        <p class="today-empty">${escapeHtml(errore || 'Meteo non disponibile al momento.')}</p>
+        <div class="today-actions">
+          <button type="button" class="btn-ghost btn-small" id="weather-retry-btn">🔄 Riprova</button>
+          <button type="button" class="btn-ghost btn-small" id="weather-change-btn">📍 Cambia località</button>
+        </div>
+      `;
+    }
+    // stato === 'ok'
+    const m = meteoDaCodice(dati.codice);
+    const ora = new Date(dati.aggiornatoIl).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+    const localitaLabel = [localita.nome, localita.admin1].filter(Boolean).join(', ');
+    return `
+      <h3><span class="today-icon">${m.icon}</span> Meteo a ${escapeHtml(localitaLabel)}</h3>
+      <div class="today-weather-main">
+        <span class="today-weather-temp">${Math.round(dati.temp)}°</span>
+        <div class="today-weather-desc">
+          <div>${m.label}</div>
+          <div class="today-meal">Min ${Math.round(dati.min)}° · Max ${Math.round(dati.max)}°</div>
+        </div>
+      </div>
+      <div class="today-meal">💧 Umidità ${Math.round(dati.umidita)}% · 🌬 Vento ${Math.round(dati.vento)} km/h${dati.pioggiaProb !== undefined && dati.pioggiaProb !== null ? ` · ☔ ${Math.round(dati.pioggiaProb)}% probabilità pioggia` : ''}</div>
+      <div class="today-actions">
+        <button type="button" class="btn-ghost btn-small" id="weather-retry-btn">🔄 Aggiornato alle ${ora}</button>
+        <button type="button" class="btn-ghost btn-small" id="weather-change-btn">📍 Cambia località</button>
+      </div>
+      <p class="nutrition-note">Dati: Open-Meteo.</p>
+    `;
+  }
+
+  function renderWeatherResults(container, risultati, onScegli){
+    if(!risultati.length){
+      container.innerHTML = '<p class="today-empty">Nessuna località trovata. Prova con un altro nome.</p>';
+      return;
+    }
+    container.innerHTML = risultati.map((r, idx) => `
+      <button type="button" class="recipe-picker-item today-weather-result-item" data-idx="${idx}">
+        <span class="name">${escapeHtml(r.nome)}</span>
+        <span class="meta">${escapeHtml([r.admin1, r.paese].filter(Boolean).join(', '))}</span>
+      </button>
+    `).join('');
+    container.querySelectorAll('.today-weather-result-item').forEach(btn=>{
+      btn.addEventListener('click', ()=> onScegli(risultati[parseInt(btn.dataset.idx, 10)]));
+    });
+  }
+
+  async function caricaEMostraMeteo(cardEl, localita, forzaRicarica){
+    cardEl.innerHTML = weatherCardHtml({ stato: 'caricamento', localita });
+    const cache = !forzaRicarica && loadWeatherCache();
+    const cacheValida = cache && cache.lat === localita.lat && cache.lon === localita.lon
+      && (Date.now() - cache.dati.aggiornatoIl) < WEATHER_CACHE_MINUTI * 60 * 1000;
+    try{
+      const dati = cacheValida ? cache.dati : await scaricaMeteo(localita.lat, localita.lon);
+      if(!cacheValida) saveWeatherCache({ lat: localita.lat, lon: localita.lon, dati });
+      cardEl.innerHTML = weatherCardHtml({ stato: 'ok', localita, dati });
+      collegaAzioniWeatherCard(cardEl, localita);
+    }catch(err){
+      cardEl.innerHTML = weatherCardHtml({ stato: 'errore', localita, errore: 'Meteo non disponibile al momento: verifica la connessione e riprova.' });
+      collegaAzioniWeatherCard(cardEl, localita);
+    }
+  }
+
+  function collegaAzioniWeatherCard(cardEl, localita){
+    const retryBtn = cardEl.querySelector('#weather-retry-btn');
+    if(retryBtn) retryBtn.addEventListener('click', ()=> caricaEMostraMeteo(cardEl, localita, true));
+    const changeBtn = cardEl.querySelector('#weather-change-btn');
+    if(changeBtn) changeBtn.addEventListener('click', ()=>{
+      clearWeatherLocation();
+      cardEl.innerHTML = weatherCardHtml({ stato: 'senza-localita' });
+      collegaSetupWeatherCard(cardEl);
+    });
+  }
+
+  function collegaSetupWeatherCard(cardEl){
+    const geoBtn = cardEl.querySelector('#weather-geo-btn');
+    const cityInput = cardEl.querySelector('#weather-city-input');
+    const searchBtn = cardEl.querySelector('#weather-city-search-btn');
+    const resultsEl = cardEl.querySelector('#weather-city-results');
+
+    function sceltaLocalita(loc){
+      saveWeatherLocation(loc);
+      caricaEMostraMeteo(cardEl, loc, true);
+    }
+
+    if(geoBtn) geoBtn.addEventListener('click', ()=>{
+      if(!navigator.geolocation){
+        resultsEl.innerHTML = '<p class="today-empty">Geolocalizzazione non supportata da questo browser: usa la ricerca per città.</p>';
+        return;
+      }
+      geoBtn.disabled = true;
+      geoBtn.textContent = 'Individuazione in corso…';
+      navigator.geolocation.getCurrentPosition(
+        pos => sceltaLocalita({ nome: 'La tua posizione', admin1: '', lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        () => {
+          geoBtn.disabled = false;
+          geoBtn.textContent = '📍 Usa la mia posizione';
+          resultsEl.innerHTML = '<p class="today-empty">Posizione non disponibile (permesso negato o non supportata): usa la ricerca per città qui sotto.</p>';
+        },
+        { timeout: 10000 }
+      );
+    });
+
+    async function esegueRicercaCitta(){
+      const q = cityInput.value;
+      if(q.trim().length < 2) return;
+      resultsEl.innerHTML = '<p class="today-empty">Ricerca in corso…</p>';
+      try{
+        const risultati = await cercaLocalitaMeteo(q);
+        renderWeatherResults(resultsEl, risultati, sceltaLocalita);
+      }catch(err){
+        resultsEl.innerHTML = '<p class="today-empty">Ricerca non riuscita: verifica la connessione e riprova.</p>';
+      }
+    }
+    if(searchBtn) searchBtn.addEventListener('click', esegueRicercaCitta);
+    if(cityInput) cityInput.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); esegueRicercaCitta(); } });
+  }
+
+  function initWeatherCard(){
+    const cardEl = document.getElementById('today-weather-card');
+    if(!cardEl) return;
+    const localita = loadWeatherLocation();
+    if(localita){
+      caricaEMostraMeteo(cardEl, localita, false);
+    }else{
+      cardEl.innerHTML = weatherCardHtml({ stato: 'senza-localita' });
+      collegaSetupWeatherCard(cardEl);
+    }
+  }
+
   function renderToday(){
     aggiornaTopbarAlerts();
     const content = document.getElementById('today-content');
@@ -4133,10 +4416,24 @@
       const name = escapeHtml(planEntryName(e));
       return `<li><span class="today-time">${escapeHtml(e.time || '—')}</span><b>${name}</b> <span class="today-meal">· ${escapeHtml(e.mealType || 'Pasto')}</span></li>`;
     }).join('') : '<p class="today-empty">Nessun pasto pianificato per oggi.</p>';
-    const expiryHtml = expiring.length ? expiring.slice(0,4).map(it=>{
-      const date = new Date(it.expiry + 'T00:00:00').toLocaleDateString('it-IT', {day:'numeric', month:'short'});
-      return `<li><b>${escapeHtml(it.name)}</b> <span class="today-expiry-soon">· scade ${date}</span></li>`;
-    }).join('') : '<p class="today-empty">Nessun prodotto in scadenza nei prossimi 3 giorni.</p>';
+    const MAX_SCADENZE_MOSTRATE = 4;
+    const expiryHtml = expiring.length ? [
+      expiring.slice(0, MAX_SCADENZE_MOSTRATE).map(it=>{
+        const date = new Date(it.expiry + 'T00:00:00').toLocaleDateString('it-IT', {day:'numeric', month:'short'});
+        const giorni = Math.round((new Date(it.expiry + 'T00:00:00') - new Date(today + 'T00:00:00')) / 86400000);
+        const quando = giorni <= 0 ? 'Scade oggi' : giorni === 1 ? 'Scade domani' : `Scade tra ${giorni} giorni`;
+        const urgente = giorni <= 1;
+        const qtyLabel = (it.qty || it.unit) ? ` · ${`${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}`.trim()}` : '';
+        return `<li>
+          <span class="cat-dot" style="background:${PANTRY_CATEGORY_COLORS[it.category] || '#8c6a2f'}"></span>
+          <b>${escapeHtml(it.name)}</b>${qtyLabel}
+          <span class="${urgente ? 'today-expiry-urgent' : 'today-expiry-soon'}"> · ${quando} (${date})</span>
+        </li>`;
+      }).join(''),
+      expiring.length > MAX_SCADENZE_MOSTRATE
+        ? `<li class="today-expiry-more">+ altri ${expiring.length - MAX_SCADENZE_MOSTRATE} prodotti in scadenza entro 3 giorni</li>`
+        : ''
+    ].join('') : '<p class="today-empty">Nessun prodotto in scadenza nei prossimi 3 giorni.</p>';
     const shoppingText = shoppingCount
       ? `${shoppingCount} voci da verificare per i pasti pianificati.`
       : (shoppingExtraItems.length ? `${shoppingExtraItems.length} promemoria dalla Dispensa.` : 'Nessuna lista della spesa da preparare.');
@@ -4146,8 +4443,9 @@
         <button type="button" class="btn-gold" id="today-plan-btn">📅 Organizza la settimana</button>
       </div>
       <div class="today-grid">
+        <section class="today-card today-weather-card" id="today-weather-card"></section>
         <section class="today-card"><h3><span class="today-icon">🍽</span> I pasti di oggi</h3><ul class="today-list">${mealsHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-meals-btn">Apri pianificazione</button></div></section>
-        <section class="today-card"><h3><span class="today-icon">🥫</span> Da consumare prima</h3><ul class="today-list">${expiryHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-expiry-btn">Apri Dispensa</button></div></section>
+        <section class="today-card"><h3><span class="today-icon">🥫</span> Da consumare prima</h3><ul class="today-list">${expiryHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-expiry-btn">Apri Dispensa</button>${expiring.length ? `<button type="button" class="btn-ghost btn-small" id="today-expiry-recipes-btn">🧑‍🍳 Trova ricette</button>` : ''}</div></section>
         <section class="today-card"><h3><span class="today-icon">🛒</span> Lista della spesa</h3><p class="today-empty">${escapeHtml(shoppingText)}</p><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-shopping-btn">Apri lista</button><button type="button" class="btn-ghost btn-small" id="today-recipes-btn">Cerca ricette</button></div></section>
       </div>
       <div class="today-quick-grid">
@@ -4167,12 +4465,17 @@
     document.getElementById('today-plan-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-meals-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-expiry-btn').addEventListener('click', ()=>switchView('dispensa'));
+    const todayExpiryRecipesBtn = document.getElementById('today-expiry-recipes-btn');
+    if(todayExpiryRecipesBtn) todayExpiryRecipesBtn.addEventListener('click', ()=>{
+      attivaRicercaConScadenza(expiring.map(it=>it.name));
+    });
     document.getElementById('today-recipes-btn').addEventListener('click', ()=>switchView('recipes'));
     document.getElementById('today-shopping-btn').addEventListener('click', ()=>document.getElementById('generate-shopping-btn').click());
     document.getElementById('today-quick-pantry-btn').addEventListener('click', ()=>switchView('recipes'));
     document.getElementById('today-quick-dispensa-btn').addEventListener('click', ()=>switchView('dispensa'));
     document.getElementById('today-quick-shopping-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-quick-planning-btn').addEventListener('click', ()=>switchView('planning'));
+    initWeatherCard();
   }
 
   // Etichetta breve mostrata nella barra ☰ su schermo piccolo, per vista corrente.
@@ -4189,13 +4492,18 @@
     document.getElementById('crea-alimenti-view').style.display = view === 'crea-alimenti' ? '' : 'none';
     document.getElementById('crea-menu-view').style.display = view === 'crea-menu' ? '' : 'none';
     document.getElementById('info-view').style.display = view === 'info' ? '' : 'none';
-    document.getElementById('nav-today-btn').classList.toggle('active', view === 'today');
-    document.getElementById('nav-recipes-btn').classList.toggle('active', view === 'recipes');
-    document.getElementById('nav-planning-btn').classList.toggle('active', view === 'planning');
-    document.getElementById('nav-dispensa-btn').classList.toggle('active', view === 'dispensa');
-    document.getElementById('nav-crea-alimenti-btn').classList.toggle('active', view === 'crea-alimenti');
-    document.getElementById('nav-crea-menu-btn').classList.toggle('active', view === 'crea-menu');
-    document.getElementById('nav-info-btn').classList.toggle('active', view === 'info');
+    [
+      ['nav-today-btn', 'today'], ['nav-recipes-btn', 'recipes'], ['nav-planning-btn', 'planning'],
+      ['nav-dispensa-btn', 'dispensa'], ['nav-crea-alimenti-btn', 'crea-alimenti'],
+      ['nav-crea-menu-btn', 'crea-menu'], ['nav-info-btn', 'info'],
+    ].forEach(([id, v])=>{
+      const btn = document.getElementById(id);
+      const attiva = view === v;
+      btn.classList.toggle('active', attiva);
+      // aria-current segnala alla tecnologia assistiva quale voce di navigazione
+      // corrisponde alla pagina mostrata, oltre al solo indizio visivo della classe.
+      if(attiva) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current');
+    });
     if(view === 'today') renderToday();
     if(view === 'recipes') renderList();
     if(view === 'planning') renderPlanningDays();
@@ -4243,7 +4551,7 @@
     let count = 0;
     dispensaItems.forEach(it=>{
       const qty = parseFloat(it.qty), minQty = parseFloat(it.minQty);
-      const basso = !isNaN(qty) && !isNaN(minQty) && qty <= minQty;
+      const basso = !isNaN(qty) && (qty <= 0 || (!isNaN(minQty) && qty <= minQty));
       const inScadenza = it.expiry && it.expiry >= today && it.expiry <= soonLimit;
       if(basso || inScadenza) count++;
     });
@@ -4721,6 +5029,22 @@
     return d.toISOString().slice(0,10);
   }
 
+  // Passa al Ricettario in modalità "Cosa posso cucinare?" con i nomi passati già
+  // impostati come priorità ("Usa prima"): condivisa tra il pulsante in Dispensa e
+  // quello nella card "Da consumare prima" della pagina Oggi.
+  function attivaRicercaConScadenza(nomiProdotti){
+    priorityPantryNames = (nomiProdotti || []).map(normalize).filter(Boolean);
+    priorityPantryLabels = (nomiProdotti || []).filter(Boolean);
+    if(!priorityPantryNames.length){
+      alert('Non ci sono prodotti in scadenza entro 3 giorni.');
+      return;
+    }
+    pantryMode = true;
+    pantryResetBtn.style.display = 'inline-block';
+    updatePantryPanelSub();
+    switchView('recipes');
+  }
+
   function renderDispensaList(){
     aggiornaTopbarAlerts();
     updatePantryPanelSub();
@@ -4739,10 +5063,15 @@
     lowStockBtn.classList.toggle('btn-gold', dispensaLowStockOnly);
     lowStockBtn.classList.toggle('btn-ghost', !dispensaLowStockOnly);
 
+    // "In esaurimento" vale sia nel senso stretto (sotto la soglia "Avvisa sotto" impostata)
+    // sia, a prescindere da quella soglia, quando la quantità registrata è proprio a zero: un
+    // prodotto finito non deve restare silenzioso solo perché non gli è mai stata data una soglia.
     const isLowStock = it => {
       const qty = parseFloat(it.qty);
       const minQty = parseFloat(it.minQty);
-      return !isNaN(qty) && !isNaN(minQty) && qty <= minQty;
+      if(isNaN(qty)) return false;
+      if(qty <= 0) return true;
+      return !isNaN(minQty) && qty <= minQty;
     };
 
     const filtered = dispensaItems.filter(it=>{
@@ -4897,16 +5226,7 @@
       .filter(it => it.expiry && it.expiry >= today && it.expiry <= soonLimit)
       .map(it => it.name)
       .filter(Boolean);
-    priorityPantryNames = prodottiInScadenza.map(normalize).filter(Boolean);
-    priorityPantryLabels = prodottiInScadenza;
-    if(!priorityPantryNames.length){
-      alert('Non ci sono prodotti in scadenza entro 3 giorni.');
-      return;
-    }
-    pantryMode = true;
-    pantryResetBtn.style.display = 'inline-block';
-    updatePantryPanelSub();
-    switchView('recipes');
+    attivaRicercaConScadenza(prodottiInScadenza);
   });
   document.getElementById('dispensa-nutrition-toggle-btn').addEventListener('click', (e)=>{
     const panel = document.getElementById('dispensa-nutrition-fields');
@@ -5312,7 +5632,7 @@
     migrateWeekPlan();
     planServingsInput.value = planServings;
     updatePantryPanelSub();
-    switchView('recipes');
+    switchView('today');
     aggiornaTopbarAlerts();
     aggiornaControlliMenuStorage();
     mostraSceltaStorageSeNecessario();
