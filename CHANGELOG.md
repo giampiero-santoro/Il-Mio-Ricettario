@@ -2,6 +2,18 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [4.3.0] — L'app si può installare sulla schermata Home
+
+### Aggiunto
+- **Il Mio Ricettario è ora installabile come un'app**, su telefono, tablet o computer: da Chrome/Edge/Safari compare la voce "Aggiungi a Home"/"Installa app", e una volta installata l'icona apre il sito a schermo intero, senza barra degli indirizzi, con la sua icona in home e nello switcher delle app.
+- Aggiunta una nuova icona dedicata (la stessa pentola 🍲 su sfondo sfumato già presente in cima alla barra laterale, per restare coerenti con il resto dell'app), generata in più dimensioni: icona normale per Android/desktop, variante "adaptive" per Android (si adatta alla forma — tonda, squadrata, a goccia — scelta dal telefono) e icona dedicata per la schermata Home di iPhone/iPad.
+- Aggiunta un'icona anche per la scheda del browser (favicon), che prima mancava.
+- La barra di navigazione resta quella attuale (menu "☰" a comparsa): questa modifica riguarda solo l'installazione e l'icona, nessun'altra schermata è cambiata.
+
+### File nuovi da caricare
+- `manifest.json`
+- `img/icon-192.png`, `img/icon-512.png`, `img/icon-maskable-192.png`, `img/icon-maskable-512.png`, `img/apple-touch-icon.png`, `img/favicon-32.png`, `img/favicon-16.png`
+
 ## [4.2.4] — Correzioni minori emerse da un controllo generale
 
 ### Corretto

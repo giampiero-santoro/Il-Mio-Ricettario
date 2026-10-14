@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
 <title>Il Mio Ricettario</title>
+
+<!-- PWA: manifest + icone per l'installazione su smartphone ("Aggiungi a Home") -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1D4ED8">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<!-- Safari non legge il manifest per l'icona Home: servono questi meta dedicati -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ricettario">
+
 <script>
   // Applica subito il tema salvato (se diverso da quello originale), prima
   // che il resto della pagina venga disegnato: evita un lampo del tema
