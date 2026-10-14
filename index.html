@@ -755,8 +755,23 @@
     <div class="field">
       <input type="text" id="export-pdf-search" placeholder="Cerca per nome…">
     </div>
+    <button type="button" class="btn-ghost" id="export-pdf-filters-toggle" style="margin-bottom:10px;">🔍 Filtra per cottura, tag o allergeni ▾</button>
+    <div class="panel" id="export-pdf-filters-panel" style="display:none;">
+      <div class="filter-section-label">Metodo di cottura</div>
+      <div class="panel-row" id="export-pdf-method-row" style="margin-bottom:14px;">
+        <button class="tag-filter-chip" id="export-pdf-pressure-btn">🍲 Pentola a pressione</button>
+        <button class="tag-filter-chip" id="export-pdf-robot-btn">🤖 Robot</button>
+        <button class="tag-filter-chip" id="export-pdf-airfryer-btn">🌀 Friggitrice ad aria</button>
+        <button class="tag-filter-chip" id="export-pdf-traditional-btn">🔥 Tradizionale</button>
+      </div>
+      <div class="filter-section-label">Tag dietetici</div>
+      <div class="panel-row" id="export-pdf-tag-row" style="margin-bottom:14px;"></div>
+      <div class="filter-section-label">Escludi ricette con questi allergeni</div>
+      <div class="panel-row" id="export-pdf-allergen-row" style="margin-bottom:10px;"></div>
+      <button type="button" class="btn-ghost btn-small" id="export-pdf-filters-clear-btn">Cancella filtri</button>
+    </div>
     <div class="modal-actions" style="margin-bottom:4px;">
-      <button type="button" class="btn-ghost btn-small" id="export-pdf-all-btn">Seleziona tutte</button>
+      <button type="button" class="btn-ghost btn-small" id="export-pdf-all-btn">Seleziona tutte (visibili)</button>
       <button type="button" class="btn-ghost btn-small" id="export-pdf-none-btn">Deseleziona tutte</button>
       <span id="export-pdf-count" style="font-size:13px;color:var(--ink-soft);align-self:center;flex:1;text-align:right;">Nessuna ricetta selezionata</span>
     </div>

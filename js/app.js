@@ -2946,13 +2946,55 @@
   const exportPdfCount = document.getElementById('export-pdf-count');
   let exportPdfSelezionate = new Set();
 
+  // Filtri opzionali per restringere l'elenco da cui scegliere (stessa logica delle
+  // ricerca avanzata nella vista Ricettario: metodi e tag in AND, allergeni come esclusione),
+  // ma con uno stato tutto suo, separato da quello della vista principale.
+  let exportPdfPressureOnly = false;
+  let exportPdfRobotOnly = false;
+  let exportPdfAirFryerOnly = false;
+  let exportPdfTraditionalOnly = false;
+  let exportPdfTagFilters = new Set();
+  let exportPdfAllergenExclusions = new Set();
+
+  function resetExportPdfFilters(){
+    exportPdfPressureOnly = exportPdfRobotOnly = exportPdfAirFryerOnly = exportPdfTraditionalOnly = false;
+    exportPdfTagFilters = new Set();
+    exportPdfAllergenExclusions = new Set();
+    [exportPdfPressureBtn, exportPdfRobotBtn, exportPdfAirFryerBtn, exportPdfTraditionalBtn].forEach(b=>b.classList.remove('active'));
+    exportPdfTagRow.querySelectorAll('.tag-filter-chip').forEach(b=>b.classList.remove('active'));
+    exportPdfAllergenRow.querySelectorAll('.tag-filter-chip').forEach(b=>b.classList.remove('active'));
+  }
+
+  // Tutte le ricette esportabili, SENZA i filtri di cottura/tag/allergeni: è l'insieme usato
+  // per generare davvero il PDF e per "Deseleziona tutte", così una selezione fatta prima di
+  // applicare un filtro non viene mai persa silenziosamente alla conferma.
   function exportPdfRicetteAttive(){
     return sortRecipes(recipes.filter(r=>!r.archived));
   }
 
+  // Sottoinsieme filtrato per metodo di cottura/tag/allergeni, usato solo per decidere
+  // cosa mostrare nell'elenco di scelta e cosa selezionare con "Seleziona tutte (visibili)".
+  function exportPdfRicetteFiltrate(){
+    return exportPdfRicetteAttive().filter(r=>{
+      if(exportPdfPressureOnly && !recipeHasPressure(r)) return false;
+      if(exportPdfRobotOnly && !recipeHasRobot(r)) return false;
+      if(exportPdfAirFryerOnly && !recipeHasAirFryer(r)) return false;
+      if(exportPdfTraditionalOnly && !recipeIsTraditional(r)) return false;
+      if(exportPdfTagFilters.size > 0){
+        const rTags = r.tags || [];
+        for(const t of exportPdfTagFilters){ if(!rTags.includes(t)) return false; }
+      }
+      if(exportPdfAllergenExclusions.size > 0){
+        const rAllergens = r.allergens || [];
+        for(const a of exportPdfAllergenExclusions){ if(rAllergens.includes(a)) return false; }
+      }
+      return true;
+    });
+  }
+
   function renderExportPdfList(filtro){
     const q = normalize(filtro || '');
-    const active = exportPdfRicetteAttive();
+    const active = exportPdfRicetteFiltrate();
     const categorie = Object.keys(CATEGORY_COLORS);
     let html = '';
     categorie.forEach(cat=>{
@@ -3000,6 +3042,64 @@
     exportPdfCount.textContent = n === 0 ? 'Nessuna ricetta selezionata' : `${n} ricett${n === 1 ? 'a' : 'e'} selezionat${n === 1 ? 'a' : 'e'}`;
   }
 
+  const exportPdfFiltersToggle = document.getElementById('export-pdf-filters-toggle');
+  const exportPdfFiltersPanel = document.getElementById('export-pdf-filters-panel');
+  const exportPdfPressureBtn = document.getElementById('export-pdf-pressure-btn');
+  const exportPdfRobotBtn = document.getElementById('export-pdf-robot-btn');
+  const exportPdfAirFryerBtn = document.getElementById('export-pdf-airfryer-btn');
+  const exportPdfTraditionalBtn = document.getElementById('export-pdf-traditional-btn');
+  const exportPdfTagRow = document.getElementById('export-pdf-tag-row');
+  const exportPdfAllergenRow = document.getElementById('export-pdf-allergen-row');
+
+  exportPdfTagRow.innerHTML = TAG_OPTIONS.map(t=>`<button type="button" class="tag-filter-chip" data-tag="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('');
+  exportPdfAllergenRow.innerHTML = ALLERGEN_OPTIONS.map(t=>`<button type="button" class="tag-filter-chip" data-allergen="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('');
+
+  exportPdfFiltersToggle.addEventListener('click', ()=>{
+    const aperto = exportPdfFiltersPanel.style.display !== 'none';
+    exportPdfFiltersPanel.style.display = aperto ? 'none' : 'block';
+    exportPdfFiltersToggle.textContent = aperto ? '🔍 Filtra per cottura, tag o allergeni ▾' : '🔍 Filtra per cottura, tag o allergeni ▴';
+  });
+  exportPdfPressureBtn.addEventListener('click', ()=>{
+    exportPdfPressureOnly = !exportPdfPressureOnly;
+    exportPdfPressureBtn.classList.toggle('active', exportPdfPressureOnly);
+    renderExportPdfList(exportPdfSearch.value);
+  });
+  exportPdfRobotBtn.addEventListener('click', ()=>{
+    exportPdfRobotOnly = !exportPdfRobotOnly;
+    exportPdfRobotBtn.classList.toggle('active', exportPdfRobotOnly);
+    renderExportPdfList(exportPdfSearch.value);
+  });
+  exportPdfAirFryerBtn.addEventListener('click', ()=>{
+    exportPdfAirFryerOnly = !exportPdfAirFryerOnly;
+    exportPdfAirFryerBtn.classList.toggle('active', exportPdfAirFryerOnly);
+    renderExportPdfList(exportPdfSearch.value);
+  });
+  exportPdfTraditionalBtn.addEventListener('click', ()=>{
+    exportPdfTraditionalOnly = !exportPdfTraditionalOnly;
+    exportPdfTraditionalBtn.classList.toggle('active', exportPdfTraditionalOnly);
+    renderExportPdfList(exportPdfSearch.value);
+  });
+  exportPdfTagRow.querySelectorAll('.tag-filter-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = btn.dataset.tag;
+      if(exportPdfTagFilters.has(t)) exportPdfTagFilters.delete(t); else exportPdfTagFilters.add(t);
+      btn.classList.toggle('active', exportPdfTagFilters.has(t));
+      renderExportPdfList(exportPdfSearch.value);
+    });
+  });
+  exportPdfAllergenRow.querySelectorAll('.tag-filter-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const a = btn.dataset.allergen;
+      if(exportPdfAllergenExclusions.has(a)) exportPdfAllergenExclusions.delete(a); else exportPdfAllergenExclusions.add(a);
+      btn.classList.toggle('active', exportPdfAllergenExclusions.has(a));
+      renderExportPdfList(exportPdfSearch.value);
+    });
+  });
+  document.getElementById('export-pdf-filters-clear-btn').addEventListener('click', ()=>{
+    resetExportPdfFilters();
+    renderExportPdfList(exportPdfSearch.value);
+  });
+
   document.getElementById('export-all-pdf-btn').addEventListener('click', ()=>{
     const active = exportPdfRicetteAttive();
     if(!active.length){
@@ -3008,6 +3108,9 @@
     }
     exportPdfSelezionate = new Set(active.map(r=>r.id)); // di default parte con tutto selezionato
     exportPdfSearch.value = '';
+    resetExportPdfFilters();
+    exportPdfFiltersPanel.style.display = 'none';
+    exportPdfFiltersToggle.textContent = '🔍 Filtra per cottura, tag o allergeni ▾';
     renderExportPdfList('');
     aggiornaContatoreExportPdf();
     exportPdfOverlay.classList.add('active');
@@ -3015,7 +3118,9 @@
   document.getElementById('export-pdf-close').addEventListener('click', ()=> exportPdfOverlay.classList.remove('active'));
   exportPdfSearch.addEventListener('input', ()=> renderExportPdfList(exportPdfSearch.value));
   document.getElementById('export-pdf-all-btn').addEventListener('click', ()=>{
-    exportPdfRicetteAttive().forEach(r => exportPdfSelezionate.add(r.id));
+    // Seleziona solo le ricette attualmente visibili (dopo filtri e ricerca), non tutto il ricettario.
+    const q = normalize(exportPdfSearch.value || '');
+    exportPdfRicetteFiltrate().filter(r => !q || normalize(r.name).includes(q)).forEach(r => exportPdfSelezionate.add(r.id));
     aggiornaContatoreExportPdf();
     renderExportPdfList(exportPdfSearch.value);
   });

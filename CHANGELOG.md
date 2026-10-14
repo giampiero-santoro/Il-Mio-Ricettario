@@ -2,6 +2,13 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [4.3.1] — Filtri nell'esportazione PDF del ricettario
+
+### Aggiunto
+- Nella finestra "Esporta ricettario in PDF" è ora possibile restringere l'elenco da cui scegliere con gli stessi filtri già disponibili nella vista Ricettario: metodo di cottura (pentola a pressione, robot, friggitrice ad aria, tradizionale), tag dietetici ed esclusione per allergeni. I filtri si possono combinare tra loro.
+- Nuovo pulsante "Seleziona tutte (visibili)": seleziona solo le ricette che corrispondono ai filtri e alla ricerca attuali, non l'intero ricettario.
+- Le ricette selezionate restano nella selezione anche cambiando o cancellando un filtro: un filtro serve solo a restringere cosa si vede nell'elenco, non fa sparire dalla selezione finale una ricetta scelta in precedenza.
+
 ## [4.3.0] — L'app si può installare sulla schermata Home
 
 ### Aggiunto
