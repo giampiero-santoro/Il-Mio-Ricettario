@@ -2,6 +2,17 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [4.4.0] — Più ricettari, come volumi di una libreria
+
+### Aggiunto
+- **Le ricette possono ora essere organizzate in più ricettari distinti** ("Ricette mie", "Ricette della nonna", "Ricette di Andrea"…), ciascuno con una copertina personalizzabile. Ogni ricetta appartiene a un solo ricettario per volta.
+- Nuova sezione **"📚 La tua libreria"** nella pagina "Oggi": i ricettari compaiono come dorsi di libri affiancati, con copertina e numero di ricette; toccandone uno si apre il Ricettario già filtrato su quel volume.
+- Nuovo pannello **"Gestisci ricettari"** (da Oggi o dal Ricettario): crea, rinomina, assegna una copertina (con lo stesso editor di ritaglio già usato per le foto delle ricette) o elimina un ricettario. Eliminando un ricettario non vuoto viene chiesto se spostare le sue ricette in un altro volume o eliminarle insieme ad esso.
+- Nel Ricettario, un nuovo filtro permette di vedere "Tutti i ricettari" insieme oppure uno alla volta; una nuova ricetta parte già nel volume che si sta guardando. Pianificazione e "Cosa posso cucinare?" continuano a cercare su tutti i ricettari insieme.
+- **Esportazione PDF**: la finestra "Esporta ricettario in PDF" permette ora di filtrare anche per ricettario; esportando ricette di più ricettari insieme, ogni pagina riporta sotto il titolo da quale volume viene.
+- **CSV**: nuova colonna "Ricettario" nell'esportazione, più un menu per limitare l'esportazione a un solo volume; in importazione, un ricettario nominato nel CSV ma non ancora esistente viene creato al volo.
+- **Backup JSON**: ricettari e relative copertine sono ora inclusi nell'esportazione/importazione del backup completo.
+
 ## [4.3.1] — Filtri nell'esportazione PDF del ricettario
 
 ### Aggiunto

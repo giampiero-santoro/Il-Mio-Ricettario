@@ -13,6 +13,10 @@
   const SHOPPING_CHECKED_KEY = 'mc_ricettario_spesa_spuntate_v1';
   const WEATHER_LOCATION_KEY = 'mc_ricettario_meteo_localita_v1';
   const WEATHER_CACHE_KEY = 'mc_ricettario_meteo_cache_v1';
+  const RICETTARI_KEY = 'mc_ricettario_libri_v1';
+  // Il ricettario che esiste già di fabbrica: id stabile così tutte le ricette create prima
+  // dell'introduzione dei "più ricettari" continuano a trovarlo dopo l'aggiornamento.
+  const DEFAULT_RICETTARIO_ID = 'default';
   const PANTRY_CATEGORY_COLORS = {
     'Frutta': '#d17b3f', 'Verdura': '#5c8a3a', 'Uova': '#d9a94a', 'Salumi': '#a13d3d',
     'Latticini e pronti': '#c9a227', 'Surgelati': '#4f7f8b', 'Pasta, riso e cereali': '#8a6642',
@@ -97,6 +101,11 @@
   ];
 
   let recipes = [];
+  // "Volumi" della libreria: ogni ricetta appartiene a uno solo di questi (r.ricettarioId).
+  // {id, name, cover} — cover è una dataURL opzionale (stessa pipeline di ritaglio/compressione
+  // usata per le foto delle ricette), oppure '' per mostrare l'icona segnaposto.
+  let ricettari = [];
+  let activeRicettarioFilter = ''; // '' = tutti i ricettari insieme
   let weekPlan = {}; // { 'Lunedì': [ {id, recipeId, mealType, time}, ... ], ... }
   let mealTypes = [];
   let planServings = 4;
@@ -159,6 +168,17 @@
       recipes = raw ? JSON.parse(raw) : seedData();
       if(!raw) saveRecipes();
     }catch(e){ recipes = seedData(); }
+    try{
+      const rawRicettari = localStorage.getItem(RICETTARI_KEY);
+      ricettari = rawRicettari ? JSON.parse(rawRicettari) : [];
+      if(!Array.isArray(ricettari)) ricettari = [];
+    }catch(e){ ricettari = []; }
+    // Chi aggiorna da una versione precedente (o chi parte da zero) deve sempre trovare
+    // almeno il ricettario di partenza: qui confluiscono tutte le ricette già esistenti.
+    if(!ricettari.some(rb => rb.id === DEFAULT_RICETTARIO_ID)){
+      ricettari.unshift({ id: DEFAULT_RICETTARIO_ID, name: 'Il Mio Ricettario', cover: '' });
+      saveRicettari();
+    }
     try{
       const rawWeek = localStorage.getItem(WEEK_KEY);
       weekPlan = rawWeek ? JSON.parse(rawWeek) : {};
@@ -248,6 +268,188 @@
     }
   }
   function saveRecipes(){ const ok = safeStorageSet(STORAGE_KEY, JSON.stringify(recipes)); scriviSuFileCollegato(); return ok; }
+  function saveRicettari(){ const ok = safeStorageSet(RICETTARI_KEY, JSON.stringify(ricettari)); scriviSuFileCollegato(); return ok; }
+
+  // Ricetta -> id del suo ricettario, con fallback a quello di partenza per le ricette salvate
+  // prima che esistesse questo campo (stesso stile difensivo già usato altrove nel file per i
+  // campi aggiunti in versioni successive, es. r.tags || []).
+  function recipeRicettarioId(r){ return (r && r.ricettarioId) || DEFAULT_RICETTARIO_ID; }
+  function ricettarioById(id){ return ricettari.find(rb => rb.id === id) || ricettari[0] || { id: DEFAULT_RICETTARIO_ID, name: 'Il Mio Ricettario', cover: '' }; }
+  function ricettarioName(id){ return ricettarioById(id).name; }
+
+  // Riempie i due <select> che elencano i ricettari — il filtro nel Ricettario e quello nel
+  // modulo ricetta — ogni volta che l'elenco dei ricettari cambia (creazione, rinomina,
+  // eliminazione). Chiamata una volta all'avvio e dopo ogni modifica in "Gestisci ricettari".
+  function refreshRicettarioSelects(){
+    const filterEl = document.getElementById('ricettario-filter');
+    const formEl = document.getElementById('f-ricettario');
+    if(filterEl){
+      const prevFilter = activeRicettarioFilter;
+      filterEl.innerHTML = '<option value="">Tutti i ricettari</option>' +
+        ricettari.map(rb => `<option value="${escapeAttr(rb.id)}">${escapeHtml(rb.name)}</option>`).join('');
+      // Se il ricettario filtrato è stato eliminato nel frattempo, torna a "tutti".
+      if(prevFilter && !ricettari.some(rb => rb.id === prevFilter)) activeRicettarioFilter = '';
+      filterEl.value = activeRicettarioFilter;
+    }
+    if(formEl){
+      const prevValue = formEl.value;
+      formEl.innerHTML = ricettari.map(rb => `<option value="${escapeAttr(rb.id)}">${escapeHtml(rb.name)}</option>`).join('');
+      if(prevValue && ricettari.some(rb => rb.id === prevValue)) formEl.value = prevValue;
+    }
+    const csvScopeEl = document.getElementById('csv-ricettario-scope');
+    if(csvScopeEl){
+      const prevScope = csvScopeEl.value;
+      csvScopeEl.innerHTML = '<option value="">Tutti i ricettari</option>' +
+        ricettari.map(rb => `<option value="${escapeAttr(rb.id)}">${escapeHtml(rb.name)}</option>`).join('');
+      if(prevScope && ricettari.some(rb => rb.id === prevScope)) csvScopeEl.value = prevScope;
+    }
+  }
+
+  // ---------- Gestisci ricettari ----------
+  const ricettariOverlay = document.getElementById('ricettari-overlay');
+  const ricettariManageList = document.getElementById('ricettari-manage-list');
+  let newRicettarioCoverData = '';
+
+  function openRicettariManage(){
+    renderRicettariManageList();
+    ricettariOverlay.classList.add('active');
+  }
+  document.getElementById('ricettari-close').addEventListener('click', ()=> ricettariOverlay.classList.remove('active'));
+  document.getElementById('manage-ricettari-btn').addEventListener('click', openRicettariManage);
+
+  function renderRicettariManageList(){
+    ricettariManageList.innerHTML = ricettari.map(rb=>{
+      const count = recipes.filter(r => recipeRicettarioId(r) === rb.id).length;
+      const coverStyle = rb.cover ? `background-image:url('${rb.cover}');` : '';
+      return `
+        <div class="ricettario-row" data-id="${escapeAttr(rb.id)}">
+          <div class="ricettario-row-cover${rb.cover ? '' : ' ricettario-row-cover-placeholder'}" style="${coverStyle}">${rb.cover ? '' : '📚'}</div>
+          <div class="ricettario-row-main">
+            <input type="text" class="ricettario-row-name" value="${escapeAttr(rb.name)}" ${rb.id === DEFAULT_RICETTARIO_ID ? '' : ''}>
+            <div class="ricettario-row-count">${count} ricett${count===1?'a':'e'}</div>
+          </div>
+          <input type="file" class="ricettario-row-cover-input" accept="image/*" style="display:none;">
+          <button type="button" class="btn-ghost btn-small ricettario-row-cover-btn">📷 Copertina</button>
+          <button type="button" class="btn-ghost btn-small ricettario-row-delete-btn" ${ricettari.length <= 1 ? 'disabled title="Deve restare almeno un ricettario"' : ''}>🗑 Elimina</button>
+          <div class="ricettario-row-delete-panel" style="display:none;"></div>
+        </div>`;
+    }).join('');
+
+    ricettariManageList.querySelectorAll('.ricettario-row').forEach(row=>{
+      const id = row.dataset.id;
+      const nameInput = row.querySelector('.ricettario-row-name');
+      nameInput.addEventListener('change', ()=>{
+        const nuovo = nameInput.value.trim();
+        if(!nuovo){ nameInput.value = ricettarioName(id); return; }
+        const rb = ricettarioById(id);
+        rb.name = nuovo;
+        saveRicettari();
+        refreshRicettarioSelects();
+        renderList(); renderToday();
+      });
+
+      const coverInput = row.querySelector('.ricettario-row-cover-input');
+      row.querySelector('.ricettario-row-cover-btn').addEventListener('click', ()=> coverInput.click());
+      coverInput.addEventListener('change', ()=>{
+        const file = coverInput.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e)=>{
+          const result = await openPhotoCropOverlay(e.target.result);
+          coverInput.value = '';
+          if(result){
+            const rb = ricettarioById(id);
+            rb.cover = result;
+            saveRicettari();
+            renderRicettariManageList();
+            renderToday();
+          }
+        };
+        reader.onerror = () => alert('Non è stato possibile leggere il file immagine scelto.');
+        reader.readAsDataURL(file);
+      });
+
+      row.querySelector('.ricettario-row-delete-btn').addEventListener('click', ()=>{
+        if(ricettari.length <= 1) return;
+        const count = recipes.filter(r => recipeRicettarioId(r) === id).length;
+        const panel = row.querySelector('.ricettario-row-delete-panel');
+        if(count === 0){
+          eliminaRicettario(id, null);
+          return;
+        }
+        const altri = ricettari.filter(rb => rb.id !== id);
+        panel.innerHTML = `
+          <div style="font-size:var(--fs-sm);margin-bottom:8px;">Questo ricettario contiene ${count} ricett${count===1?'a':'e'}. Cosa vuoi farne?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <select class="ricettario-move-target">${altri.map(rb=>`<option value="${escapeAttr(rb.id)}">${escapeHtml(rb.name)}</option>`).join('')}</select>
+            <button type="button" class="btn-ghost btn-small ricettario-move-btn">Sposta qui ed elimina il volume</button>
+            <button type="button" class="btn-ghost btn-small btn-danger-action ricettario-delete-all-btn">Elimina ricette e volume</button>
+            <button type="button" class="btn-ghost btn-small ricettario-cancel-delete-btn">Annulla</button>
+          </div>`;
+        panel.style.display = 'block';
+        panel.querySelector('.ricettario-move-btn').addEventListener('click', ()=>{
+          const target = panel.querySelector('.ricettario-move-target').value;
+          eliminaRicettario(id, target);
+        });
+        panel.querySelector('.ricettario-delete-all-btn').addEventListener('click', ()=>{
+          eliminaRicettario(id, 'ELIMINA_RICETTE');
+        });
+        panel.querySelector('.ricettario-cancel-delete-btn').addEventListener('click', ()=>{
+          panel.style.display = 'none';
+          panel.innerHTML = '';
+        });
+      });
+    });
+  }
+
+  // target: id del ricettario dove spostare le ricette, 'ELIMINA_RICETTE' per eliminarle insieme
+  // al volume, oppure null se il volume era già vuoto.
+  function eliminaRicettario(id, target){
+    if(target === 'ELIMINA_RICETTE'){
+      recipes = recipes.filter(r => recipeRicettarioId(r) !== id);
+    } else if(target){
+      recipes.forEach(r=>{ if(recipeRicettarioId(r) === id) r.ricettarioId = target; });
+    }
+    ricettari = ricettari.filter(rb => rb.id !== id);
+    if(activeRicettarioFilter === id) activeRicettarioFilter = '';
+    saveRecipes(); saveRicettari();
+    refreshRicettarioSelects();
+    renderRicettariManageList(); renderList(); renderToday(); renderPlanningDays();
+  }
+
+  const ricettarioAddCoverInput = document.getElementById('ricettario-add-cover-input');
+  const ricettarioAddCoverPreview = document.getElementById('ricettario-add-cover-preview');
+  document.getElementById('ricettario-add-cover-btn').addEventListener('click', ()=> ricettarioAddCoverInput.click());
+  ricettarioAddCoverInput.addEventListener('change', ()=>{
+    const file = ricettarioAddCoverInput.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e)=>{
+      const result = await openPhotoCropOverlay(e.target.result);
+      ricettarioAddCoverInput.value = '';
+      if(result){
+        newRicettarioCoverData = result;
+        ricettarioAddCoverPreview.style.backgroundImage = `url('${result}')`;
+        ricettarioAddCoverPreview.textContent = '';
+      }
+    };
+    reader.onerror = () => alert('Non è stato possibile leggere il file immagine scelto.');
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('ricettario-add-confirm-btn').addEventListener('click', ()=>{
+    const nameInput = document.getElementById('ricettario-add-name');
+    const nome = nameInput.value.trim();
+    if(!nome){ alert('Dai un nome al nuovo ricettario.'); return; }
+    ricettari.push({ id: cryptoId(), name: nome, cover: newRicettarioCoverData });
+    saveRicettari();
+    nameInput.value = '';
+    newRicettarioCoverData = '';
+    ricettarioAddCoverPreview.style.backgroundImage = '';
+    ricettarioAddCoverPreview.textContent = '📚';
+    refreshRicettarioSelects();
+    renderRicettariManageList();
+    renderToday();
+  });
   function saveWeek(){ const ok = safeStorageSet(WEEK_KEY, JSON.stringify(weekPlan)); scriviSuFileCollegato(); return ok; }
   function saveMealTypes(){ const ok = safeStorageSet(MEALTYPES_KEY, JSON.stringify(mealTypes)); scriviSuFileCollegato(); return ok; }
   function savePantry(text){ return safeStorageSet(PANTRY_KEY, text); }
@@ -315,7 +517,7 @@
   }
 
   function datiCompletiPerFile(){
-    return { recipes, weekPlan, mealTypes, dispensaItems, shoppingExtraItems, weekNotes };
+    return { recipes, ricettari, weekPlan, mealTypes, dispensaItems, shoppingExtraItems, weekNotes };
   }
 
   function aggiornaControlliMenuStorage(){
@@ -356,6 +558,7 @@
     const testo = await file.text();
     const dati = JSON.parse(testo);
     if (Array.isArray(dati.recipes)) safeStorageSet(STORAGE_KEY, JSON.stringify(dati.recipes));
+    if (Array.isArray(dati.ricettari) && dati.ricettari.length) safeStorageSet(RICETTARI_KEY, JSON.stringify(dati.ricettari));
     if (dati.weekPlan) safeStorageSet(WEEK_KEY, JSON.stringify(dati.weekPlan));
     if (Array.isArray(dati.mealTypes)) safeStorageSet(MEALTYPES_KEY, JSON.stringify(dati.mealTypes));
     if (Array.isArray(dati.dispensaItems)) safeStorageSet(DISPENSA_ITEMS_KEY, JSON.stringify(dati.dispensaItems));
@@ -609,6 +812,7 @@
     if(r.timesMade === undefined) r.timesMade = r.lastMade ? 1 : 0;
     if(r.cookerType === undefined) r.cookerType = '';
     if(!Array.isArray(r.steps)) r.steps = [];
+    if(!r.ricettarioId) r.ricettarioId = DEFAULT_RICETTARIO_ID;
     // Le ricette dalla vecchia versione avevano un secondo elenco di passaggi
     // "senza robot" parallelo. Lo confluiamo nelle note, una sola volta, poi
     // rimuoviamo il campo così le versioni future non lo trovano più.
@@ -699,6 +903,7 @@
   const listEl = document.getElementById('recipe-list');
   const searchEl = document.getElementById('search');
   const categoryFilterEl = document.getElementById('category-filter');
+  const ricettarioFilterEl = document.getElementById('ricettario-filter');
   const timeFilterEl = document.getElementById('time-filter');
   const sortSelectEl = document.getElementById('sort-select');
   const favoritesFilterBtn = document.getElementById('favorites-filter-btn');
@@ -1133,6 +1338,7 @@
       if(traditionalOnly && !recipeIsTraditional(r)) return false;
       const matchesCat = !cat || r.category === cat;
       if(!matchesCat) return false;
+      if(activeRicettarioFilter && recipeRicettarioId(r) !== activeRicettarioFilter) return false;
       if(timeFilter === 'has-time' && !r.time) return false;
       if(timeFilter && timeFilter !== 'has-time'){
         if(!r.time || r.time > parseInt(timeFilter, 10)) return false;
@@ -1200,6 +1406,7 @@
           ${badge}
           ${ready ? `<div class="pantry-caveat">Controllare le quantità effettive che hai a disposizione</div>` : ''}
           ${priorityMatches.length ? `<div class="match-badge ready" style="position:static;display:inline-block;margin:0 0 6px;">🍽 Usa prima: ${priorityMatches.map(escapeHtml).join(', ')}</div>` : ''}
+          ${ricettari.length > 1 ? `<span class="ricettario-tag" title="Ricettario">📚 ${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : ''}
           ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
           ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
           ${recipeHasAirFryer(r) ? '<span class="airfryer-badge" title="Ha passaggi per friggitrice ad aria">🌀</span>' : ''}
@@ -1237,6 +1444,7 @@
           ? `<img class="thumb" src="${r.photo}" alt="${escapeAttr(r.name)}">`
           : `<div class="thumb thumb-placeholder" aria-hidden="true">${CATEGORY_ICONS[r.category] || '🍽️'}</div>`}
         <span class="cat-tag">${escapeHtml(r.category)}</span>
+        ${ricettari.length > 1 ? `<span class="ricettario-tag" title="Ricettario">📚 ${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : ''}
         ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
         ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
         ${recipeHasAirFryer(r) ? '<span class="airfryer-badge" title="Ha passaggi per friggitrice ad aria">🌀</span>' : ''}
@@ -1275,6 +1483,10 @@
 
   searchEl.addEventListener('input', renderList);
   categoryFilterEl.addEventListener('change', renderList);
+  ricettarioFilterEl.addEventListener('change', ()=>{
+    activeRicettarioFilter = ricettarioFilterEl.value;
+    renderList();
+  });
   timeFilterEl.addEventListener('change', renderList);
   sortSelectEl.addEventListener('change', ()=>{
     sortMode = sortSelectEl.value;
@@ -2132,6 +2344,10 @@
 
     fName.value = source ? (source.name || '') : '';
     fCategory.value = source ? (source.category || 'Primi') : 'Primi';
+    // Una ricetta esistente mantiene il suo ricettario; una nuova parte da quello attualmente
+    // filtrato nel Ricettario (se si è aperto "+ Nuova ricetta" da dentro un volume specifico),
+    // altrimenti dal ricettario di partenza.
+    document.getElementById('f-ricettario').value = source ? recipeRicettarioId(source) : (activeRicettarioFilter || DEFAULT_RICETTARIO_ID);
     fServings.value = source ? (source.servings || 4) : 4;
     fTime.value = source ? (source.time || '') : '';
     fCookerType.value = source ? (source.cookerType || '') : '';
@@ -2527,6 +2743,7 @@
 
     const recipeData = {
       id: editingId || cryptoId(), name, category: fCategory.value,
+      ricettarioId: document.getElementById('f-ricettario').value || DEFAULT_RICETTARIO_ID,
       servings: parseInt(fServings.value) || 1, time: parseInt(fTime.value) || 0,
       cookerType: fCookerType.value,
       ingredients: finalIngredients, steps, tags, allergens, freezable, notes: fNotes.value.trim(),
@@ -2644,6 +2861,13 @@
     viewCategory.style.background = CATEGORY_COLORS[r.category] || '#8c6a2f';
     viewCategory.style.color = '#fff'; viewCategory.style.borderRadius = '20px';
     viewCategory.style.padding = '3px 10px'; viewCategory.style.fontWeight = '600';
+    const viewRicettarioEl = document.getElementById('view-ricettario');
+    if(ricettari.length > 1){
+      viewRicettarioEl.textContent = '📚 ' + ricettarioName(recipeRicettarioId(r));
+      viewRicettarioEl.style.display = 'inline-block';
+    } else {
+      viewRicettarioEl.style.display = 'none';
+    }
     viewName.textContent = r.name;
     viewTime.textContent = r.time ? `Tempo totale: circa ${r.time} minuti` : '';
     const extraChips = [];
@@ -2955,14 +3179,19 @@
   let exportPdfTraditionalOnly = false;
   let exportPdfTagFilters = new Set();
   let exportPdfAllergenExclusions = new Set();
+  // A differenza dei tag (AND, deve averli tutti), qui è un OR: una ricetta passa se appartiene
+  // a UNO qualsiasi dei ricettari selezionati, dato che una ricetta sta in un solo volume.
+  let exportPdfRicettarioFilters = new Set();
 
   function resetExportPdfFilters(){
     exportPdfPressureOnly = exportPdfRobotOnly = exportPdfAirFryerOnly = exportPdfTraditionalOnly = false;
     exportPdfTagFilters = new Set();
     exportPdfAllergenExclusions = new Set();
+    exportPdfRicettarioFilters = new Set();
     [exportPdfPressureBtn, exportPdfRobotBtn, exportPdfAirFryerBtn, exportPdfTraditionalBtn].forEach(b=>b.classList.remove('active'));
     exportPdfTagRow.querySelectorAll('.tag-filter-chip').forEach(b=>b.classList.remove('active'));
     exportPdfAllergenRow.querySelectorAll('.tag-filter-chip').forEach(b=>b.classList.remove('active'));
+    exportPdfRicettarioRow.querySelectorAll('.tag-filter-chip').forEach(b=>b.classList.remove('active'));
   }
 
   // Tutte le ricette esportabili, SENZA i filtri di cottura/tag/allergeni: è l'insieme usato
@@ -2988,6 +3217,7 @@
         const rAllergens = r.allergens || [];
         for(const a of exportPdfAllergenExclusions){ if(rAllergens.includes(a)) return false; }
       }
+      if(exportPdfRicettarioFilters.size > 0 && !exportPdfRicettarioFilters.has(recipeRicettarioId(r))) return false;
       return true;
     });
   }
@@ -3050,9 +3280,24 @@
   const exportPdfTraditionalBtn = document.getElementById('export-pdf-traditional-btn');
   const exportPdfTagRow = document.getElementById('export-pdf-tag-row');
   const exportPdfAllergenRow = document.getElementById('export-pdf-allergen-row');
+  const exportPdfRicettarioRow = document.getElementById('export-pdf-ricettario-row');
 
   exportPdfTagRow.innerHTML = TAG_OPTIONS.map(t=>`<button type="button" class="tag-filter-chip" data-tag="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('');
   exportPdfAllergenRow.innerHTML = ALLERGEN_OPTIONS.map(t=>`<button type="button" class="tag-filter-chip" data-allergen="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('');
+
+  // Ricostruito ogni volta che si apre il pannello (non solo una volta all'avvio, a differenza
+  // dei tag/allergeni): l'elenco dei ricettari può cambiare durante la sessione.
+  function renderExportPdfRicettarioRow(){
+    exportPdfRicettarioRow.innerHTML = ricettari.map(rb=>`<button type="button" class="tag-filter-chip" data-ricettario="${escapeAttr(rb.id)}">📚 ${escapeHtml(rb.name)}</button>`).join('');
+    exportPdfRicettarioRow.querySelectorAll('.tag-filter-chip').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.dataset.ricettario;
+        if(exportPdfRicettarioFilters.has(id)) exportPdfRicettarioFilters.delete(id); else exportPdfRicettarioFilters.add(id);
+        btn.classList.toggle('active', exportPdfRicettarioFilters.has(id));
+        renderExportPdfList(exportPdfSearch.value);
+      });
+    });
+  }
 
   exportPdfFiltersToggle.addEventListener('click', ()=>{
     const aperto = exportPdfFiltersPanel.style.display !== 'none';
@@ -3108,6 +3353,7 @@
     }
     exportPdfSelezionate = new Set(active.map(r=>r.id)); // di default parte con tutto selezionato
     exportPdfSearch.value = '';
+    renderExportPdfRicettarioRow();
     resetExportPdfFilters();
     exportPdfFiltersPanel.style.display = 'none';
     exportPdfFiltersToggle.textContent = '🔍 Filtra per cottura, tag o allergeni ▾';
@@ -3138,11 +3384,15 @@
       return;
     }
     const categorie = Object.keys(CATEGORY_COLORS).filter(cat => selezionate.some(r => r.category === cat));
+    // Se la selezione attraversa più ricettari, ogni ricetta riporta sotto il titolo da quale
+    // volume viene — superfluo (e quindi omesso) quando si esporta un solo ricettario alla volta.
+    const ricettariCoinvolti = new Set(selezionate.map(r => recipeRicettarioId(r)));
+    const mostraRicettarioInPdf = ricettariCoinvolti.size > 1;
 
     const indiceLines = [];
     categorie.forEach(cat=>{
       indiceLines.push(cat);
-      selezionate.filter(r => r.category === cat).forEach(r => indiceLines.push(`- ${r.name}`));
+      selezionate.filter(r => r.category === cat).forEach(r => indiceLines.push(`- ${r.name}${mostraRicettarioInPdf ? ` (${ricettarioName(recipeRicettarioId(r))})` : ''}`));
     });
     const sections = [{ heading: 'Indice', lines: indiceLines }];
 
@@ -3157,6 +3407,9 @@
       ricetteCategoria.forEach(r=>{
         const recipeSections = recipePdfSections(r, r.servings || 1);
         recipeSections[0] = { ...recipeSections[0], heading: r.name, headingSize: 16, pageBreakBefore: true };
+        if(mostraRicettarioInPdf){
+          recipeSections[0] = { ...recipeSections[0], lines: [`Ricettario: ${ricettarioName(recipeRicettarioId(r))}`, ...recipeSections[0].lines] };
+        }
         sections.push(...recipeSections);
       });
     });
@@ -3200,7 +3453,10 @@
           alert(`Hai già una ricetta chiamata "${parsed.name}". Rinominala prima di importarla di nuovo, per evitare doppioni.`);
           return;
         }
-        const recipe = migrateRecipe({ ...parsed, id: cryptoId(), favorite: false, lastMade: null, timesMade: 0 });
+        // Il ricettarioId nel file si riferisce a un volume di chi l'ha esportata: qui non
+        // esiste, quindi la ricetta importata riparte sempre dal ricettario di partenza
+        // (si può comunque spostarla in un altro volume dopo, modificandola).
+        const recipe = migrateRecipe({ ...parsed, id: cryptoId(), ricettarioId: undefined, favorite: false, lastMade: null, timesMade: 0 });
         recipes.push(recipe);
         saveRecipes(); renderList(); renderPlanningDays();
         alert(`Importata la ricetta "${recipe.name}".`);
@@ -3624,7 +3880,7 @@
 
   // ---------- Export / Import backup ----------
   document.getElementById('export-btn').addEventListener('click', async ()=>{
-    const data = JSON.stringify({ recipes, weekPlan, mealTypes, dispensaItems, shoppingExtraItems, weekNotes }, null, 2);
+    const data = JSON.stringify({ recipes, ricettari, weekPlan, mealTypes, dispensaItems, shoppingExtraItems, weekNotes }, null, 2);
     const blob = new Blob([data], {type:'application/json'});
     const saved = await saveFileSmart(blob, `ricettario-backup-${new Date().toISOString().slice(0,10)}.json`, 'application/json', '.json', 'Backup JSON');
     if(!saved) return;
@@ -3676,6 +3932,25 @@
           parsed.mealTypes.forEach(mt=>{ if(mt && !mealTypes.includes(mt)) mealTypes.push(mt); });
           saveMealTypes();
         }
+        // I ricettari del backup arrivano con lo stesso id con cui le ricette li referenziano
+        // (ricettarioId): aggiungendo quelli nuovi e aggiornando quelli già noti (solo se si è
+        // scelto di sovrascrivere), le ricette importate ritrovano subito il volume giusto.
+        let addedRicettari = 0;
+        if(Array.isArray(parsed.ricettari)){
+          const existingRicettariIds = new Set(ricettari.map(rb=>rb.id));
+          parsed.ricettari.forEach(rb=>{
+            if(!rb || !rb.id) return;
+            if(existingRicettariIds.has(rb.id)){
+              if(overwrite){
+                const idx = ricettari.findIndex(x=>x.id===rb.id);
+                if(idx > -1) ricettari[idx] = rb;
+              }
+            }else{
+              ricettari.push(rb); addedRicettari++;
+            }
+          });
+          if(parsed.ricettari.length) saveRicettari();
+        }
         if(parsed.weekPlan){ weekPlan = {...weekPlan, ...parsed.weekPlan}; migrateWeekPlan(); saveWeek(); }
 
         let addedDispensa = 0, updatedDispensa = 0;
@@ -3704,11 +3979,12 @@
           });
           saveWeekNotes();
         }
-        saveRecipes(); renderList(); renderPlanningDays(); renderDispensaList();
+        saveRecipes(); refreshRicettarioSelects(); renderList(); renderPlanningDays(); renderDispensaList();
 
         let msg = `Ricette: ${addedRecipes} ${plural(addedRecipes,'aggiunta','aggiunte')}, ${updatedRecipes} ${plural(updatedRecipes,'aggiornata','aggiornate')}`;
         if(matchingRecipes.length && !overwrite) msg += `, ${matchingRecipes.length} già ${plural(matchingRecipes.length,'presente','presenti')} (non modificat${plural(matchingRecipes.length,'a','e')})`;
         msg += '.';
+        if(addedRicettari) msg += `\nRicettari: ${addedRicettari} nuov${plural(addedRicettari,'o','i')}.`;
         if(incomingDispensa.length){
           msg += `\nDispensa: ${addedDispensa} ${plural(addedDispensa,'aggiunto','aggiunti')}, ${updatedDispensa} ${plural(updatedDispensa,'aggiornato','aggiornati')}`;
           if(matchingDispensa.length && !overwrite) msg += `, ${matchingDispensa.length} già ${plural(matchingDispensa.length,'presente','presenti')} (non modificat${plural(matchingDispensa.length,'o','i')})`;
@@ -3795,11 +4071,12 @@
   }
 
   document.getElementById('export-csv-btn').addEventListener('click', ()=>{
-    const header = ['Nome','Categoria','Porzioni','Tempo (min)','Tag','Allergeni','Ingredienti','Passaggi','Note'];
+    const scope = document.getElementById('csv-ricettario-scope').value;
+    const header = ['Nome','Categoria','Ricettario','Porzioni','Tempo (min)','Tag','Allergeni','Ingredienti','Passaggi','Note'];
     const rows = [header];
-    recipes.forEach(r=>{
+    recipes.filter(r => !scope || recipeRicettarioId(r) === scope).forEach(r=>{
       rows.push([
-        r.name, r.category, r.servings, r.time,
+        r.name, r.category, ricettarioName(recipeRicettarioId(r)), r.servings, r.time,
         (r.tags || []).join(', '),
         (r.allergens || []).join(', '),
         r.ingredients.map(ingredientToCsvText).join(' | '),
@@ -3807,10 +4084,24 @@
         r.notes || ''
       ]);
     });
+    if(rows.length < 2){ alert('Nessuna ricetta da esportare con questo ricettario selezionato.'); return; }
     const csvContent = rows.map(toCsvRow).join('\r\n');
     const blob = new Blob(['\ufeff' + csvContent], {type:'text/csv;charset=utf-8;'});
-    saveFileSmart(blob, `ricette-${new Date().toISOString().slice(0,10)}.csv`, 'text/csv', '.csv', 'File CSV');
+    const safeScope = scope ? '-' + ricettarioName(scope).toLowerCase().replace(/[^\w]+/g,'-').replace(/^-+|-+$/g,'') : '';
+    saveFileSmart(blob, `ricette${safeScope}-${new Date().toISOString().slice(0,10)}.csv`, 'text/csv', '.csv', 'File CSV');
   });
+
+  // Trova un ricettario per nome (senza distinguere maiuscole/accenti) o lo crea al volo: usato
+  // dall'importazione CSV quando la colonna "Ricettario" nomina un volume che qui non esiste
+  // ancora, cos\u00ec l'importazione non obbliga a crearlo prima a mano.
+  function ricettarioIdByNameOrCreate(nome){
+    const n = normalize(nome);
+    const trovato = ricettari.find(rb => normalize(rb.name) === n);
+    if(trovato) return trovato.id;
+    const nuovo = { id: cryptoId(), name: nome.trim(), cover: '' };
+    ricettari.push(nuovo);
+    return nuovo.id;
+  }
 
   const importCsvBtn = document.getElementById('import-csv-btn');
   const importCsvFileInput = document.getElementById('import-csv-file-input');
@@ -3830,6 +4121,7 @@
         const idx = {
           name: header.indexOf('nome'),
           category: header.indexOf('categoria'),
+          ricettario: header.indexOf('ricettario'),
           servings: header.indexOf('porzioni'),
           time: header.findIndex(h => h.startsWith('tempo')),
           tags: header.indexOf('tag'),
@@ -3855,12 +4147,17 @@
           overwrite = confirm(`Il file CSV contiene ${matchingRows.length} ricett${plural(matchingRows.length,'a','e')} con un nome già presente.\n\nVuoi sostituirle con la versione dal CSV? (Annulla per lasciarle come sono e importare solo le altre)`);
         }
 
+        // Ricettario di ricaduta per le righe senza colonna "Ricettario" (o con cella vuota):
+        // quello scelto nel menu "Backup e CSV" per questa importazione, altrimenti quello di partenza.
+        const fallbackRicettarioId = document.getElementById('csv-ricettario-scope').value || DEFAULT_RICETTARIO_ID;
         let added = 0, updated = 0, skipped = 0;
 
         rows.forEach(row=>{
           const name = (row[idx.name] || '').trim();
           const key = name.toLowerCase();
           const existing = recipes.find(r => r.name.trim().toLowerCase() === key);
+          const ricettarioRaw = idx.ricettario > -1 ? (row[idx.ricettario] || '').trim() : '';
+          const ricettarioIdRiga = ricettarioRaw ? ricettarioIdByNameOrCreate(ricettarioRaw) : fallbackRicettarioId;
 
           const ingredients = (idx.ingredients > -1 ? (row[idx.ingredients] || '') : '')
             .split('|').map(s=>s.trim()).filter(Boolean).map(line=>{
@@ -3884,12 +4181,13 @@
             existing.ingredients = ingredients.length ? ingredients : [{name:'',qty:'',unit:''}];
             existing.steps = steps.length ? steps : [{text:'',vel:'',temp:'',time:'',mode:'Normale'}];
             existing.tags = tags; existing.allergens = allergens; existing.notes = notes;
+            if(idx.ricettario > -1 && ricettarioRaw) existing.ricettarioId = ricettarioIdRiga;
             updated++;
             return;
           }
 
           recipes.push(migrateRecipe({
-            id: cryptoId(), name, category, servings, time,
+            id: cryptoId(), name, category, servings, time, ricettarioId: ricettarioIdRiga,
             ingredients: ingredients.length ? ingredients : [{name:'',qty:'',unit:''}],
             steps: steps.length ? steps : [{text:'',vel:'',temp:'',time:'',mode:'Normale'}],
             tags, allergens, notes
@@ -3897,7 +4195,7 @@
           added++;
         });
 
-        saveRecipes(); renderList(); renderPlanningDays();
+        saveRecipes(); saveRicettari(); refreshRicettarioSelects(); renderList(); renderPlanningDays();
         let msg = `Ricette: ${added} ${plural(added,'aggiunta','aggiunte')}, ${updated} ${plural(updated,'aggiornata','aggiornate')}`;
         if(skipped) msg += `, ${skipped} già ${plural(skipped,'presente','presenti')} (non modificat${plural(skipped,'a','e')})`;
         msg += '.';
@@ -4542,11 +4840,24 @@
     const shoppingText = shoppingCount
       ? `${shoppingCount} voci da verificare per i pasti pianificati.`
       : (shoppingExtraItems.length ? `${shoppingExtraItems.length} promemoria dalla Dispensa.` : 'Nessuna lista della spesa da preparare.');
+    const libraryHtml = ricettari.map(rb=>{
+      const count = recipes.filter(r=>!r.archived && recipeRicettarioId(r) === rb.id).length;
+      const coverStyle = rb.cover ? `background-image:url('${rb.cover}');` : '';
+      return `
+        <button type="button" class="library-book${rb.cover ? '' : ' library-book-placeholder'}" data-ricettario="${escapeAttr(rb.id)}" style="${coverStyle}">
+          ${rb.cover ? '' : '<span class="library-book-icon">📚</span>'}
+          <span class="library-book-label"><b>${escapeHtml(rb.name)}</b><br>${count} ricett${count===1?'a':'e'}</span>
+        </button>`;
+    }).join('');
     content.innerHTML = `
       <div class="today-heading">
         <div><h2>☀️ Oggi</h2><p>${escapeHtml(dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1))}</p></div>
         <button type="button" class="btn-gold" id="today-plan-btn">📅 Organizza la settimana</button>
       </div>
+      <section class="today-library">
+        <div class="today-library-heading"><h3><span class="today-icon">📚</span> La tua libreria</h3><button type="button" class="btn-ghost btn-small" id="today-library-manage-btn">Gestisci ricettari</button></div>
+        <div class="library-shelf">${libraryHtml}</div>
+      </section>
       <div class="today-grid">
         <section class="today-card today-weather-card" id="today-weather-card"></section>
         <section class="today-card"><h3><span class="today-icon">🍽</span> I pasti di oggi</h3><ul class="today-list">${mealsHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-meals-btn">Apri pianificazione</button></div></section>
@@ -4580,6 +4891,15 @@
     document.getElementById('today-quick-dispensa-btn').addEventListener('click', ()=>switchView('dispensa'));
     document.getElementById('today-quick-shopping-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-quick-planning-btn').addEventListener('click', ()=>switchView('planning'));
+    document.getElementById('today-library-manage-btn').addEventListener('click', ()=> openRicettariManage());
+    content.querySelectorAll('.library-book').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        activeRicettarioFilter = btn.dataset.ricettario;
+        ricettarioFilterEl.value = activeRicettarioFilter;
+        switchView('recipes');
+        renderList();
+      });
+    });
     initWeatherCard();
   }
 
@@ -5737,6 +6057,7 @@
     migrateWeekPlan();
     planServingsInput.value = planServings;
     updatePantryPanelSub();
+    refreshRicettarioSelects();
     switchView('today');
     aggiornaTopbarAlerts();
     aggiornaControlliMenuStorage();

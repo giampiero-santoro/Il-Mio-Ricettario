@@ -7,32 +7,33 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 1. [ℹ️ Come funziona](#ℹ️-come-funziona)
 2. [Avvio](#avvio)
 3. [Aggiungere una ricetta](#aggiungere-una-ricetta)
-4. [Importare una ricetta da testo](#importare-una-ricetta-da-testo)
-5. [Esportare e importare una singola ricetta](#esportare-e-importare-una-singola-ricetta)
-6. [Impostazioni robot per i passaggi (facoltative)](#impostazioni-robot-per-i-passaggi-facoltative)
-7. [Impostazioni pentola a pressione (facoltative)](#impostazioni-pentola-a-pressione-facoltative)
-8. [Valori nutrizionali della ricetta](#valori-nutrizionali-della-ricetta)
-9. [🌾 Valori Alimenti dal sito CREA](#valori-alimenti-dal-sito-crea)
-10. [🇮🇹 Ricette dal sito CREA](#ricette-dal-sito-crea)
-11. [Tag dietetici e allergeni](#tag-dietetici-e-allergeni)
-12. [Visualizzare e scalare le porzioni](#visualizzare-e-scalare-le-porzioni)
-13. [Ricerca, filtri ed esclusione ingredienti](#ricerca-filtri-ed-esclusione-ingredienti)
-14. [Cosa posso cucinare?](#cosa-posso-cucinare)
-15. [Preferite, cronologia e contatore preparazioni](#preferite-cronologia-e-contatore-preparazioni)
-16. [Modalità cucina guidata e timer](#modalità-cucina-guidata-e-timer)
-17. [Pianificazione settimanale](#pianificazione-settimanale)
-18. [Lista della spesa](#lista-della-spesa)
-19. [Backup: esportazione e importazione](#backup-esportazione-e-importazione)
-20. [Esportazione PDF](#esportazione-pdf)
-21. [Esportare e importare CSV](#esportare-e-importare-csv)
-22. [Modificare, eliminare e archiviare](#modificare-eliminare-e-archiviare)
-23. [Dispensa](#dispensa)
-24. [Unità di misura](#unità-di-misura)
-25. [Tema grafico](#tema-grafico)
-26. [Salvataggio dei dati](#salvataggio-dei-dati)
-27. [Salvataggio su un file a tua scelta (facoltativo)](#salvataggio-su-un-file-a-tua-scelta-facoltativo)
-28. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
-29. [Domande frequenti](#domande-frequenti)
+4. [📚 Più ricettari](#-più-ricettari)
+5. [Importare una ricetta da testo](#importare-una-ricetta-da-testo)
+6. [Esportare e importare una singola ricetta](#esportare-e-importare-una-singola-ricetta)
+7. [Impostazioni robot per i passaggi (facoltative)](#impostazioni-robot-per-i-passaggi-facoltative)
+8. [Impostazioni pentola a pressione (facoltative)](#impostazioni-pentola-a-pressione-facoltative)
+9. [Valori nutrizionali della ricetta](#valori-nutrizionali-della-ricetta)
+10. [🌾 Valori Alimenti dal sito CREA](#valori-alimenti-dal-sito-crea)
+11. [🇮🇹 Ricette dal sito CREA](#ricette-dal-sito-crea)
+12. [Tag dietetici e allergeni](#tag-dietetici-e-allergeni)
+13. [Visualizzare e scalare le porzioni](#visualizzare-e-scalare-le-porzioni)
+14. [Ricerca, filtri ed esclusione ingredienti](#ricerca-filtri-ed-esclusione-ingredienti)
+15. [Cosa posso cucinare?](#cosa-posso-cucinare)
+16. [Preferite, cronologia e contatore preparazioni](#preferite-cronologia-e-contatore-preparazioni)
+17. [Modalità cucina guidata e timer](#modalità-cucina-guidata-e-timer)
+18. [Pianificazione settimanale](#pianificazione-settimanale)
+19. [Lista della spesa](#lista-della-spesa)
+20. [Backup: esportazione e importazione](#backup-esportazione-e-importazione)
+21. [Esportazione PDF](#esportazione-pdf)
+22. [Esportare e importare CSV](#esportare-e-importare-csv)
+23. [Modificare, eliminare e archiviare](#modificare-eliminare-e-archiviare)
+24. [Dispensa](#dispensa)
+25. [Unità di misura](#unità-di-misura)
+26. [Tema grafico](#tema-grafico)
+27. [Salvataggio dei dati](#salvataggio-dei-dati)
+28. [Salvataggio su un file a tua scelta (facoltativo)](#salvataggio-su-un-file-a-tua-scelta-facoltativo)
+29. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
+30. [Domande frequenti](#domande-frequenti)
 
 ## ℹ️ Come funziona
 
@@ -55,6 +56,20 @@ La navigazione (Oggi, Ricettario, Pianificazione, Dispensa…) è una barra late
 7. Premi **"Salva ricetta"**
 
 Se chiudi il modulo (con la "×" o toccando fuori) mentre hai scritto qualcosa senza aver ancora salvato, il ricettario chiede conferma prima di buttare via le modifiche — capita anche provando a chiudere la scheda del browser o a navigare altrove. Vale anche per il modulo dei prodotti in Dispensa.
+
+## 📚 Più ricettari
+
+Le ricette possono essere organizzate in più "volumi" distinti — ad esempio "Ricette mie", "Ricette della nonna", "Ricette di Andrea" — invece di stare tutte in un unico elenco. Ogni ricetta appartiene a **un solo ricettario per volta**.
+
+- Nella pagina **"☀️ Oggi"**, la sezione **"📚 La tua libreria"** mostra tutti i tuoi ricettari come dorsi di libri affiancati, ciascuno con il numero di ricette che contiene. Toccandone uno vai dritto al Ricettario già filtrato su quel volume
+- **"Gestisci ricettari"** (sotto la libreria in Oggi, oppure il pulsante omonimo in cima al Ricettario) apre il pannello dove puoi:
+  - **rinominare** un ricettario (modifica direttamente il nome e premi fuori dal campo per salvare)
+  - assegnargli una **copertina** personalizzata: premi "📷 Copertina", scegli una foto e ritagliala con lo stesso editor usato per le foto delle ricette — senza copertina viene mostrata un'icona 📚 su sfondo colorato
+  - **eliminarlo**: se è vuoto sparisce subito; se contiene ancora ricette, ti viene chiesto se spostarle in un altro ricettario (restano tutte, solo cambiano "scaffale") oppure eliminarle insieme al volume. Deve sempre restare almeno un ricettario
+  - crearne uno **nuovo**: scrivi il nome (e, se vuoi, scegli una copertina prima di premere "+ Aggiungi")
+- Nel modulo di una ricetta, il campo **"Ricettario"** accanto alla categoria indica dove salvarla — una nuova ricetta parte già nel volume che stai guardando in quel momento, se ne hai aperto uno specifico dalla libreria
+- Nella vista Ricettario, il menu a tendina accanto a quello della categoria **filtra per ricettario** ("Tutti i ricettari" mostra tutto insieme, come prima). La Pianificazione e "Cosa posso cucinare?" continuano invece a cercare sempre su **tutti i ricettari insieme**, per non perdere di vista nessuna ricetta mentre pianifichi la settimana
+- Quando esiste più di un ricettario, ogni card e la scheda dettagliata mostrano una piccola etichetta 📚 con il nome del volume a cui appartiene la ricetta
 
 ## Importare una ricetta da testo
 
@@ -145,6 +160,7 @@ Nel modulo di modifica puoi spuntare **"❄️ Si congela bene"** per le ricette
 
 - Il campo di ricerca cerca sia nel nome della ricetta sia negli ingredienti
 - Il menu a tendina filtra per categoria
+- Se hai più di un ricettario, un altro menu a tendina filtra per ricettario (vedi [📚 Più ricettari](#-più-ricettari)) — "Tutti i ricettari" mostra tutto insieme
 - Il menu a tendina accanto alla categoria cambia l'ordine della lista: Nome (A-Z o Z-A), Aggiunta di recente, Ultima preparata, Più preparate — di base è per nome (A-Z)
 - **Il menu "Qualsiasi tempo"** filtra per tempo di preparazione: entro 15 min, entro 30 min, entro 1 ora, oppure "Con tempo indicato" (mostra solo le ricette a cui hai effettivamente assegnato un tempo, qualunque esso sia). Una ricetta senza tempo indicato non compare in nessuna delle soglie, comprese "entro 15/30/60 min" — non viene considerata "veloce" solo perché non sai quanto ci vuole
 - **"★ Solo preferite"** mostra solo le ricette con la stellina
@@ -230,7 +246,7 @@ Ogni ingrediente che compare più volte (anche da ricette diverse, se pianifichi
 
 Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **"📦 Backup e CSV"** in alto, per non affollare la pagina. In cima al menu trovi anche un promemoria discreto ("Ultimo backup: X giorni fa"), che diventa rosso dopo due settimane senza backup.
 
-- **Esporta backup**: scarica un file `.json` con tutte le ricette, la pianificazione settimanale, le fasce pasto personalizzate e i promemoria di ingredienti mancanti dalla Dispensa. Fallo periodicamente, o prima di cancellare i dati del browser
+- **Esporta backup**: scarica un file `.json` con tutte le ricette (con il ricettario a cui appartengono), i ricettari stessi con le loro copertine, la pianificazione settimanale, le fasce pasto personalizzate e i promemoria di ingredienti mancanti dalla Dispensa. Fallo periodicamente, o prima di cancellare i dati del browser
 - **Importa backup**: seleziona un file `.json` esportato in precedenza per ricaricare i dati. Le ricette e i prodotti Dispensa nuovi (identificativo non già presente) vengono sempre aggiunti; se il backup contiene anche voci già presenti (stesso identificativo — capita importando un backup più recente esportato da un altro dispositivo), ti viene chiesto una volta se sostituirle con la versione dal backup oppure lasciarle come sono. Alla fine un riepilogo ti dice quante ne sono state aggiunte, aggiornate o lasciate invariate
 
 ## Esportazione PDF
@@ -238,7 +254,9 @@ Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **
 - Dalla vista di una ricetta, il menu **"⬇ Esporta ▾"** offre **"⬇ Esporta PDF"** per scaricarla come file (con ingredienti già scalati alle porzioni che stai visualizzando)
 - Dalla lista della spesa (settimana, giorno o singola ricetta), **"⬇ Esporta PDF"** scarica la lista come file
 - Dalla vista Pianificazione, **"⬇ Esporta PDF settimana"** scarica un file con il piano di tutti i giorni insieme alla lista della spesa aggregata
-- Per stampare o portare con te **tutto il ricettario**: menu **"📦 Backup e CSV" → "📖 Esporta tutto il ricettario (PDF)"**. Scarica un unico file con un indice iniziale (i nomi di tutte le ricette, nell'ordine in cui le hai ordinate nell'elenco) seguito da ogni ricetta su una pagina nuova, alle sue porzioni base, con ingredienti, passaggi, valori nutrizionali e note come nell'esportazione di una singola ricetta. Le ricette **archiviate** restano escluse, come nel resto del sito
+- Per stampare o portare con te **tutto il ricettario**: menu **"📦 Backup e CSV" → "📖 Esporta ricettario in PDF…"**. Scarica un unico file con un indice iniziale (i nomi di tutte le ricette, nell'ordine in cui le hai ordinate nell'elenco) seguito da ogni ricetta su una pagina nuova, alle sue porzioni base, con ingredienti, passaggi, valori nutrizionali e note come nell'esportazione di una singola ricetta. Le ricette **archiviate** restano escluse, come nel resto del sito
+- Nella stessa finestra puoi scegliere **quali ricette includere**: cerca per nome, spunta singole ricette o intere categorie, oppure apri **"🔍 Filtra per cottura, tag o allergeni"** per restringere l'elenco anche per metodo di cottura, tag dietetici, allergeni esclusi e **ricettario** (filtri combinabili). "Seleziona tutte (visibili)" seleziona solo ciò che risulta dai filtri correnti, senza perdere una selezione fatta in precedenza con un filtro diverso
+- Se esporti ricette di **più ricettari insieme**, sotto il titolo di ogni ricetta (e accanto al suo nome nell'indice) compare da quale ricettario viene — superfluo, e quindi omesso, quando filtri su un solo volume alla volta
 - Il PDF è generato interamente dal ricettario stesso (nessun servizio esterno): supporta più pagine e le lettere accentate italiane; eventuali emoji o simboli non standard nel testo vengono sostituiti con "?"
 - Non è più disponibile la stampa diretta dal browser (la finestra "Stampa" di sistema): su alcuni dispositivi, in particolare mobile, produceva un foglio vuoto. L'esportazione PDF sostituisce completamente questa funzione ed è più affidabile, perché genera un file scaricabile senza passare dalla finestra di stampa
 
@@ -246,8 +264,9 @@ Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **
 
 Oltre al backup JSON completo, puoi scambiare le ricette in formato CSV (una riga per ricetta), comodo per aprirle in Excel o Fogli Google:
 
-- **"⬇ Esporta CSV"** scarica un file `.csv` con tutte le tue ricette: nome, categoria, porzioni, tempo, tag, allergeni, ingredienti e passaggi sono ciascuno in una colonna. Dentro la stessa cella, più ingredienti o passaggi sono separati da " | "
+- **"⬇ Esporta CSV"** scarica un file `.csv` con le tue ricette: nome, categoria, **ricettario**, porzioni, tempo, tag, allergeni, ingredienti e passaggi sono ciascuno in una colonna. Dentro la stessa cella, più ingredienti o passaggi sono separati da " | ". Il menu a tendina **"Ricettario per CSV/PDF singoli"**, appena sopra i pulsanti CSV, limita l'esportazione a un solo ricettario invece di tutti insieme — utile per scambiare, ad esempio, solo le "Ricette della nonna" con qualcun altro
 - **"⬆ Importa CSV"** legge un file con lo stesso formato (le colonne Nome, Ingredienti e Passaggi sono obbligatorie) e aggiunge le ricette che non hai già (il confronto è per nome). Per quelle che invece corrispondono a un nome già presente, ti viene chiesto una volta se sostituirle con la versione dal CSV o lasciarle come sono — se scegli di sostituirle, foto, preferita e cronologia della ricetta esistente restano invariate, dato che il CSV non le contiene
+- Se il CSV ha una colonna **Ricettario**, ogni riga va a finire in quel ricettario (creato al volo se non esiste ancora, cercandolo per nome); le righe senza quella colonna, o con la cella vuota, usano il ricettario scelto nel menu a tendina sopra i pulsanti CSV
 - Il riconoscimento di quantità/unità negli ingredienti e delle impostazioni robot nei passaggi è automatico ma approssimativo, soprattutto se modifichi il CSV a mano: controlla sempre le ricette importate
 
 ## Modificare, eliminare e archiviare
