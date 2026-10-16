@@ -56,6 +56,14 @@ async def _pianifica_ricetta(page):
     page.next_dialog_action = "dismiss"  # non aggiungere extra alla lista spesa dal prompt nativo
     await item.first.click()
     await page.locator("#recipe-picker-overlay").wait_for(state="hidden", timeout=5000)
+    # La griglia settimanale deve mostrare la cella riempita
+    check(await page.locator(".plan-grid .plan-meal-block.filled").count() >= 1,
+          "La griglia settimanale non mostra la ricetta pianificata")
+    # La visualizzazione "Giorno" (usata su smartphone) deve restare disponibile
+    await page.click("#plan-mode-day")
+    await page.locator(".plan-day-shopping-btn").first.wait_for(state="visible", timeout=5000)
+    await page.click("#plan-mode-week")
+    await page.locator(".plan-grid").wait_for(state="visible", timeout=5000)
 
 
 async def run(page):
@@ -65,7 +73,7 @@ async def run(page):
     await _pianifica_ricetta(page)
 
     # --- Genera la lista della spesa del giorno pianificato e verifica la conversione unità ---
-    day_shopping_btn = page.locator(".plan-day-shopping-btn").first
+    day_shopping_btn = page.locator(".plan-grid-day-shopping").first
     await day_shopping_btn.click()
     await page.locator("#shopping-overlay").wait_for(state="visible", timeout=5000)
 

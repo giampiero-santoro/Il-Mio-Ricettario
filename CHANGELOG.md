@@ -2,6 +2,25 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.0.0] — Nuova grafica "Cucina Naturale Contemporanea"
+
+### Cambiato
+- **Tutta l'interfaccia è stata ridisegnata**: sfondo avorio caldo, verde salvia come colore identificativo, terracotta solo per piccoli dettagli e azioni secondarie; font DM Sans (interfaccia) e Lora (titoli e ricette). Schede con angoli morbidi, ombre leggere, icone semplici a linea.
+- **Barra laterale ordinata per gruppi** (Oggi/Ricette/Preferiti · Organizza · Banche dati CREA · Gestione), con voce attiva su fondo verde chiaro e indicatore salvia; barra superiore discreta con ricerca, "aggiungi ricetta" e avvisi. Su tablet resta a sole icone; su telefono compare una **barra a schede in basso** (Oggi, Ricette, Piano, Dispensa, Spesa) oltre al menu ☰.
+- **Oggi**: data, saluto discreto (in base all'ora, senza nomi inventati), "I pasti di oggi" con foto, "La mia settimana", "Accesso rapido" e "Le tue ricette preferite"; meteo, "Da consumare prima", lista della spesa e libreria dei ricettari restano più in basso.
+- **Le mie ricette**: titolo, ricerca, categorie a pillole, ordinamento e griglia di schede con foto, categoria, tempo, porzioni e cuore (solo i dati presenti).
+- **Dettaglio ricetta**: titolo in Lora, ingredienti in tabella con scala porzioni, procedimento a passi numerati, "Informazioni aggiuntive" e azioni sempre a portata.
+- **Dispensa**: tabella ordinata (ingrediente, quantità, unità, categoria) con pallino di stato, segnalazione "In esaurimento"/scadenza e icone modifica/elimina su ogni riga.
+- **Pianificazione**: nuova **griglia settimanale** (giorni × fasce pasto) su schermi larghi, con celle vuote/riempite ben distinguibili e giorno corrente evidenziato; interruttore Settimana/Giorno; su smartphone resta un giorno alla volta con navigazione tra i giorni. Aggiunta, rimozione, porzioni, ✓ consumato, lista della spesa del giorno e fasce pasto funzionano come prima.
+- Icone dell'app (PWA, schermata Home, favicon) e colore del tema ricolorati in verde salvia.
+
+### Corretto
+- Il cassetto laterale chiuso su telefono lasciava un'ombra visibile sul bordo sinistro.
+- L'icona di ricerca della barra superiore si sovrapponeva al testo.
+
+### Invariato
+- Nessuna modifica al salvataggio dei dati (localStorage, file facoltativo), né alle funzioni esistenti (CREA, Open Food Facts, PDF, CSV, backup, ricettari, tema scuro facoltativo).
+
 ## [4.4.0] — Più ricettari, come volumi di una libreria
 
 ### Aggiunto

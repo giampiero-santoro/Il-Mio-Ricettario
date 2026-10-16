@@ -2,14 +2,14 @@
 
 Elenco di tutti i file che devono essere caricati insieme su GitHub perché il sito funzioni correttamente. Non tiene uno storico delle versioni precedenti — la cronologia delle modifiche è già in [CHANGELOG.md](CHANGELOG.md); questo file mostra solo **la situazione attuale**, e va sovrascritto ogni volta che cambia l'elenco dei file coinvolti.
 
-**Versione corrente: 4.4.0**
+**Versione corrente: 5.0.0**
 
 ## File essenziali (senza uno di questi il sito non parte, o parte con funzioni mancanti)
 
 | File | A cosa serve |
 |---|---|
 | `index.html` | La struttura delle pagine del sito |
-| `style.css` | Tutto lo stile grafico del sito (barra laterale, card, tema chiaro/scuro) |
+| `style.css` | Tutto lo stile grafico del sito (sistema grafico avorio/salvia, barra laterale, card, griglia pianificazione, tema chiaro/scuro) |
 | `js/app.js` | Tutta la logica dell'app (ricette, dispensa, pianificazione, lista spesa, backup, temi) |
 | `js/crea-nutrition.js` | Ricerca CREA (alimenti, ricette, scheda nutrizionale completa) — usato da ingredienti, Dispensa, "CREA Alimenti", "CREA Menù" |
 | `js/off-integration.js` | Ricerca e scansione barcode su Open Food Facts, usato dal form Dispensa |

@@ -18,11 +18,11 @@
   // dell'introduzione dei "più ricettari" continuano a trovarlo dopo l'aggiornamento.
   const DEFAULT_RICETTARIO_ID = 'default';
   const PANTRY_CATEGORY_COLORS = {
-    'Frutta': '#d17b3f', 'Verdura': '#5c8a3a', 'Uova': '#d9a94a', 'Salumi': '#a13d3d',
-    'Latticini e pronti': '#c9a227', 'Surgelati': '#4f7f8b', 'Pasta, riso e cereali': '#8a6642',
-    'Legumi': '#6b5b3a', 'Farine, zucchero e lieviti': '#a68a5b', 'Conserve e scatolame': '#7a5230',
-    'Spezie e condimenti': '#9c4b1f', 'Oli, aceti e grassi': '#8a7a2e', 'Bevande': '#3f6e9c',
-    'Snack e dolciumi': '#b83a6b', 'Altro': '#3f6e79'
+    'Frutta': '#D08A55', 'Verdura': '#6F8F5E', 'Uova': '#D4AE5C', 'Salumi': '#A65C55',
+    'Latticini e pronti': '#C9AE5A', 'Surgelati': '#6F95A0', 'Pasta, riso e cereali': '#A58459',
+    'Legumi': '#8A7B58', 'Farine, zucchero e lieviti': '#B79F76', 'Conserve e scatolame': '#8F6B4A',
+    'Spezie e condimenti': '#B0683F', 'Oli, aceti e grassi': '#9C9A4A', 'Bevande': '#6B8CAD',
+    'Snack e dolciumi': '#B8788A', 'Altro': '#7A7F78'
   };
   // Icona di riserva per la card Dispensa quando il prodotto non ha una foto
   // OFF: stessa logica delle illustrazioni-segnaposto delle card ricetta.
@@ -148,9 +148,9 @@
   let cookTimerRemaining = 0;
 
   const CATEGORY_COLORS = {
-    'Primi': '#c1440e', 'Secondi': '#8b2635', 'Zuppe & Vellutate': '#5c7a3a',
-    'Impasti & Pane': '#b8892c', 'Salse & Sughi': '#a64b2a', 'Dolci': '#b83a6b',
-    'Infusi & Tisane': '#8a6642', 'Altro': '#3f6e79'
+    'Primi': '#C77855', 'Secondi': '#9A5A48', 'Zuppe & Vellutate': '#6F8F5E',
+    'Impasti & Pane': '#B8934F', 'Salse & Sughi': '#B5654A', 'Dolci': '#B8788A',
+    'Infusi & Tisane': '#7B8F7A', 'Altro': '#7A7F78'
   };
   // Un piccolo simbolo per categoria, usato come illustrazione al posto della
   // foto nelle card senza immagine: così l'elenco ricette resta curato anche
@@ -582,7 +582,7 @@
   // "Non chiedere più": scollega davvero il file, così il banner non ricompare
   // più. I dati restano nella memoria del browser, come sempre.
   document.getElementById('file-reconnect-stop-btn').addEventListener('click', async () => {
-    if (!confirm('Vuoi smettere di usare il file di salvataggio?\n\nI tuoi dati restano salvati nella memoria di questo browser e non perdi nulla. Potrai ricollegare un file quando vuoi da "📦 Backup e CSV".')) return;
+    if (!confirm('Vuoi smettere di usare il file di salvataggio?\n\nI tuoi dati restano salvati nella memoria di questo browser e non perdi nulla. Potrai ricollegare un file quando vuoi da "Backup e CSV".')) return;
     fileCollegatoInAttesaDiPermesso = null;
     fileCollegatoHandle = null;
     try { await cancellaHandleFileSalvato(); } catch (err) { console.error(err); }
@@ -602,11 +602,11 @@
         aggiornaControlliMenuStorage();
         location.reload(); // il modo più semplice e sicuro per rileggere tutto con i nuovi dati
       } else {
-        alert('Permesso non concesso: il file resta scollegato per questa sessione. Puoi riprovare o collegarne un altro dal menu "📦 Backup e CSV".');
+        alert('Permesso non concesso: il file resta scollegato per questa sessione. Puoi riprovare o collegarne un altro dal menu "Backup e CSV".');
       }
     } catch (err) {
       console.error('Errore nel richiedere il permesso sul file collegato:', err);
-      alert('Non è stato possibile riconnettersi al file. Puoi collegarne un altro dal menu "📦 Backup e CSV".');
+      alert('Non è stato possibile riconnettersi al file. Puoi collegarne un altro dal menu "Backup e CSV".');
     }
   });
 
@@ -897,6 +897,30 @@
       overlay.classList.add('active');
       okBtn.focus();
     });
+  }
+
+  // ---------- Icone (sprite SVG in index.html) e piccoli pezzi di markup condivisi ----------
+  function icon(name, cls){
+    return `<svg class="ico${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+  }
+  function porzioniLabel(n){ return `${n} ${n === 1 ? 'porzione' : 'porzioni'}`; }
+  // Miniatura della ricetta: la foto, oppure un segnaposto tinto con la categoria
+  function recipeThumbHtml(r){
+    return r.photo
+      ? `<img class="thumb" src="${r.photo}" alt="${escapeAttr(r.name)}">`
+      : `<div class="thumb thumb-placeholder" aria-hidden="true"><span>${CATEGORY_ICONS[r.category] || '🍽️'}</span></div>`;
+  }
+  // Solo i dati davvero presenti: il tempo compare se c'è, le porzioni hanno sempre un valore
+  function recipeMetaHtml(r){
+    return `${r.time ? `<span>${icon('clock')} ${r.time} min</span>` : ''}<span>${icon('user')} ${porzioniLabel(r.servings)}</span>`;
+  }
+  function recipeTagsHtml(r){
+    return `<span class="cat-tag">${escapeHtml(r.category)}</span>`
+      + (ricettari.length > 1 ? `<span class="ricettario-tag" title="Ricettario">${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : '')
+      + (recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : '')
+      + (recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : '')
+      + (recipeHasAirFryer(r) ? '<span class="airfryer-badge" title="Ha passaggi per friggitrice ad aria">🌀</span>' : '')
+      + (recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot, pentola a pressione o friggitrice ad aria">🔥</span>' : '');
   }
 
   // ---------- List rendering ----------
@@ -1366,6 +1390,8 @@
   }
 
   function renderList(){
+    syncCategoryChips();
+    syncFavoritesUi();
     let filtered = getFilteredRecipes();
 
     listEl.innerHTML = '';
@@ -1395,7 +1421,7 @@
       scored.forEach(({recipe:r, match, priorityMatches})=>{
         const card = document.createElement('div');
         card.className = 'card';
-        card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8c6a2f');
+        card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8A8F86');
         const ready = match.missing.length === 0;
         const scarso = match.insufficienti.length > 0;
         const badge = ready
@@ -1403,20 +1429,19 @@
                     : `<span class="match-badge ready">✓ Puoi farla</span>`)
           : `<span class="match-badge missing">Manca ${match.missing.length} ingr.</span>`;
         card.innerHTML = `
-          ${badge}
-          ${ready ? `<div class="pantry-caveat">Controllare le quantità effettive che hai a disposizione</div>` : ''}
-          ${priorityMatches.length ? `<div class="match-badge ready" style="position:static;display:inline-block;margin:0 0 6px;">🍽 Usa prima: ${priorityMatches.map(escapeHtml).join(', ')}</div>` : ''}
-          ${ricettari.length > 1 ? `<span class="ricettario-tag" title="Ricettario">📚 ${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : ''}
-          ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
-          ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
-          ${recipeHasAirFryer(r) ? '<span class="airfryer-badge" title="Ha passaggi per friggitrice ad aria">🌀</span>' : ''}
-          ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot, pentola a pressione o friggitrice ad aria">🔥</span>' : ''}
-          <h3>${escapeHtml(r.name)}</h3>
-          <div class="meta"><span>${r.servings} porzioni base</span>${r.time?`<span>· ${r.time} min</span>`:''}</div>
-          ${!ready?`<div class="missing-list"><b>Ti manca:</b> ${match.missing.map(escapeHtml).join(', ')}</div>`:''}
-          ${scarso?`<div class="missing-list scarso"><b>Per ${porzioniRichieste} porzioni potrebbe non bastare:</b> ${
-            match.insufficienti.map(i=>`${escapeHtml(i.nome)} (servono ${roundNice(i.serve)} ${escapeHtml(i.unita)}, hai ${roundNice(i.hai)})`).join(', ')
-          }</div>`:''}
+          ${recipeThumbHtml(r)}
+          <div class="card-body">
+            ${badge}
+            ${ready ? `<div class="pantry-caveat">Controllare le quantità effettive che hai a disposizione</div>` : ''}
+            ${priorityMatches.length ? `<div class="match-badge ready">Usa prima: ${priorityMatches.map(escapeHtml).join(', ')}</div>` : ''}
+            <h3>${escapeHtml(r.name)}</h3>
+            <div class="card-badges">${recipeTagsHtml(r)}</div>
+            <div class="meta">${recipeMetaHtml(r)}</div>
+            ${!ready?`<div class="missing-list"><b>Ti manca:</b> ${match.missing.map(escapeHtml).join(', ')}</div>`:''}
+            ${scarso?`<div class="missing-list scarso"><b>Per ${porzioniRichieste} porzioni potrebbe non bastare:</b> ${
+              match.insufficienti.map(i=>`${escapeHtml(i.nome)} (servono ${roundNice(i.serve)} ${escapeHtml(i.unita)}, hai ${roundNice(i.hai)})`).join(', ')
+            }</div>`:''}
+          </div>
         `;
         card.addEventListener('click', ()=> openView(r.id));
         makeKeyboardClickable(card, r.name);
@@ -1435,27 +1460,18 @@
       card.dataset.recipeId = r.id;
       const selezionata = ricetteSelezionate.has(r.id);
       if(selectionMode && selezionata) card.classList.add('selezionata');
-      card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8c6a2f');
+      card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8A8F86');
       card.innerHTML = `
         ${selectionMode
-          ? `<span class="card-select-box">${selezionata ? '☑️' : '⬜'}</span>`
-          : `<button class="star ${r.favorite?'active':''}" data-id="${r.id}">★</button>`}
-        ${r.photo
-          ? `<img class="thumb" src="${r.photo}" alt="${escapeAttr(r.name)}">`
-          : `<div class="thumb thumb-placeholder" aria-hidden="true">${CATEGORY_ICONS[r.category] || '🍽️'}</div>`}
-        <span class="cat-tag">${escapeHtml(r.category)}</span>
-        ${ricettari.length > 1 ? `<span class="ricettario-tag" title="Ricettario">📚 ${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : ''}
-        ${recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : ''}
-        ${recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : ''}
-        ${recipeHasAirFryer(r) ? '<span class="airfryer-badge" title="Ha passaggi per friggitrice ad aria">🌀</span>' : ''}
-        ${recipeIsTraditional(r) ? '<span class="traditional-badge" title="Ricetta tradizionale, senza robot, pentola a pressione o friggitrice ad aria">🔥</span>' : ''}
-        <h3>${escapeHtml(r.name)}</h3>
-        <div class="meta">
-          <span>${r.servings} porzioni base</span>
-          ${r.time ? `<span>· ${r.time} min</span>` : ''}
-          <span>· ${r.ingredients.length} ingredienti</span>
+          ? `<span class="card-select-box" aria-hidden="true">${selezionata ? '☑' : '☐'}</span>`
+          : `<button class="star ${r.favorite?'active':''}" data-id="${r.id}" aria-pressed="${r.favorite ? 'true' : 'false'}" aria-label="${r.favorite ? 'Togli dai preferiti' : 'Aggiungi ai preferiti'}: ${escapeAttr(r.name)}">${icon('heart')}</button>`}
+        ${recipeThumbHtml(r)}
+        <div class="card-body">
+          <h3>${escapeHtml(r.name)}</h3>
+          <div class="card-badges">${recipeTagsHtml(r)}</div>
+          <div class="meta">${recipeMetaHtml(r)}</div>
+          ${r.lastMade ? `<div class="last-made">${lastMadeLabel(r.lastMade)}</div>` : ''}
         </div>
-        ${r.lastMade ? `<div class="last-made">${lastMadeLabel(r.lastMade)}</div>` : ''}
       `;
       const star = card.querySelector('.star');
       if(star){
@@ -1492,16 +1508,50 @@
     sortMode = sortSelectEl.value;
     renderList();
   });
-  favoritesFilterBtn.addEventListener('click', ()=>{
-    favoritesOnly = !favoritesOnly;
+  function syncFavoritesUi(){
     favoritesFilterBtn.classList.toggle('btn-gold', favoritesOnly);
     favoritesFilterBtn.classList.toggle('btn-ghost', !favoritesOnly);
+    favoritesFilterBtn.setAttribute('aria-pressed', String(favoritesOnly));
+    const title = document.getElementById('recipes-title');
+    if(title) title.textContent = favoritesOnly ? 'Preferiti' : 'Le mie ricette';
+    updateNavActive();
+  }
+  function setFavoritesOnly(v){
+    favoritesOnly = !!v;
     renderList();
-  });
+  }
+  favoritesFilterBtn.addEventListener('click', ()=> setFavoritesOnly(!favoritesOnly));
+
+  // Chip delle categorie: specchio del menu nascosto #category-filter (che resta la
+  // fonte del valore, così tutto il resto del codice continua a leggerlo da lì).
+  const categoryChipsEl = document.getElementById('category-chips');
+  function buildCategoryChips(){
+    categoryChipsEl.innerHTML = '';
+    Array.from(categoryFilterEl.options).forEach(opt=>{
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.dataset.value = opt.value;
+      b.textContent = opt.value === '' ? 'Tutte' : opt.textContent;
+      b.addEventListener('click', ()=>{
+        categoryFilterEl.value = opt.value;
+        renderList();
+      });
+      categoryChipsEl.appendChild(b);
+    });
+  }
+  function syncCategoryChips(){
+    categoryChipsEl.querySelectorAll('.chip').forEach(b=>{
+      const on = b.dataset.value === categoryFilterEl.value;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+  }
+  buildCategoryChips();
   const archivedFilterBtn = document.getElementById('archived-filter-btn');
   archivedFilterBtn.addEventListener('click', ()=>{
     showArchivedOnly = !showArchivedOnly;
-    archivedFilterBtn.textContent = showArchivedOnly ? '📂 Mostra attive' : '📦 Mostra archiviate';
+    archivedFilterBtn.textContent = showArchivedOnly ? 'Mostra attive' : 'Mostra archiviate';
     archivedFilterBtn.classList.toggle('btn-gold', showArchivedOnly);
     archivedFilterBtn.classList.toggle('btn-ghost', !showArchivedOnly);
     renderList();
@@ -1587,12 +1637,12 @@
       const checked = pantryPickerDraft.has(it.id);
       return `
       <div class="recipe-picker-item" data-id="${it.id}">
-        <span class="card-select-box">${checked ? '☑️' : '⬜'}</span>
-        <span class="cat-dot" style="background:${PANTRY_CATEGORY_COLORS[it.category] || '#8c6a2f'}"></span>
+        <span class="card-select-box" style="position:static;">${checked ? '☑' : '☐'}</span>
+        <span class="cat-dot" style="background:${PANTRY_CATEGORY_COLORS[it.category] || '#8A8F86'}"></span>
         <span class="name">${escapeHtml(it.name)}</span>
         <span class="meta">${escapeHtml(it.category)}</span>
       </div>
-    `;}).join('') : '<div class="recipe-picker-empty">Nessun prodotto in dispensa. Aggiungine uno dalla vista "🥫 Dispensa".</div>';
+    `;}).join('') : '<div class="recipe-picker-empty">Nessun prodotto in dispensa. Aggiungine uno dalla vista Dispensa.</div>';
     pantryPickerList.querySelectorAll('.recipe-picker-item').forEach(item=>{
       item.addEventListener('click', ()=>{
         const id = item.dataset.id;
@@ -1714,7 +1764,7 @@
   const advFiltersPanel = document.getElementById('advanced-filters-panel');
   function updateFiltersCount(){
     const count = (pressureOnly?1:0) + (robotOnly?1:0) + (airFryerOnly?1:0) + (traditionalOnly?1:0) + activeTagFilters.size + activeAllergenExclusions.size + (excludeItems.length?1:0);
-    advFiltersToggle.textContent = count ? `🔍 Filtri (${count}) ▾` : '🔍 Filtri ▾';
+    advFiltersToggle.textContent = count ? `Cottura, tag ed esclusioni (${count}) ▾` : 'Cottura, tag ed esclusioni ▾';
   }
   advFiltersToggle.addEventListener('click', ()=>{
     const opening = advFiltersPanel.style.display === 'none';
@@ -1874,7 +1924,7 @@
     creaRicetteList.innerHTML = elenco.length ? elenco.map(r => `
       <label class="crea-ricetta-picker-item">
         <input type="checkbox" class="crea-ricetta-check" value="${escapeAttr(r.id)}" ${creaRicetteSelezionate.has(r.id) ? 'checked' : ''}>
-        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.categoria_suggerita] || '#8c6a2f'}"></span>
+        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.categoria_suggerita] || '#8A8F86'}"></span>
         <span class="name">${escapeHtml(r.nome)}</span>
         <span class="meta">${escapeHtml(r.categoria_suggerita)}</span>
       </label>
@@ -2216,7 +2266,7 @@
     );
     creaMenuList.innerHTML = match.length ? match.map(r => `
       <div class="crea-elenco-riga" data-id="${escapeAttr(r.id)}">
-        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.categoria_suggerita] || '#8c6a2f'}"></span>
+        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.categoria_suggerita] || '#8A8F86'}"></span>
         <span class="nome">${escapeHtml(r.nome)}</span>
         <span class="meta">${escapeHtml(r.categoria_suggerita)}</span>
       </div>
@@ -2264,7 +2314,7 @@
 
     creaMenuDettaglioContent.innerHTML = `
       <div class="crea-menu-dettaglio">
-        <span class="cat-tag" style="background:${CATEGORY_COLORS[r.categoria_suggerita] || '#8c6a2f'};">${escapeHtml(r.categoria_suggerita)}</span>
+        <span class="cat-tag" style="background:${CATEGORY_COLORS[r.categoria_suggerita] || '#8A8F86'};">${escapeHtml(r.categoria_suggerita)}</span>
         <h2>${escapeHtml(r.nome)}</h2>
         <div class="crea-menu-meta">${[
           r.porzioni_testo ? escapeHtml(r.porzioni_testo) : '',
@@ -2858,18 +2908,17 @@
 
   function renderView(r){
     viewCategory.textContent = r.category;
-    viewCategory.style.background = CATEGORY_COLORS[r.category] || '#8c6a2f';
-    viewCategory.style.color = '#fff'; viewCategory.style.borderRadius = '20px';
-    viewCategory.style.padding = '3px 10px'; viewCategory.style.fontWeight = '600';
+    viewCategory.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8A8F86');
     const viewRicettarioEl = document.getElementById('view-ricettario');
     if(ricettari.length > 1){
-      viewRicettarioEl.textContent = '📚 ' + ricettarioName(recipeRicettarioId(r));
+      viewRicettarioEl.textContent = ricettarioName(recipeRicettarioId(r));
       viewRicettarioEl.style.display = 'inline-block';
     } else {
       viewRicettarioEl.style.display = 'none';
     }
     viewName.textContent = r.name;
-    viewTime.textContent = r.time ? `Tempo totale: circa ${r.time} minuti` : '';
+    viewTime.innerHTML = (r.time ? `<span>${icon('clock', 'ico-sm')} ${r.time} min</span>` : '')
+      + `<span>${icon('user', 'ico-sm')} Ricetta per ${porzioniLabel(r.servings)}</span>`;
     const extraChips = [];
     if(recipeHasPressure(r)) extraChips.push('<span class="view-tag-chip">🍲 Pentola a pressione</span>');
     if(recipeHasRobot(r)) extraChips.push('<span class="view-tag-chip">🤖 Robot da cucina</span>');
@@ -2880,21 +2929,21 @@
 
     const viewAllergens = document.getElementById('view-allergens');
     if(r.allergens && r.allergens.length){
-      viewAllergens.innerHTML = '<span style="font-size:var(--fs-xs);color:var(--ink-soft);margin-right:4px;">⚠ Contiene:</span>' +
+      viewAllergens.innerHTML = '<span style="font-size:var(--fs-xs);color:var(--ink-soft);margin-right:6px;font-weight:600;">Contiene:</span>' +
         r.allergens.map(a=>`<span class="view-tag-chip allergen-chip">${escapeHtml(a)}</span>`).join('');
     } else {
       viewAllergens.innerHTML = '';
     }
     document.getElementById('view-archived-note').style.display = r.archived ? 'block' : 'none';
     const archiveToggleBtn = document.getElementById('archive-toggle-btn');
-    if(archiveToggleBtn) archiveToggleBtn.textContent = r.archived ? '📂 Disarchivia' : '📦 Archivia';
+    if(archiveToggleBtn) archiveToggleBtn.textContent = r.archived ? 'Disarchivia' : 'Archivia';
     document.getElementById('freezable-suggestion').style.display = r.freezable ? 'flex' : 'none';
 
     if(r.photo){ viewPhoto.src = r.photo; viewPhoto.alt = r.name; viewPhoto.style.display = 'block'; }
     else{ viewPhoto.style.display = 'none'; }
 
     viewFavoriteBtn.classList.toggle('active', !!r.favorite);
-    viewFavoriteBtn.style.color = r.favorite ? 'var(--gold-bright)' : 'var(--line)';
+    viewFavoriteBtn.setAttribute('aria-pressed', String(!!r.favorite));
 
     viewLastMadeText.textContent = r.lastMade
       ? `${lastMadeLabel(r.lastMade)} (${new Date(r.lastMade).toLocaleDateString('it-IT')}) — preparata ${r.timesMade || 1} volt${(r.timesMade||1)===1?'a':'e'}`
@@ -2920,7 +2969,7 @@
         .map(f => `<div>${f.label}: <b>${roundNice(nutrizioneUtente[f.key])}</b>${f.unit}</div>`).join('');
       nutritionHtml += `
         <div class="nutrition-summary">
-          <h4>🍎 Valori nutrizionali (per porzione)</h4>
+          <h4>Valori nutrizionali (per porzione)</h4>
           <div class="nutrition-grid">${rows}</div>
           <div class="nutrition-note" style="opacity:.7;margin-top:6px;">Inseriti da te: verifica sempre la fonte da cui provengono.</div>
         </div>
@@ -2932,10 +2981,10 @@
         .map(f => `<div>${f.label}: <b>${roundNice(nutrizioneCrea[f.key])}</b>${f.unit}</div>`).join('');
       nutritionHtml += `
         <div class="nutrition-summary">
-          <h4>🍎 Valori nutrizionali (per 100 g del piatto)</h4>
+          <h4>Valori nutrizionali (per 100 g del piatto)</h4>
           <div class="nutrition-grid">${rows}</div>
           <div class="nutrition-note" style="opacity:.7;margin-top:6px;">
-            Valori ufficiali <a href="https://www.alimentinutrizione.it" target="_blank" rel="noopener" style="color:var(--gold-deep);">CREA</a>
+            Valori ufficiali <a href="https://www.alimentinutrizione.it" target="_blank" rel="noopener" style="color:var(--accent-ink);">CREA</a>
             misurati sul piatto finito (non calcolati sugli ingredienti crudi, che la cottura altera).
           </div>
         </div>
@@ -3022,6 +3071,7 @@
   document.getElementById('view-close').addEventListener('click', ()=>{
     viewOverlay.classList.remove('active'); currentViewId = null;
   });
+  document.getElementById('view-back-btn').addEventListener('click', ()=> document.getElementById('view-close').click());
   document.getElementById('view-edit-btn').addEventListener('click', ()=>{
     const r = recipes.find(x=>x.id === currentViewId);
     viewOverlay.classList.remove('active');
@@ -3442,7 +3492,7 @@
       try{
         const parsed = JSON.parse(e.target.result);
         if(Array.isArray(parsed.recipes)){
-          alert('Questo sembra un file di backup completo, non una singola ricetta. Usa "Importa backup" nel menu "📦 Backup e CSV".');
+          alert('Questo sembra un file di backup completo, non una singola ricetta. Usa "Importa backup" nel menu "Backup e CSV".');
           return;
         }
         if(!parsed || typeof parsed !== 'object' || !parsed.name || !Array.isArray(parsed.ingredients)){
@@ -4828,7 +4878,7 @@
         const urgente = giorni <= 1;
         const qtyLabel = (it.qty || it.unit) ? ` · ${`${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}`.trim()}` : '';
         return `<li>
-          <span class="cat-dot" style="background:${PANTRY_CATEGORY_COLORS[it.category] || '#8c6a2f'}"></span>
+          <span class="cat-dot" style="background:${PANTRY_CATEGORY_COLORS[it.category] || '#8A8F86'}"></span>
           <b>${escapeHtml(it.name)}</b>${qtyLabel}
           <span class="${urgente ? 'today-expiry-urgent' : 'today-expiry-soon'}"> · ${quando} (${date})</span>
         </li>`;
@@ -4849,37 +4899,96 @@
           <span class="library-book-label"><b>${escapeHtml(rb.name)}</b><br>${count} ricett${count===1?'a':'e'}</span>
         </button>`;
     }).join('');
+
+    // Saluto discreto, in base all'ora (nessun nome inventato: l'app non conosce l'utente)
+    const ora = new Date().getHours();
+    const saluto = ora < 13 ? 'Buongiorno' : ora < 18 ? 'Buon pomeriggio' : 'Buonasera';
+
+    // Foto o segnaposto colorato per una ricetta
+    const photoBlock = (r, cls)=> r && r.photo
+      ? `<span class="${cls}"><img src="${escapeAttr(r.photo)}" alt="" loading="lazy"></span>`
+      : `<span class="${cls} ph" aria-hidden="true">${CATEGORY_ICONS[(r||{}).category] || '🍽️'}</span>`;
+
+    // I pasti di oggi: una scheda per ogni voce pianificata (ricetta o prodotto di dispensa)
+    const mealCardsHtml = entries.length ? `<div class="meal-cards">${entries.map(e=>{
+      const r = e.recipeId ? recipes.find(x=>x.id === e.recipeId) : null;
+      const label = `<span class="meal-label"><span>${escapeHtml(e.mealType || 'Pasto')}</span>${e.time ? `<span class="t">${escapeHtml(e.time)}</span>` : ''}</span>`;
+      const meta = r ? [
+        r.time ? `<span>${icon('clock')}${escapeHtml(String(r.time))} min</span>` : '',
+        r.servings ? `<span>${icon('user')}${escapeHtml(porzioniLabel(entryServings(e)))}</span>` : ''
+      ].join('') : '';
+      const catColor = r ? (CATEGORY_COLORS[r.category] || '') : '';
+      const inner = `${label}${photoBlock(r, 'meal-photo')}<span class="meal-title"><span>${escapeHtml(planEntryName(e))}</span></span>${meta ? `<span class="meal-meta">${meta}</span>` : ''}`;
+      return r
+        ? `<button type="button" class="meal-card" data-open-recipe="${escapeAttr(r.id)}" style="${catColor ? `--cat-color:${catColor};` : ''}" aria-label="Apri ${escapeAttr(r.name)}">${inner}</button>`
+        : `<div class="meal-card">${inner}</div>`;
+    }).join('')}</div>` : `<div class="today-empty-card"><p>Nessun pasto pianificato per oggi.</p><button type="button" class="btn-gold btn-small" id="today-empty-plan-btn">Pianifica i pasti</button></div>`;
+
+    // La mia settimana: elenco compatto dei sette giorni
+    const todayIdx = DAYS.indexOf(day);
+    const weekRowsHtml = DAYS.map((d, i)=>{
+      const list = (weekPlan[d] || []).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+      const txt = list.length
+        ? list.map(en=>`<b>${escapeHtml(en.mealType || 'Pasto')}:</b> ${escapeHtml(planEntryName(en))}`).join('<br>')
+        : '<span class="none">Nessun pasto</span>';
+      return `<li class="${i === todayIdx ? 'is-today' : ''}"><span class="wd">${escapeHtml(d.slice(0,3))}</span><span class="wm">${txt}</span></li>`;
+    }).join('');
+
+    // Ricette preferite (le più recenti per ultima preparazione, poi alfabetico)
+    const favs = recipes.filter(r=>r.favorite && !r.archived)
+      .sort((a,b)=> (b.lastMade||'').localeCompare(a.lastMade||'') || a.name.localeCompare(b.name))
+      .slice(0, 4);
+    const favsHtml = favs.length
+      ? `<div class="mini-grid">${favs.map(r=>`<button type="button" class="mini-recipe" data-open-recipe="${escapeAttr(r.id)}" style="${CATEGORY_COLORS[r.category] ? `--cat-color:${CATEGORY_COLORS[r.category]};` : ''}">${photoBlock(r, 'mr-photo')}<span class="mr-body"><span class="mr-title">${escapeHtml(r.name)}</span><span class="mr-sub">${escapeHtml(r.category || '')}</span></span></button>`).join('')}</div>`
+      : `<p class="today-empty">Tocca il cuore su una ricetta per ritrovarla qui.</p>`;
+
     content.innerHTML = `
-      <div class="today-heading">
-        <div><h2>☀️ Oggi</h2><p>${escapeHtml(dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1))}</p></div>
-        <button type="button" class="btn-gold" id="today-plan-btn">📅 Organizza la settimana</button>
+      <div class="page-head">
+        <div><h2>Oggi</h2><p>${escapeHtml(dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1))}</p>
+          <p class="today-hello"><strong>${saluto}!</strong> Cosa si cucina oggi?</p></div>
+        <button type="button" class="btn-gold" id="today-plan-btn">${icon('calendar','ico-sm')} Organizza la settimana</button>
       </div>
-      <section class="today-library">
-        <div class="today-library-heading"><h3><span class="today-icon">📚</span> La tua libreria</h3><button type="button" class="btn-ghost btn-small" id="today-library-manage-btn">Gestisci ricettari</button></div>
-        <div class="library-shelf">${libraryHtml}</div>
+      <div class="today-layout">
+        <section class="today-block" aria-labelledby="today-meals-h">
+          <div class="block-head"><h3 id="today-meals-h">I pasti di oggi</h3></div>
+          ${mealCardsHtml}
+        </section>
+        <section class="today-card today-week-card" aria-labelledby="today-week-h">
+          <div class="block-head"><h3 id="today-week-h">La mia settimana</h3><button type="button" class="link-btn" id="today-meals-btn">Vedi la pianificazione →</button></div>
+          <ul class="week-list">${weekRowsHtml}</ul>
+        </section>
+      </div>
+      <section class="today-block" aria-labelledby="today-quick-h">
+        <div class="block-head"><h3 id="today-quick-h">Accesso rapido</h3></div>
+        <div class="quick-grid">
+          <button type="button" class="quick-tile" id="today-quick-pantry-btn"><span class="qi">${icon('book')}</span><span><b>Le mie ricette</b><small>Sfoglia e cerca tra le ricette</small></span></button>
+          <button type="button" class="quick-tile" id="today-quick-dispensa-btn"><span class="qi">${icon('box')}</span><span><b>La mia dispensa</b><small>Controlla scorte e scadenze</small></span></button>
+          <button type="button" class="quick-tile" id="today-quick-shopping-btn"><span class="qi">${icon('cart')}</span><span><b>Lista della spesa</b><small>Prepara la lista dai pasti</small></span></button>
+          <button type="button" class="quick-tile" id="today-quick-planning-btn"><span class="qi">${icon('calendar')}</span><span><b>Pianificazione</b><small>Organizza i pasti della settimana</small></span></button>
+        </div>
+      </section>
+      <section class="today-block" aria-labelledby="today-fav-h">
+        <div class="block-head"><h3 id="today-fav-h">Le tue ricette preferite</h3>${favs.length ? '<button type="button" class="link-btn" id="today-fav-all-btn">Vedi tutte →</button>' : ''}</div>
+        ${favsHtml}
       </section>
       <div class="today-grid">
-        <section class="today-card today-weather-card" id="today-weather-card"></section>
-        <section class="today-card"><h3><span class="today-icon">🍽</span> I pasti di oggi</h3><ul class="today-list">${mealsHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-meals-btn">Apri pianificazione</button></div></section>
-        <section class="today-card"><h3><span class="today-icon">🥫</span> Da consumare prima</h3><ul class="today-list">${expiryHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-expiry-btn">Apri Dispensa</button>${expiring.length ? `<button type="button" class="btn-ghost btn-small" id="today-expiry-recipes-btn">🧑‍🍳 Trova ricette</button>` : ''}</div></section>
-        <section class="today-card"><h3><span class="today-icon">🛒</span> Lista della spesa</h3><p class="today-empty">${escapeHtml(shoppingText)}</p><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-shopping-btn">Apri lista</button><button type="button" class="btn-ghost btn-small" id="today-recipes-btn">Cerca ricette</button></div></section>
+        <section class="today-card today-weather-card" id="today-weather-card" aria-label="Meteo"></section>
+        <section class="today-card"><h3>Da consumare prima</h3><ul class="today-list">${expiryHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-expiry-btn">Apri Dispensa</button>${expiring.length ? `<button type="button" class="btn-ghost btn-small" id="today-expiry-recipes-btn">Trova ricette</button>` : ''}</div></section>
+        <section class="today-card"><h3>Lista della spesa</h3><p class="today-empty">${escapeHtml(shoppingText)}</p><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-shopping-btn">Apri lista</button><button type="button" class="btn-ghost btn-small" id="today-recipes-btn">Cerca ricette</button></div></section>
       </div>
-      <div class="today-quick-grid">
-        <button type="button" class="today-quick-card" id="today-quick-pantry-btn" style="--qc-color:#DB2777;">
-          <span class="today-icon">🧑‍🍳</span><h4>Cosa posso cucinare?</h4><p>Trova ricette con gli ingredienti della tua dispensa</p><span class="today-quick-arrow">Vai →</span>
-        </button>
-        <button type="button" class="today-quick-card" id="today-quick-dispensa-btn" style="--qc-color:#2563EB;">
-          <span class="today-icon">🥫</span><h4>La mia dispensa</h4><p>Controlla scorte e scadenze</p><span class="today-quick-arrow">Vai →</span>
-        </button>
-        <button type="button" class="today-quick-card" id="today-quick-shopping-btn" style="--qc-color:#16A34A;">
-          <span class="today-icon">🛒</span><h4>Lista della spesa</h4><p>Genera dalla pianificazione o dalle ricette</p><span class="today-quick-arrow">Vai →</span>
-        </button>
-        <button type="button" class="today-quick-card" id="today-quick-planning-btn" style="--qc-color:#7C3AED;">
-          <span class="today-icon">📅</span><h4>Pianificazione</h4><p>Organizza i pasti della settimana</p><span class="today-quick-arrow">Vai →</span>
-        </button>
-      </div>`;
+      <section class="today-block today-library" aria-labelledby="today-lib-h">
+        <div class="block-head"><h3 id="today-lib-h">La tua libreria</h3><button type="button" class="btn-ghost btn-small" id="today-library-manage-btn">Gestisci ricettari</button></div>
+        <div class="library-shelf">${libraryHtml}</div>
+      </section>`;
     document.getElementById('today-plan-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-meals-btn').addEventListener('click', ()=>switchView('planning'));
+    const emptyPlanBtn = document.getElementById('today-empty-plan-btn');
+    if(emptyPlanBtn) emptyPlanBtn.addEventListener('click', ()=>switchView('planning'));
+    const favAllBtn = document.getElementById('today-fav-all-btn');
+    if(favAllBtn) favAllBtn.addEventListener('click', ()=>{ favoritesOnly = true; switchView('recipes'); });
+    content.querySelectorAll('[data-open-recipe]').forEach(btn=>{
+      btn.addEventListener('click', ()=> openView(btn.dataset.openRecipe));
+    });
     document.getElementById('today-expiry-btn').addEventListener('click', ()=>switchView('dispensa'));
     const todayExpiryRecipesBtn = document.getElementById('today-expiry-recipes-btn');
     if(todayExpiryRecipesBtn) todayExpiryRecipesBtn.addEventListener('click', ()=>{
@@ -4887,9 +4996,9 @@
     });
     document.getElementById('today-recipes-btn').addEventListener('click', ()=>switchView('recipes'));
     document.getElementById('today-shopping-btn').addEventListener('click', ()=>document.getElementById('generate-shopping-btn').click());
-    document.getElementById('today-quick-pantry-btn').addEventListener('click', ()=>switchView('recipes'));
+    document.getElementById('today-quick-pantry-btn').addEventListener('click', ()=>{ favoritesOnly = false; switchView('recipes'); });
     document.getElementById('today-quick-dispensa-btn').addEventListener('click', ()=>switchView('dispensa'));
-    document.getElementById('today-quick-shopping-btn').addEventListener('click', ()=>switchView('planning'));
+    document.getElementById('today-quick-shopping-btn').addEventListener('click', ()=>document.getElementById('generate-shopping-btn').click());
     document.getElementById('today-quick-planning-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-library-manage-btn').addEventListener('click', ()=> openRicettariManage());
     content.querySelectorAll('.library-book').forEach(btn=>{
@@ -4905,11 +5014,39 @@
 
   // Etichetta breve mostrata nella barra ☰ su schermo piccolo, per vista corrente.
   const NAV_LABELS = {
-    today: '☀️ Oggi', recipes: '📖 Ricettario', planning: '📅 Pianificazione',
-    dispensa: '🥫 Dispensa', 'crea-alimenti': '🌾 Valori Alimenti CREA',
-    'crea-menu': '🇮🇹 Ricette CREA', info: 'ℹ️ Come funziona'
+    today: 'Oggi', recipes: 'Le mie ricette', planning: 'Pianificazione',
+    dispensa: 'Dispensa', 'crea-alimenti': 'Valori alimenti CREA',
+    'crea-menu': 'Ricette CREA', info: 'Come funziona'
   };
+  let currentView = 'today';
+  // Evidenzia la voce attiva nella barra laterale e nella barra a schede dello smartphone.
+  // "Preferiti" è la stessa vista delle ricette con il filtro dei preferiti attivo.
+  function updateNavActive(){
+    const v = currentView;
+    const stato = {
+      'nav-today-btn': v === 'today',
+      'nav-recipes-btn': v === 'recipes' && !favoritesOnly,
+      'nav-favorites-btn': v === 'recipes' && favoritesOnly,
+      'nav-planning-btn': v === 'planning',
+      'nav-dispensa-btn': v === 'dispensa',
+      'nav-crea-alimenti-btn': v === 'crea-alimenti',
+      'nav-crea-menu-btn': v === 'crea-menu',
+      'nav-info-btn': v === 'info',
+      'tab-today': v === 'today',
+      'tab-recipes': v === 'recipes',
+      'tab-planning': v === 'planning',
+      'tab-dispensa': v === 'dispensa'
+    };
+    Object.keys(stato).forEach(id=>{
+      const btn = document.getElementById(id);
+      if(!btn) return;
+      btn.classList.toggle('active', stato[id]);
+      // aria-current segnala alla tecnologia assistiva quale voce corrisponde alla pagina mostrata
+      if(stato[id]) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current');
+    });
+  }
   function switchView(view){
+    currentView = view;
     document.getElementById('today-view').style.display = view === 'today' ? '' : 'none';
     document.getElementById('recipes-view').style.display = view === 'recipes' ? '' : 'none';
     document.getElementById('planning-view').style.display = view === 'planning' ? '' : 'none';
@@ -4917,18 +5054,7 @@
     document.getElementById('crea-alimenti-view').style.display = view === 'crea-alimenti' ? '' : 'none';
     document.getElementById('crea-menu-view').style.display = view === 'crea-menu' ? '' : 'none';
     document.getElementById('info-view').style.display = view === 'info' ? '' : 'none';
-    [
-      ['nav-today-btn', 'today'], ['nav-recipes-btn', 'recipes'], ['nav-planning-btn', 'planning'],
-      ['nav-dispensa-btn', 'dispensa'], ['nav-crea-alimenti-btn', 'crea-alimenti'],
-      ['nav-crea-menu-btn', 'crea-menu'], ['nav-info-btn', 'info'],
-    ].forEach(([id, v])=>{
-      const btn = document.getElementById(id);
-      const attiva = view === v;
-      btn.classList.toggle('active', attiva);
-      // aria-current segnala alla tecnologia assistiva quale voce di navigazione
-      // corrisponde alla pagina mostrata, oltre al solo indizio visivo della classe.
-      if(attiva) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current');
-    });
+    updateNavActive();
     if(view === 'today') renderToday();
     if(view === 'recipes') renderList();
     if(view === 'planning') renderPlanningDays();
@@ -4938,9 +5064,34 @@
     const navCurrentLabel = document.getElementById('nav-current-label');
     if(navCurrentLabel) navCurrentLabel.textContent = NAV_LABELS[view] || '';
     closeMobileNav();
+    window.scrollTo(0, 0);
   }
   document.getElementById('nav-today-btn').addEventListener('click', ()=> switchView('today'));
-  document.getElementById('nav-recipes-btn').addEventListener('click', ()=> switchView('recipes'));
+  document.getElementById('nav-recipes-btn').addEventListener('click', ()=>{ favoritesOnly = false; switchView('recipes'); });
+  document.getElementById('nav-favorites-btn').addEventListener('click', ()=>{ favoritesOnly = true; switchView('recipes'); });
+  // Voci che aprono finestre o menu già esistenti (nessuna funzione duplicata)
+  document.getElementById('nav-shopping-btn').addEventListener('click', ()=>{
+    closeMobileNav();
+    document.getElementById('generate-shopping-btn').click();
+  });
+  document.getElementById('nav-import-btn').addEventListener('click', ()=>{
+    switchView('recipes');
+    setTimeout(()=> document.getElementById('import-menu-btn').click(), 0);
+  });
+  document.getElementById('nav-backup-btn').addEventListener('click', ()=>{
+    switchView('recipes');
+    setTimeout(()=> document.getElementById('data-menu-btn').click(), 0);
+  });
+  document.getElementById('nav-ricettari-btn').addEventListener('click', ()=>{
+    closeMobileNav();
+    openRicettariManage();
+  });
+  // Barra a schede dello smartphone
+  document.getElementById('tab-today').addEventListener('click', ()=> switchView('today'));
+  document.getElementById('tab-recipes').addEventListener('click', ()=>{ favoritesOnly = false; switchView('recipes'); });
+  document.getElementById('tab-planning').addEventListener('click', ()=> switchView('planning'));
+  document.getElementById('tab-dispensa').addEventListener('click', ()=> switchView('dispensa'));
+  document.getElementById('tab-shopping').addEventListener('click', ()=> document.getElementById('generate-shopping-btn').click());
   document.getElementById('nav-planning-btn').addEventListener('click', ()=> switchView('planning'));
   document.getElementById('nav-dispensa-btn').addEventListener('click', ()=> switchView('dispensa'));
   document.getElementById('nav-crea-alimenti-btn').addEventListener('click', ()=> switchView('crea-alimenti'));
@@ -4960,17 +5111,26 @@
       searchEl.dispatchEvent(new Event('input'));
     });
   }
-  document.getElementById('topbar-info-btn').addEventListener('click', ()=> switchView('info'));
-  document.getElementById('topbar-alerts-btn').addEventListener('click', ()=>{
+  document.getElementById('topbar-new-recipe-btn').addEventListener('click', ()=>{
+    switchView('recipes');
+    document.getElementById('new-recipe-btn').click();
+  });
+  function apriAvvisiDispensa(){
     switchView('dispensa');
     if(!dispensaLowStockOnly) document.getElementById('dispensa-low-stock-filter-btn').click();
+  }
+  document.getElementById('topbar-alerts-btn').addEventListener('click', apriAvvisiDispensa);
+  document.getElementById('mobile-alerts-btn').addEventListener('click', apriAvvisiDispensa);
+  document.getElementById('mobile-search-btn').addEventListener('click', ()=>{
+    switchView('recipes');
+    searchEl.focus();
   });
   // Pallino con il numero di prodotti in esaurimento o in scadenza nei prossimi 3 giorni:
   // ricalcolato ogni volta che si passa per Oggi o Dispensa, cioè quando questi dati
   // possono essere cambiati.
   function aggiornaTopbarAlerts(){
-    const badge = document.getElementById('topbar-alerts-badge');
-    if(!badge) return;
+    const badges = ['topbar-alerts-badge', 'mobile-alerts-badge'].map(id => document.getElementById(id)).filter(Boolean);
+    if(!badges.length) return;
     const today = new Date().toISOString().slice(0,10);
     const soonLimit = addDays(today, 3);
     let count = 0;
@@ -4980,8 +5140,10 @@
       const inScadenza = it.expiry && it.expiry >= today && it.expiry <= soonLimit;
       if(basso || inScadenza) count++;
     });
-    if(count > 0){ badge.textContent = count > 99 ? '99+' : String(count); badge.style.display = 'flex'; }
-    else badge.style.display = 'none';
+    badges.forEach(badge=>{
+      if(count > 0){ badge.textContent = count > 99 ? '99+' : String(count); badge.style.display = 'flex'; }
+      else badge.style.display = 'none';
+    });
   }
 
   // ---------- Cassetto ☰ di navigazione su schermo piccolo ----------
@@ -5027,7 +5189,7 @@
       .sort((a,b) => a.name.localeCompare(b.name));
     recipePickerList.innerHTML = matches.length ? matches.map(r => `
       <div class="recipe-picker-item" data-id="${r.id}">
-        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.category] || '#8c6a2f'}"></span>
+        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.category] || '#8A8F86'}"></span>
         <span class="name">${escapeHtml(r.name)}</span>
         <span class="meta">${escapeHtml(r.category)}${r.time ? ` · ${r.time} min` : ''}${recipeHasPressure(r) ? ' · 🍲' : ''}</span>
       </div>
@@ -5076,11 +5238,11 @@
       .sort((a,b) => a.name.localeCompare(b.name));
     dispensaPickerList.innerHTML = matches.length ? matches.map(it => `
       <div class="recipe-picker-item" data-id="${it.id}">
-        <span class="cat-dot" style="background:${PANTRY_CATEGORY_COLORS[it.category] || '#8c6a2f'}"></span>
+        <span class="cat-dot" style="background:${PANTRY_CATEGORY_COLORS[it.category] || '#8A8F86'}"></span>
         <span class="name">${escapeHtml(it.name)}</span>
         <span class="meta">${escapeHtml(it.category)}${(it.qty || it.unit) ? ` · ${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}` : ''}</span>
       </div>
-    `).join('') : '<div class="recipe-picker-empty">Nessun prodotto in dispensa. Aggiungine uno dalla vista "🥫 Dispensa".</div>';
+    `).join('') : '<div class="recipe-picker-empty">Nessun prodotto in dispensa. Aggiungine uno dalla vista Dispensa.</div>';
     dispensaPickerList.querySelectorAll('.recipe-picker-item').forEach(item=>{
       item.addEventListener('click', ()=>{
         const it = dispensaItems.find(x=>x.id === item.dataset.id);
@@ -5222,12 +5384,82 @@
     document.getElementById('week-totals-overlay').classList.remove('active');
   });
 
+  // Modo di visualizzazione della pianificazione: griglia della settimana (desktop) o un giorno alla volta.
+  // Sugli schermi stretti la griglia non sarebbe leggibile: lì si usa sempre il giorno singolo.
+  const PLAN_MODE_KEY = 'mc_ricettario_planmode_v1';
+  let planMode = 'week';
+  try{ planMode = localStorage.getItem(PLAN_MODE_KEY) === 'day' ? 'day' : 'week'; }catch(e){}
+  const planNarrowMQ = window.matchMedia('(max-width:900px)');
+  function effectivePlanMode(){ return planNarrowMQ.matches ? 'day' : planMode; }
+  function setPlanMode(m){
+    planMode = m === 'day' ? 'day' : 'week';
+    try{ localStorage.setItem(PLAN_MODE_KEY, planMode); }catch(e){}
+    renderPlanningDays();
+  }
+  document.getElementById('plan-mode-week').addEventListener('click', ()=> setPlanMode('week'));
+  document.getElementById('plan-mode-day').addEventListener('click', ()=> setPlanMode('day'));
+  const planWeekLabelText = document.getElementById('plan-week-label-text');
+  if(planWeekLabelText) planWeekLabelText.textContent = 'Settimana corrente';
+  const onPlanMQChange = ()=>{ if(typeof currentView !== 'undefined' && currentView === 'planning') renderPlanningDays(); };
+  if(planNarrowMQ.addEventListener) planNarrowMQ.addEventListener('change', onPlanMQChange);
+  else if(planNarrowMQ.addListener) planNarrowMQ.addListener(onPlanMQChange);
+
+  // Griglia settimanale: righe = giorni, colonne = fasce pasto. Ogni cella ospita più ricette
+  // e mostra a colpo d'occhio gli spazi vuoti (cella più chiara) rispetto a quelli già pianificati.
+  function buildPlanGridHtml(){
+    const jsDay = new Date().getDay();
+    const todayName = DAYS[jsDay === 0 ? 6 : jsDay - 1];
+    const hasOrphans = DAYS.some(d => (weekPlan[d]||[]).some(e => !mealTypes.includes(e.mealType)));
+    const cols = mealTypes.length + (hasOrphans ? 1 : 0);
+    let html = `<div class="plan-grid" style="--plan-cols:${cols}" role="group" aria-label="Pianificazione della settimana">`;
+    html += '<div class="plan-grid-corner"></div>';
+    mealTypes.forEach((mt, i)=>{
+      const last = (i === cols - 1) ? ' plan-last-col' : '';
+      html += `<div class="plan-grid-colhead${last}"><span>${escapeHtml(mt)}</span><button type="button" class="icon-btn mealtype-remove-btn" data-mealtype="${escapeAttr(mt)}" title="Rimuovi la fascia ${escapeAttr(mt)}" aria-label="Rimuovi la fascia pasto ${escapeAttr(mt)}">${icon('trash','ico-xs')}</button></div>`;
+    });
+    if(hasOrphans) html += '<div class="plan-grid-colhead plan-last-col"><span>Altro</span></div>';
+    DAYS.forEach((day, di)=>{
+      const rowLast = di === DAYS.length - 1 ? ' plan-last-row' : '';
+      const isToday = day === todayName;
+      const dayEntries = weekPlan[day] || [];
+      html += `<div class="plan-grid-dayhead${isToday ? ' today' : ''}${rowLast}"><span class="dname">${escapeHtml(day)}</span><span class="dtools"><button type="button" class="icon-btn plan-grid-day-shopping" data-day="${escapeAttr(day)}" title="Lista della spesa di ${escapeAttr(day)}" aria-label="Lista della spesa di ${escapeAttr(day)}">${icon('cart','ico-xs')}</button><button type="button" class="icon-btn plan-grid-day-open" data-day="${escapeAttr(day)}" title="Apri ${escapeAttr(day)} nel dettaglio" aria-label="Apri ${escapeAttr(day)} nel dettaglio">${icon('pencil','ico-xs')}</button></span></div>`;
+      mealTypes.forEach((mt, i)=>{
+        const last = (i === cols - 1) ? ' plan-last-col' : '';
+        const entries = dayEntries.filter(e=>e.mealType === mt).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+        const note = (weekNotes[day] && weekNotes[day][mt]) || '';
+        html += `<div class="plan-meal-block${entries.length ? ' filled' : ''}${isToday ? ' is-today' : ''}${last}${rowLast}" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
+          ${entries.length ? `<div class="plan-entry-list">${entries.map(renderPlanEntry).join('')}</div>` : ''}
+          ${note ? `<div class="plan-grid-note">${escapeHtml(note)}</div>` : ''}
+          <div class="plan-add-row">
+            <input type="time" class="plan-add-time" aria-hidden="true" tabindex="-1">
+            <button type="button" class="btn-ghost btn-small plan-add-btn" aria-label="Aggiungi una ricetta: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Cerca una ricetta">${icon('plus','ico-xs')} Ricetta</button>
+            <button type="button" class="btn-ghost btn-small plan-add-dispensa-btn" aria-label="Aggiungi dalla dispensa: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Aggiungi un prodotto dalla dispensa">${icon('box','ico-xs')} Dispensa</button>
+          </div>
+        </div>`;
+      });
+      if(hasOrphans){
+        const orph = dayEntries.filter(e=>!mealTypes.includes(e.mealType));
+        html += `<div class="plan-meal-block${orph.length ? ' filled' : ''}${isToday ? ' is-today' : ''} plan-last-col${rowLast}">${orph.length ? `<div class="plan-entry-list">${orph.map(renderPlanEntry).join('')}</div>` : ''}</div>`;
+      }
+    });
+    return html + '</div>';
+  }
+
   function renderPlanningDays(){
     if(!planningDaysEl) return;
     if(!selectedPlanDay){
       const jsDay = new Date().getDay(); // 0=domenica...6=sabato
       selectedPlanDay = DAYS[jsDay === 0 ? 6 : jsDay - 1];
     }
+
+    const weekMode = effectivePlanMode() === 'week';
+    const narrow = planNarrowMQ.matches;
+    document.getElementById('plan-view-toggle').style.display = narrow ? 'none' : '';
+    document.getElementById('plan-mode-week').classList.toggle('active', weekMode);
+    document.getElementById('plan-mode-day').classList.toggle('active', !weekMode);
+    document.getElementById('plan-mode-week').setAttribute('aria-pressed', String(weekMode));
+    document.getElementById('plan-mode-day').setAttribute('aria-pressed', String(!weekMode));
+    document.getElementById('plan-day-nav').style.display = weekMode ? 'none' : '';
 
     const dayTabsEl = document.getElementById('plan-day-tabs');
     dayTabsEl.innerHTML = DAYS.map(day =>
@@ -5241,6 +5473,11 @@
     });
 
     planningDaysEl.innerHTML = '';
+    if(weekMode){
+      planningDaysEl.innerHTML = buildPlanGridHtml();
+      planningDaysEl.querySelectorAll('.plan-grid-day-shopping').forEach(b=> b.addEventListener('click', ()=> openDayShoppingList(b.dataset.day)));
+      planningDaysEl.querySelectorAll('.plan-grid-day-open').forEach(b=> b.addEventListener('click', ()=>{ selectedPlanDay = b.dataset.day; setPlanMode('day'); }));
+    } else {
     const day = selectedPlanDay;
     const dayEntries = weekPlan[day] || [];
     const card = document.createElement('div');
@@ -5310,6 +5547,7 @@
       dayShoppingBtn.addEventListener('click', ()=> openDayShoppingList(day));
     }
 
+    }
     planningDaysEl.querySelectorAll('.plan-add-btn').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const block = btn.closest('.plan-meal-block');
@@ -5518,49 +5756,46 @@
       return;
     }
 
-    listEl.innerHTML = '';
+    listEl.innerHTML = '<div class="dispensa-head" aria-hidden="true"><span>Ingrediente</span><span>Quantità</span><span>Unità</span><span>Categoria</span><span></span></div>';
     filtered.forEach(it=>{
       const card = document.createElement('div');
-      card.className = 'card';
-      card.style.setProperty('--cat-color', PANTRY_CATEGORY_COLORS[it.category] || '#8c6a2f');
+      card.className = 'card dispensa-row';
 
-      let expiryHtml = '';
+      const isExpired = !!it.expiry && it.expiry < today;
+      const isSoon = !!it.expiry && !isExpired && it.expiry <= soonLimit;
+      const low = isLowStock(it);
+      const dotCls = isExpired ? 'expired' : (low ? 'low' : '');
+      const subParts = [];
+      if(low) subParts.push('<span class="dispensa-low-stock">In esaurimento</span>');
       if(it.expiry){
-        const isExpired = it.expiry < today;
-        const isSoon = !isExpired && it.expiry <= soonLimit;
         const cls = isExpired ? 'expired' : isSoon ? 'soon' : '';
-        const label = isExpired ? '⚠️ Scaduto il ' : isSoon ? '⏰ Scade il ' : 'Scade il ';
-        expiryHtml = `<div class="dispensa-expiry ${cls}">${label}${new Date(it.expiry + 'T00:00:00').toLocaleDateString('it-IT')}</div>`;
+        const label = isExpired ? 'Scaduto il ' : isSoon ? 'Scade il ' : 'Scade il ';
+        subParts.push(`<span class="dispensa-expiry ${cls}">${label}${new Date(it.expiry + 'T00:00:00').toLocaleDateString('it-IT')}</span>`);
       }
-
-      const qtyKcalParts = [];
-      if(it.qty || it.unit) qtyKcalParts.push(`${it.qty ? roundNice(it.qty) : ''} ${escapeHtml(it.unit||'')}`.trim());
-      const qtyKcalHtml = qtyKcalParts.length ? `<div class="dispensa-qty">${qtyKcalParts.join(' · ')}</div>` : '';
-      const lowStockHtml = isLowStock(it)
-        ? `<div class="dispensa-low-stock">⚠ In esaurimento</div>`
-        : '';
-      const offBadgeHtml = it.offNutriscore && NUTRISCORE_COLORI[it.offNutriscore]
-        ? `<span class="cat-tag" style="background:${NUTRISCORE_COLORI[it.offNutriscore]};">Nutri-Score ${escapeHtml(it.offNutriscore)}</span>`
-        : '';
-
-      // Card compatta, in stile quadrato come le card ricetta: foto OFF (se
-      // presente) o un'illustrazione segnaposto nel colore della categoria,
-      // poi solo le info essenziali per riconoscere il prodotto a colpo
-      // d'occhio. Valori nutrizionali, scheda CREA e note restano nel
-      // dettaglio (si apre un click sulla card).
-      const thumbHtml = it.offImmagine
-        ? `<img class="thumb" src="${escapeAttr(it.offImmagine)}" alt="${escapeAttr(it.name)}">`
-        : `<div class="thumb thumb-placeholder" aria-hidden="true">${PANTRY_CATEGORY_ICONS[it.category] || '🍽️'}</div>`;
+      if(it.offNutriscore && NUTRISCORE_COLORI[it.offNutriscore]){
+        subParts.push(`<span class="cat-tag" style="background:${NUTRISCORE_COLORI[it.offNutriscore]};">Nutri-Score ${escapeHtml(it.offNutriscore)}</span>`);
+      }
+      const kcalTxt = (it.kcal !== undefined && it.kcal !== '' && it.kcal !== null && !isNaN(parseFloat(it.kcal))) ? `${roundNice(it.kcal)} kcal/100 g` : '';
+      const thumb = it.offImmagine ? `<img class="dispensa-thumb" src="${escapeAttr(it.offImmagine)}" alt="">` : `<span class="dispensa-dot ${dotCls}" aria-hidden="true"></span>`;
+      const qtyTxt = (it.qty !== undefined && it.qty !== '' && it.qty !== null) ? roundNice(it.qty) : '–';
 
       card.innerHTML = `
-        ${thumbHtml}
-        <span class="cat-tag">${escapeHtml(it.category)}</span>${offBadgeHtml}
-        <h3>${escapeHtml(it.name)}</h3>
-        ${qtyKcalHtml}
-        ${lowStockHtml}
-        ${expiryHtml}
+        <div class="dispensa-name-cell">${thumb}<div class="dispensa-name-text"><div class="dname">${escapeHtml(it.name)}</div>${kcalTxt ? `<div class="dsub">${escapeHtml(kcalTxt)}</div>` : ''}${subParts.length ? `<div class="dispensa-badges">${subParts.join('')}</div>` : ''}</div></div>
+        <div class="dispensa-qty">${qtyTxt}</div>
+        <div class="dispensa-unit">${escapeHtml(it.unit || '')}</div>
+        <div class="dispensa-cat">${escapeHtml(it.category || '')}</div>
+        <div class="dispensa-actions">
+          <button type="button" class="icon-btn dispensa-edit-btn" aria-label="Modifica ${escapeAttr(it.name)}" title="Modifica">${icon('pencil')}</button>
+          <button type="button" class="icon-btn dispensa-del-btn" aria-label="Elimina ${escapeAttr(it.name)}" title="Elimina">${icon('trash')}</button>
+        </div>
       `;
       card.addEventListener('click', ()=> openDispensaEdit(it));
+      card.querySelector('.dispensa-edit-btn').addEventListener('click', ev=>{ ev.stopPropagation(); openDispensaEdit(it); });
+      card.querySelector('.dispensa-del-btn').addEventListener('click', ev=>{
+        ev.stopPropagation();
+        editingDispensaId = it.id;
+        document.getElementById('dispensa-delete-btn').click();
+      });
       makeKeyboardClickable(card, it.name);
       listEl.appendChild(card);
     });
@@ -5850,7 +6085,7 @@
         repartoCorrente = reparto;
         const header = document.createElement('li');
         header.className = 'shopping-reparto-header';
-        header.innerHTML = `<span class="reparto-dot" style="background:${PANTRY_CATEGORY_COLORS[reparto] || '#8c6a2f'}"></span>${escapeHtml(reparto)}`;
+        header.innerHTML = `<span class="reparto-dot" style="background:${PANTRY_CATEGORY_COLORS[reparto] || '#8A8F86'}"></span>${escapeHtml(reparto)}`;
         shoppingListItems.appendChild(header);
       }
       const li = document.createElement('li');

@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <title>Il Mio Ricettario</title>
 
 <!-- PWA: manifest + icone per l'installazione su smartphone ("Aggiungi a Home") -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1D4ED8">
+<meta name="theme-color" content="#536B52">
 <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <!-- Safari non legge il manifest per l'icona Home: servono questi meta dedicati -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Ricettario">
 
 <script>
@@ -30,61 +30,100 @@
   })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Lora:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <base target="_blank">
 </head>
 <body>
 
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+  <symbol id="i-chef" viewBox="0 0 24 24"><path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"/><path d="M6 17h12"/></symbol>
+  <symbol id="i-today" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></symbol>
+  <symbol id="i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></symbol>
+</svg>
+
 <div class="app-shell">
-<aside class="app-sidebar" id="app-sidebar">
+<aside class="app-sidebar" id="app-sidebar" aria-label="Menu principale">
   <div class="masthead">
-    <div class="masthead-logo" aria-hidden="true">🍲</div>
+    <div class="masthead-logo" aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-chef"/></svg></div>
     <h1>Il Mio Ricettario</h1>
-    <div class="sub">Cucina, organizza, tramanda</div>
   </div>
 
-  <div class="view-nav" id="view-nav">
-    <button class="view-nav-btn active" id="nav-today-btn" title="Oggi" aria-label="Oggi" aria-current="page"><span class="nav-ico">☀️</span><span class="nav-label">Oggi</span></button>
-    <button class="view-nav-btn" id="nav-recipes-btn" title="Ricettario" aria-label="Ricettario"><span class="nav-ico">📖</span><span class="nav-label">Ricettario</span></button>
-    <button class="view-nav-btn" id="nav-planning-btn" title="Pianificazione" aria-label="Pianificazione"><span class="nav-ico">📅</span><span class="nav-label">Pianificazione</span></button>
-    <button class="view-nav-btn" id="nav-dispensa-btn" title="Dispensa" aria-label="Dispensa"><span class="nav-ico">🥫</span><span class="nav-label">Dispensa</span></button>
-    <button class="view-nav-btn" id="nav-crea-alimenti-btn" title="Valori Alimenti dal sito CREA" aria-label="Valori Alimenti dal sito CREA"><span class="nav-ico">🌾</span><span class="nav-label">Valori Alimenti dal sito CREA</span></button>
-    <button class="view-nav-btn" id="nav-crea-menu-btn" title="Ricette dal sito CREA" aria-label="Ricette dal sito CREA"><span class="nav-ico">🇮🇹</span><span class="nav-label">Ricette dal sito CREA</span></button>
-    <button class="view-nav-btn" id="nav-info-btn" title="Come funziona" aria-label="Come funziona"><span class="nav-ico">ℹ️</span><span class="nav-label">Come funziona</span></button>
-  </div>
+  <nav class="view-nav" id="view-nav" aria-label="Sezioni del ricettario">
+    <button class="view-nav-btn active" id="nav-today-btn" title="Oggi" aria-label="Oggi" aria-current="page"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-today"/></svg></span><span class="nav-label">Oggi</span></button>
+    <button class="view-nav-btn" id="nav-recipes-btn" title="Le mie ricette" aria-label="Le mie ricette"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg></span><span class="nav-label">Le mie ricette</span></button>
+    <button class="view-nav-btn" id="nav-favorites-btn" title="Preferiti" aria-label="Preferiti"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg></span><span class="nav-label">Preferiti</span></button>
+    <div class="nav-group-label">Organizza</div>
+    <button class="view-nav-btn" id="nav-planning-btn" title="Pianificazione settimanale" aria-label="Pianificazione settimanale"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg></span><span class="nav-label">Pianificazione settimanale</span></button>
+    <button class="view-nav-btn" id="nav-dispensa-btn" title="Dispensa" aria-label="Dispensa"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-box"/></svg></span><span class="nav-label">Dispensa</span></button>
+    <button class="view-nav-btn" id="nav-shopping-btn" title="Lista della spesa" aria-label="Lista della spesa"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg></span><span class="nav-label">Lista della spesa</span></button>
+    <div class="nav-group-label">Banche dati CREA</div>
+    <button class="view-nav-btn" id="nav-crea-alimenti-btn" title="Valori alimenti CREA" aria-label="Valori alimenti CREA"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-leaf"/></svg></span><span class="nav-label">Valori alimenti CREA</span></button>
+    <button class="view-nav-btn" id="nav-crea-menu-btn" title="Ricette CREA" aria-label="Ricette CREA"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-file"/></svg></span><span class="nav-label">Ricette CREA</span></button>
+    <div class="nav-group-label">Gestione</div>
+    <button class="view-nav-btn" id="nav-import-btn" title="Importa ricette" aria-label="Importa ricette"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg></span><span class="nav-label">Importa ricette</span></button>
+    <button class="view-nav-btn" id="nav-backup-btn" title="Backup ed esportazione" aria-label="Backup ed esportazione"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg></span><span class="nav-label">Backup ed esportazione</span></button>
+    <button class="view-nav-btn" id="nav-ricettari-btn" title="Gestisci ricettari" aria-label="Gestisci ricettari"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-library"/></svg></span><span class="nav-label">Gestisci ricettari</span></button>
+    <button class="view-nav-btn" id="nav-info-btn" title="Come funziona" aria-label="Come funziona"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg></span><span class="nav-label">Come funziona</span></button>
+  </nav>
 
   <label class="theme-toggle-row" for="tema-toggle">
-    <span class="theme-toggle-label"><span aria-hidden="true">🌙</span><span class="theme-toggle-text"> Tema scuro</span></span>
+    <span class="theme-toggle-label"><span aria-hidden="true"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-moon"/></svg></span><span class="theme-toggle-text">Tema scuro</span></span>
     <span class="switch">
       <input type="checkbox" id="tema-toggle" aria-label="Tema scuro">
       <span class="switch-track" aria-hidden="true"></span>
     </span>
   </label>
   <div class="sidebar-credit">
-    <img src="img/logo-clan-destino.png" alt="Clan Destino" width="34" height="34">
+    <img src="img/logo-clan-destino.png" alt="Clan Destino" width="32" height="32">
     <span>Clan Destino<br>Autore: Giampiero Santoro</span>
   </div>
-  <div class="sidebar-footnote">Conservato localmente sul tuo dispositivo<br>nessun server, nessun account</div>
+  <div class="sidebar-footnote">Dati conservati sul tuo dispositivo: nessun server, nessun account</div>
 </aside>
 <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
 <main class="app-main">
 <div class="mobile-topbar">
-  <button type="button" id="nav-hamburger-btn" aria-label="Apri il menu" aria-expanded="false">☰</button>
-  <span id="nav-current-label">Ricettario</span>
+  <button type="button" id="nav-hamburger-btn" aria-label="Apri il menu" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg></button>
+  <span class="mt-title" id="nav-current-label">Oggi</span>
+  <button type="button" id="mobile-search-btn" aria-label="Cerca una ricetta" title="Cerca una ricetta"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></button>
+  <button type="button" id="mobile-alerts-btn" aria-label="Avvisi dispensa: scorte in esaurimento o in scadenza" title="Avvisi dispensa"><svg class="ico" aria-hidden="true"><use href="#i-bell"/></svg><span class="topbar-badge" id="mobile-alerts-badge" style="display:none;"></span></button>
 </div>
 <header class="app-topbar">
   <div class="topbar-search">
-    <span class="topbar-search-icon" aria-hidden="true">🔍</span>
-    <input type="text" id="topbar-search" placeholder="Cerca ricette, ingredienti…">
+    <span class="topbar-search-icon" aria-hidden="true"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-search"/></svg></span>
+    <input type="text" id="topbar-search" placeholder="Cerca una ricetta…" aria-label="Cerca una ricetta">
   </div>
   <div class="topbar-actions">
+    <button type="button" class="topbar-icon-btn" id="topbar-new-recipe-btn" aria-label="Aggiungi una ricetta" title="Aggiungi una ricetta"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
     <button type="button" class="topbar-icon-btn" id="topbar-alerts-btn" aria-label="Avvisi dispensa: scorte in esaurimento o in scadenza" title="Avvisi dispensa">
-      <span aria-hidden="true">🔔</span>
+      <svg class="ico" aria-hidden="true"><use href="#i-bell"/></svg>
       <span class="topbar-badge" id="topbar-alerts-badge" style="display:none;"></span>
     </button>
-    <button type="button" class="topbar-icon-btn topbar-avatar" id="topbar-info-btn" aria-label="Come funziona" title="Come funziona">🧑‍🍳</button>
   </div>
 </header>
 <div class="book">
@@ -104,11 +143,14 @@
 
   <div id="recipes-view" style="display:none;">
 
-  <div class="toolbar">
-    <div class="toolbar-group">
-      <button class="btn-gold" id="new-recipe-btn">+ Nuova ricetta</button>
+  <div class="page-head">
+    <div>
+      <h2 id="recipes-title">Le mie ricette</h2>
+      <p>Tutte le tue ricette, organizzate in un posto.</p>
+    </div>
+    <div class="page-actions">
       <div class="menu-wrap">
-        <button class="btn-ghost" id="import-menu-btn">📋 Importa ricetta ▾</button>
+        <button class="btn-ghost btn-with-ico" id="import-menu-btn" aria-haspopup="true"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-download"/></svg> Importa ▾</button>
         <div class="menu-dropdown" id="import-menu-dropdown">
           <button id="paste-import-btn">📋 Da testo</button>
           <button id="import-recipe-file-btn">📄 Da file (.json)</button>
@@ -117,7 +159,7 @@
         </div>
       </div>
       <div class="menu-wrap">
-        <button class="btn-ghost" id="data-menu-btn">📦 Backup e CSV ▾</button>
+        <button class="btn-ghost btn-with-ico" id="data-menu-btn" aria-haspopup="true"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-save"/></svg> Backup e CSV ▾</button>
         <div class="menu-dropdown" id="data-menu-dropdown">
           <div class="menu-info" id="backup-reminder-text"></div>
           <button id="export-btn">⬇ Esporta backup</button>
@@ -137,8 +179,7 @@
           <button id="export-all-pdf-btn">📖 Esporta ricettario in PDF…</button>
         </div>
       </div>
-      <button class="btn-ghost" id="select-mode-btn">☑️ Elimina ricette</button>
-      <button class="btn-ghost" id="manage-ricettari-btn">📚 Gestisci ricettari</button>
+      <button class="btn-gold btn-with-ico" id="new-recipe-btn"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-plus"/></svg> Aggiungi ricetta</button>
     </div>
   </div>
 
@@ -150,14 +191,16 @@
     <button type="button" class="btn-ghost btn-small" id="selection-exit-btn">Annulla</button>
   </div>
 
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-icon">🧺</span>
-      <div>
+  <details class="panel pantry-panel" id="pantry-panel">
+    <summary>
+      <span class="panel-icon" aria-hidden="true">🧺</span>
+      <span class="summary-text">
         <h3>Cosa posso cucinare?</h3>
         <div class="panel-sub" id="pantry-panel-sub">Usa automaticamente quello che hai in Dispensa</div>
-      </div>
-    </div>
+      </span>
+      <span class="chev" aria-hidden="true"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-down"/></svg></span>
+    </summary>
+    <div class="pantry-body">
     <div class="panel-row">
       <input type="text" id="pantry-input" placeholder="Altri ingredienti che hai, separati da virgola (facoltativo)">
       <label style="display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:var(--fs-md);">
@@ -177,43 +220,48 @@
       <button class="btn-gold" id="pantry-search-btn">Trova ricette</button>
       <button class="btn-ghost" id="pantry-reset-btn" style="display:none;">Mostra tutte</button>
     </div>
-  </div>
+    </div>
+  </details>
 
-  <div class="toolbar">
-    <div class="toolbar-group" style="flex:1;">
-      <div class="search-wrap">
-        <input type="text" id="search" placeholder="Cerca per nome o ingrediente…">
-      </div>
-      <select id="category-filter">
-        <option value="">Tutte le categorie</option>
-        <option value="Primi">Primi</option>
-        <option value="Secondi">Secondi</option>
-        <option value="Zuppe & Vellutate">Zuppe &amp; Vellutate</option>
-        <option value="Impasti & Pane">Impasti &amp; Pane</option>
-        <option value="Salse & Sughi">Salse &amp; Sughi</option>
-        <option value="Dolci">Dolci</option>
-        <option value="Infusi & Tisane">Infusi &amp; Tisane</option>
-        <option value="Altro">Altro</option>
-      </select>
-      <select id="ricettario-filter" title="Filtra per ricettario"></select>
+  <label class="search-field" for="search">
+    <svg class="ico ico-sm" aria-hidden="true"><use href="#i-search"/></svg>
+    <input type="text" id="search" placeholder="Cerca per nome o ingrediente…" aria-label="Cerca per nome o ingrediente">
+  </label>
+
+  <div class="chip-row" id="category-chips" role="group" aria-label="Filtra per categoria" style="margin:14px 0;"></div>
+  <select id="category-filter" hidden aria-hidden="true" tabindex="-1">
+    <option value="">Tutte le categorie</option>
+    <option value="Primi">Primi</option>
+    <option value="Secondi">Secondi</option>
+    <option value="Zuppe & Vellutate">Zuppe &amp; Vellutate</option>
+    <option value="Impasti & Pane">Impasti &amp; Pane</option>
+    <option value="Salse & Sughi">Salse &amp; Sughi</option>
+    <option value="Dolci">Dolci</option>
+    <option value="Infusi & Tisane">Infusi &amp; Tisane</option>
+    <option value="Altro">Altro</option>
+  </select>
+
+  <div class="filters-row">
+    <label class="sort-label">Ordina per:
       <select id="sort-select">
         <option value="name-asc">Nome (A-Z)</option>
         <option value="name-desc">Nome (Z-A)</option>
-        <option value="recent">Aggiunta di recente</option>
+        <option value="recent">Aggiunte di recente</option>
         <option value="last-made">Ultima preparata</option>
         <option value="most-made">Più preparate</option>
       </select>
-      <select id="time-filter" title="Filtra per tempo di preparazione">
-        <option value="">Qualsiasi tempo</option>
-        <option value="15">Entro 15 min</option>
-        <option value="30">Entro 30 min</option>
-        <option value="60">Entro 1 ora</option>
-        <option value="has-time">Con tempo indicato</option>
-      </select>
-      <button class="btn-ghost" id="favorites-filter-btn">★ Solo preferite</button>
-      <button class="btn-ghost" id="archived-filter-btn">📦 Mostra archiviate</button>
-      <button class="btn-ghost" id="advanced-filters-toggle">🔍 Cottura, tag ed esclusioni ▾</button>
-    </div>
+    </label>
+    <select id="ricettario-filter" title="Filtra per ricettario" aria-label="Filtra per ricettario"></select>
+    <select id="time-filter" title="Filtra per tempo di preparazione" aria-label="Filtra per tempo di preparazione">
+      <option value="">Qualsiasi tempo</option>
+      <option value="15">Entro 15 min</option>
+      <option value="30">Entro 30 min</option>
+      <option value="60">Entro 1 ora</option>
+      <option value="has-time">Con tempo indicato</option>
+    </select>
+    <button class="btn-ghost btn-small" id="favorites-filter-btn">Solo preferite</button>
+    <button class="btn-ghost btn-small" id="archived-filter-btn">Mostra archiviate</button>
+    <button class="btn-ghost btn-small" id="advanced-filters-toggle">Cottura, tag ed esclusioni ▾</button>
   </div>
 
   <div class="panel" id="advanced-filters-panel" style="display:none;">
@@ -236,6 +284,11 @@
     <div class="panel-row" id="allergen-filter-row" style="margin-bottom:0;"></div>
   </div>
 
+  <div class="tools-row">
+    <button type="button" class="text-btn" id="select-mode-btn">Seleziona ed elimina ricette</button>
+    <button type="button" class="text-btn" id="manage-ricettari-btn">Gestisci ricettari</button>
+  </div>
+
   <div id="recipe-list"></div>
 
   </div>
@@ -243,47 +296,63 @@
   <div id="planning-view" style="display:none;">
     <div class="planning-header">
       <div>
-        <h2>📅 Pianificazione settimanale</h2>
-        <div class="panel-sub">Colazione, pranzo, cena, spuntini — più ricette per ogni fascia, con orario facoltativo</div>
+        <h2>Pianificazione settimanale</h2>
+        <p class="page-sub">Organizza i tuoi pasti per tutta la settimana: più ricette per fascia, con orario facoltativo.</p>
       </div>
-      <div class="toolbar-group">
-        <button class="btn-ghost btn-small" id="planning-goto-dispensa-btn" title="Apri la Dispensa per controllare cosa hai già">🥫 Dispensa</button>
-        <button class="btn-ghost btn-small" id="add-mealtype-btn">+ Aggiungi fascia pasto</button>
+      <div class="page-actions">
+        <button class="btn-ghost btn-small" id="planning-goto-dispensa-btn" title="Apri la Dispensa per controllare cosa hai già">Dispensa</button>
+        <button class="btn-ghost btn-small" id="add-mealtype-btn">+ Fascia pasto</button>
       </div>
     </div>
 
-    <div class="panel-row" style="align-items:center;">
-      <label style="font-size:13px;color:var(--ink-soft);">Per quante persone stai pianificando?</label>
-      <input type="number" id="plan-servings-input" min="1" style="width:70px;">
+    <div class="plan-bar">
+      <span class="plan-week-label" id="plan-week-label"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-calendar"/></svg><span id="plan-week-label-text"></span></span>
+      <div class="segmented" id="plan-view-toggle" role="group" aria-label="Modo di visualizzazione">
+        <button type="button" id="plan-mode-week" aria-pressed="true">Settimana</button>
+        <button type="button" id="plan-mode-day" aria-pressed="false">Giorno</button>
+      </div>
+      <label class="plan-persons">Persone
+        <input type="number" id="plan-servings-input" min="1" aria-label="Per quante persone stai pianificando?" title="Per quante persone stai pianificando?">
+      </label>
+      <button class="btn-ghost btn-small" id="plan-week-totals-btn" type="button">Totali nutrizionali</button>
     </div>
 
-    <div class="plan-day-nav">
-      <button type="button" class="plan-day-nav-arrow" id="plan-day-prev" title="Giorno precedente">‹</button>
+    <div class="plan-day-nav" id="plan-day-nav">
+      <button type="button" class="plan-day-nav-arrow" id="plan-day-prev" title="Giorno precedente" aria-label="Giorno precedente"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-left"/></svg></button>
       <div class="plan-day-tabs" id="plan-day-tabs"></div>
-      <button type="button" class="plan-day-nav-arrow" id="plan-day-next" title="Giorno successivo">›</button>
+      <button type="button" class="plan-day-nav-arrow" id="plan-day-next" title="Giorno successivo" aria-label="Giorno successivo"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-right"/></svg></button>
     </div>
 
     <div id="planning-days"></div>
 
-    <div class="modal-actions" style="border-top:1px solid var(--line);padding-top:16px;margin-top:4px;">
+    <div class="plan-footer">
       <button class="btn-ghost" id="clear-week-btn">Svuota settimana</button>
-      <button class="btn-ghost" id="copy-last-week-btn" title="Aggiunge le ricette della settimana scorsa a quella attuale, senza cancellare quello che hai già pianificato">➕ Aggiungi settimana scorsa</button>
-      <button class="btn-ghost" id="export-week-pdf-btn">⬇ Esporta PDF settimana</button>
-      <div style="flex:1;"></div>
-      <button class="btn-gold" id="generate-shopping-btn">🛒 Lista della spesa (settimana)<span id="planning-shopping-count" style="display:none;"></span></button>
+      <button class="btn-ghost" id="copy-last-week-btn" title="Aggiunge le ricette della settimana scorsa a quella attuale, senza cancellare quello che hai già pianificato">Aggiungi settimana scorsa</button>
+      <button class="btn-ghost" id="export-week-pdf-btn">Esporta PDF settimana</button>
+      <div class="spacer"></div>
+      <button class="btn-gold btn-with-ico" id="generate-shopping-btn"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-cart"/></svg> Visualizza lista della spesa<span id="planning-shopping-count" style="display:none;"></span></button>
     </div>
   </div>
 
   <div id="dispensa-view" style="display:none;">
 
+    <div class="page-head">
+      <div>
+        <h2>La mia dispensa</h2>
+        <p>Gestisci gli ingredienti che hai a disposizione.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn-ghost" id="dispensa-goto-planning-btn" title="Apri la Pianificazione per vedere cosa hai in programma">Pianificazione</button>
+        <button class="btn-gold btn-with-ico" id="new-dispensa-item-btn"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-plus"/></svg> Aggiungi prodotto</button>
+      </div>
+    </div>
+
     <div class="toolbar">
       <div class="toolbar-group" style="flex:1;">
-        <button class="btn-gold" id="new-dispensa-item-btn">+ Nuovo prodotto</button>
-        <button class="btn-ghost" id="expiring-recipes-btn" title="Mostra le ricette che usano prodotti in scadenza entro 3 giorni">🍽 Usa prima ciò che scade</button>
-        <button class="btn-ghost" id="dispensa-low-stock-filter-btn" title="Mostra solo i prodotti in esaurimento">⚠ In esaurimento</button>
-        <div class="search-wrap">
-          <input type="text" id="dispensa-search" placeholder="Cerca prodotto…">
-        </div>
+        <label class="search-field" for="dispensa-search" style="flex:1 1 220px;max-width:380px;width:auto;">
+          <svg class="ico ico-sm" aria-hidden="true"><use href="#i-search"/></svg>
+          <input type="text" id="dispensa-search" placeholder="Cerca ingrediente…" aria-label="Cerca ingrediente">
+        </label>
         <select id="dispensa-category-filter">
           <option value="">Tutte le categorie</option>
           <option value="Frutta">Frutta</option>
@@ -302,12 +371,12 @@
           <option value="Snack e dolciumi">Snack e dolciumi</option>
           <option value="Altro">Altro</option>
         </select>
-      </div>
-      <div class="toolbar-group">
-        <button class="btn-ghost" id="dispensa-goto-planning-btn" title="Apri la Pianificazione per vedere cosa hai in programma">📅 Pianificazione</button>
+        <button class="btn-ghost" id="dispensa-low-stock-filter-btn" title="Mostra solo i prodotti in esaurimento">In esaurimento</button>
+        <button class="btn-ghost" id="expiring-recipes-btn" title="Mostra le ricette che usano prodotti in scadenza entro 3 giorni">Usa prima ciò che scade</button>
       </div>
     </div>
 
+    <div id="dispensa-banner" role="status"></div>
     <div id="dispensa-list"></div>
 
   </div>
@@ -315,18 +384,26 @@
   <!-- ============ CREA ALIMENTI (consultazione banca dati) ============ -->
   <div id="crea-alimenti-view" style="display:none;">
 
+    <div class="page-head">
+      <div>
+        <h2>Valori alimenti CREA</h2>
+        <p>La banca dati ufficiale italiana dei valori nutrizionali.</p>
+      </div>
+    </div>
+
     <div class="toolbar">
       <div class="toolbar-group" style="flex:1;">
-        <div class="search-wrap">
-          <input type="text" id="crea-alimenti-search" placeholder="Cerca un alimento (es. farro, parmigiano, pomodoro)…">
-        </div>
-        <select id="crea-alimenti-category-filter">
+        <label class="search-field" for="crea-alimenti-search" style="flex:1 1 280px;max-width:480px;width:auto;">
+          <svg class="ico ico-sm" aria-hidden="true"><use href="#i-search"/></svg>
+          <input type="text" id="crea-alimenti-search" placeholder="Cerca un alimento (es. farro, parmigiano, pomodoro)…" aria-label="Cerca un alimento">
+        </label>
+        <select id="crea-alimenti-category-filter" aria-label="Categoria">
           <option value="">Tutte le categorie</option>
         </select>
       </div>
     </div>
 
-    <div style="font-size:13px;color:var(--ink-soft);margin:-6px 0 12px;" id="crea-alimenti-hint">
+    <div style="font-size:var(--fs-sm);color:var(--text-2);margin:0 0 12px;" id="crea-alimenti-hint">
       900 alimenti della banca dati ufficiale CREA. Digita per cercare o scegli una categoria per iniziare a sfogliare.
     </div>
 
@@ -337,12 +414,20 @@
   <!-- ============ CREA MENÙ (ricette ufficiali CREA) ============ -->
   <div id="crea-menu-view" style="display:none;">
 
+    <div class="page-head">
+      <div>
+        <h2>Ricette CREA</h2>
+        <p>Le ricette ufficiali del Centro di ricerca Alimenti e Nutrizione.</p>
+      </div>
+    </div>
+
     <div class="toolbar">
       <div class="toolbar-group" style="flex:1;">
-        <div class="search-wrap">
-          <input type="text" id="crea-menu-search" placeholder="Cerca una ricetta CREA…">
-        </div>
-        <select id="crea-menu-category-filter">
+        <label class="search-field" for="crea-menu-search" style="flex:1 1 280px;max-width:480px;width:auto;">
+          <svg class="ico ico-sm" aria-hidden="true"><use href="#i-search"/></svg>
+          <input type="text" id="crea-menu-search" placeholder="Cerca una ricetta CREA…" aria-label="Cerca una ricetta CREA">
+        </label>
+        <select id="crea-menu-category-filter" aria-label="Categoria">
           <option value="">Tutte le categorie</option>
           <option>Primi</option><option>Secondi</option><option>Zuppe & Vellutate</option>
           <option>Impasti & Pane</option><option>Salse & Sughi</option><option>Dolci</option>
@@ -358,6 +443,12 @@
   <!-- ============ COME FUNZIONA (pagina introduttiva) ============ -->
   <div id="info-view" style="display:none;">
 
+    <div class="page-head">
+      <div>
+        <h2>Come funziona</h2>
+        <p>Nessun account, nessun server: tutto resta sul tuo dispositivo.</p>
+      </div>
+    </div>
     <div class="panel">
       <div class="panel-header">
         <span class="panel-icon">📖</span>
@@ -408,6 +499,14 @@
 </div>
 
 </main>
+
+<nav class="tabbar" id="tabbar" aria-label="Navigazione rapida">
+  <button type="button" id="tab-today" aria-label="Oggi"><span class="tab-ico"><svg class="ico" aria-hidden="true"><use href="#i-today"/></svg></span>Oggi</button>
+  <button type="button" id="tab-recipes" aria-label="Ricette"><span class="tab-ico"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg></span>Ricette</button>
+  <button type="button" id="tab-planning" aria-label="Pianificazione"><span class="tab-ico"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg></span>Piano</button>
+  <button type="button" id="tab-dispensa" aria-label="Dispensa"><span class="tab-ico"><svg class="ico" aria-hidden="true"><use href="#i-box"/></svg></span>Dispensa</button>
+  <button type="button" id="tab-shopping" aria-label="Lista della spesa"><span class="tab-ico"><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg></span>Spesa</button>
+</nav>
 </div>
 
 <!-- ============ EDIT / CREATE MODAL ============ -->
@@ -883,60 +982,83 @@
 
 <!-- ============ VIEW MODAL ============ -->
 <div class="overlay" id="view-overlay">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="view-name">
     <button class="close-x" id="view-close" aria-label="Chiudi">×</button>
-    <div class="view-top-row">
-      <div>
-        <span class="cat-tag" id="view-category"></span>
-        <span class="ricettario-tag" id="view-ricettario" style="display:none;"></span>
-        <h2 id="view-name" style="margin:0;"></h2>
+    <button type="button" class="view-back" id="view-back-btn"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-left"/></svg> Le mie ricette</button>
+
+    <div class="view-head">
+      <div class="view-head-main">
+        <div>
+          <span class="cat-tag" id="view-category"></span>
+          <span class="ricettario-tag" id="view-ricettario" style="display:none;"></span>
+        </div>
+        <div class="view-title-row">
+          <h2 id="view-name"></h2>
+          <button class="star" id="view-favorite-btn" aria-label="Preferita" title="Aggiungi o togli dai preferiti"><svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg></button>
+        </div>
+        <div class="view-meta-row" id="view-time"></div>
       </div>
-      <button class="star" id="view-favorite-btn" style="position:static;font-size:24px;">★</button>
-    </div>
-    <img id="view-photo" class="view-photo" style="display:none;">
-    <div style="font-size:13px;color:var(--ink-soft);" id="view-time"></div>
-    <div id="view-tags" style="margin:4px 0;"></div>
-    <div id="view-allergens" style="margin:4px 0;"></div>
-    <div id="view-archived-note" class="pantry-caveat" style="display:none;margin:4px 0 0;">📦 Questa ricetta è archiviata — non compare nell'elenco principale.</div>
-
-    <div class="last-made-row">
-      <span id="view-last-made-text">Non ancora preparata</span>
-      <button class="btn-ghost btn-small" id="mark-made-btn">Ho preparato questa oggi</button>
+      <div class="view-head-actions">
+        <button class="btn-ghost" id="view-edit-btn">Modifica</button>
+        <button class="btn-gold" id="cook-mode-btn">Modalità cucina</button>
+      </div>
     </div>
 
-    <div class="servings-control">
-      <button id="servings-minus">−</button>
-      <span class="count"><span id="view-servings-count"></span> porzioni</span>
-      <button id="servings-plus">+</button>
+    <div class="view-layout">
+      <div class="view-photo-wrap">
+        <img id="view-photo" class="view-photo" style="display:none;" alt="">
+        <div id="view-tags" style="margin:10px 0 0;"></div>
+        <div id="view-allergens" style="margin:4px 0 0;"></div>
+        <div id="view-archived-note" class="pantry-caveat" style="display:none;margin:8px 0 0;">Questa ricetta è archiviata: non compare nell'elenco principale.</div>
+      </div>
+
+      <aside class="view-side">
+        <section class="side-card" aria-labelledby="view-ingr-title">
+          <h3 id="view-ingr-title">Ingredienti</h3>
+          <div class="servings-control">
+            <button id="servings-minus" aria-label="Meno porzioni">−</button>
+            <span class="count"><span id="view-servings-count"></span> porzioni</span>
+            <button id="servings-plus" aria-label="Più porzioni">+</button>
+          </div>
+          <ul id="view-ingredients"></ul>
+        </section>
+        <div id="freezable-suggestion" class="pantry-caveat" style="display:none;margin:0;">
+          ❄️ Questa ricetta si congela bene: considera di prepararne una porzione doppia e congelare il resto.
+          <button class="btn-ghost btn-small" id="double-servings-btn" style="margin-left:8px;">Raddoppia le porzioni</button>
+        </div>
+        <div id="view-nutrition" style="display:none;"></div>
+        <section class="side-card" aria-labelledby="view-info-title">
+          <h3 id="view-info-title">Informazioni aggiuntive</h3>
+          <div class="view-info-list">
+            <div class="last-made-row">
+              <span id="view-last-made-text">Non ancora preparata</span>
+              <button class="btn-ghost btn-small" id="mark-made-btn">Ho preparato questa oggi</button>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="view-steps-wrap" aria-labelledby="view-steps-title">
+        <h3 class="view-section-title" id="view-steps-title">Procedimento</h3>
+        <div id="view-steps"></div>
+        <div class="view-notes" id="view-notes-block" style="display:none;">
+          <strong>Note personali —</strong>
+          <span id="view-notes"></span>
+        </div>
+      </section>
     </div>
 
-    <div id="freezable-suggestion" class="pantry-caveat" style="display:none;margin:0 0 10px;">
-      ❄️ Questa ricetta si congela bene — considera di prepararne una porzione doppia e congelare il resto.
-      <button class="btn-ghost btn-small" id="double-servings-btn" style="margin-left:8px;">👯 Raddoppia le porzioni</button>
-    </div>
-
-    <ul id="view-ingredients"></ul>
-    <div id="view-nutrition" style="display:none;"></div>
-
-    <h3 style="margin-bottom:8px;">Preparazione</h3>
-    <div id="view-steps"></div>
-
-    <div class="view-notes" id="view-notes-block" style="display:none;">
-      <strong style="color:var(--brass);font-style:normal;">Note personali —</strong>
-      <span id="view-notes"></span>
-    </div>
-
-    <div class="modal-actions">
+    <div class="modal-actions" id="view-modal-actions">
       <div class="menu-wrap">
-        <button class="btn-ghost" id="view-export-menu-btn">⬇ Esporta ▾</button>
+        <button class="btn-ghost btn-with-ico" id="view-export-menu-btn"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-download"/></svg> Esporta ▾</button>
         <div class="menu-dropdown" id="view-export-menu-dropdown">
-          <button id="export-recipe-pdf-btn">⬇ Esporta PDF</button>
-          <button id="export-recipe-json-btn">⬇ Esporta ricetta (.json)</button>
+          <button id="export-recipe-pdf-btn">Esporta PDF</button>
+          <button id="export-recipe-json-btn">Esporta ricetta (.json)</button>
         </div>
       </div>
-      <button class="btn-ghost" id="recipe-shopping-btn">🛒 Lista della spesa</button>
+      <button class="btn-ghost btn-with-ico" id="recipe-shopping-btn"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-cart"/></svg> Lista della spesa</button>
       <div class="menu-wrap">
-        <button class="btn-ghost" id="view-schedule-btn">📅 Pianifica</button>
+        <button class="btn-ghost btn-with-ico" id="view-schedule-btn"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-calendar"/></svg> Pianifica</button>
         <div class="menu-dropdown schedule-dropdown" id="view-schedule-dropdown">
           <div class="schedule-field">
             <label>Giorno</label>
@@ -962,11 +1084,8 @@
           <div class="schedule-status" id="schedule-status" style="display:none;"></div>
         </div>
       </div>
-      <button class="btn-ghost" id="duplicate-recipe-btn">⧉ Duplica</button>
-      <button class="btn-gold" id="cook-mode-btn">👩‍🍳 Modalità cucina</button>
-      <button class="btn-ghost" id="archive-toggle-btn">📦 Archivia</button>
-      <div style="flex:1;"></div>
-      <button class="btn-ghost" id="view-edit-btn">Modifica</button>
+      <button class="btn-ghost" id="duplicate-recipe-btn">Duplica</button>
+      <button class="btn-ghost" id="archive-toggle-btn">Archivia</button>
     </div>
   </div>
 </div>
@@ -984,7 +1103,7 @@
     <button class="btn-gold" id="cook-release-timer-btn">Avvia timer rilascio</button>
   </div>
   <div class="cook-nav">
-    <button class="btn-ghost" id="cook-prev-btn" style="color:#f2e6c9;border-color:#f2e6c9;">← Indietro</button>
+    <button class="btn-ghost" id="cook-prev-btn">← Indietro</button>
     <button class="btn-gold" id="cook-timer-btn" style="display:none;">Avvia timer</button>
     <button class="btn-gold" id="cook-next-btn">Avanti →</button>
   </div>
