@@ -10,10 +10,15 @@
   const DISPENSA_ITEMS_KEY = 'mc_ricettario_dispensa_prodotti_v1';
   const SHOPPING_EXTRA_KEY = 'mc_ricettario_spesa_extra_v1';
   const WEEK_NOTES_KEY = 'mc_ricettario_note_settimana_v1';
+  const PLAN_WEEKS_KEY = 'mc_ricettario_settimane_v1'; // tutte le settimane pianificate, per data del lunedì
   const SHOPPING_CHECKED_KEY = 'mc_ricettario_spesa_spuntate_v1';
+  const SHOPPING_HIDDEN_KEY = 'mc_ricettario_spesa_rimosse_v1';
+  const SHOPPING_QTY_KEY = 'mc_ricettario_spesa_quantita_v1';
+  const SPESA_LISTA_KEY = 'mc_ricettario_spesa_lista_v1';
   const WEATHER_LOCATION_KEY = 'mc_ricettario_meteo_localita_v1';
   const WEATHER_CACHE_KEY = 'mc_ricettario_meteo_cache_v1';
   const RICETTARI_KEY = 'mc_ricettario_libri_v1';
+  const RACCOLTE_KEY = 'mc_ricettario_raccolte_v1';
   // Il ricettario che esiste già di fabbrica: id stabile così tutte le ricette create prima
   // dell'introduzione dei "più ricettari" continuano a trovarlo dopo l'aggiornamento.
   const DEFAULT_RICETTARIO_ID = 'default';
@@ -101,6 +106,11 @@
   ];
 
   let recipes = [];
+  let raccolte = []; // [{ id, name }]: elenchi personali di ricette (una ricetta può stare in più raccolte: r.raccolte = [id])
+  let minRatingFilter = '', raccoltaFilter = '';
+  const MISURE_PRATICHE_KEY = 'mc_ricettario_misure_pratiche_v1';
+  let misurePratiche = true;
+  try{ misurePratiche = localStorage.getItem(MISURE_PRATICHE_KEY) !== '0'; }catch(e){}
   // "Volumi" della libreria: ogni ricetta appartiene a uno solo di questi (r.ricettarioId).
   // {id, name, cover} — cover è una dataURL opzionale (stessa pipeline di ritaglio/compressione
   // usata per le foto delle ricette), oppure '' per mostrare l'icona segnaposto.
@@ -111,12 +121,24 @@
   let planServings = 4;
   let previousWeekPlan = null;
   let dispensaItems = [];
+  let spesaLista = []; // lista della spesa indipendente dalla pianificazione: [{id, name, qty, unit, checked, fonti:[]}]
   let shoppingExtraItems = []; // ingredienti segnalati mancanti dalla dispensa, promemoria per la spesa: [{id, name, unit}]
+  // Settimane con date reali: weekPlan/weekNotes sono SEMPRE la settimana mostrata (planWeekStart);
+  // planWeeks conserva tutte le settimane, indicizzate dalla data (AAAA-MM-GG) del lunedì.
+  let planWeeks = {};
+  let planWeekStart = '';
+  function isoLocal(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function dateFromIso(iso){ const [y,m,dd] = iso.split('-').map(Number); return new Date(y, m-1, dd, 12, 0, 0); }
+  function shiftIsoDays(iso, n){ const d = dateFromIso(iso); d.setDate(d.getDate()+n); return isoLocal(d); }
+  function mondayOfIso(iso){ const d = dateFromIso(iso); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return isoLocal(d); }
+  function realMonday(){ return mondayOfIso(isoLocal(new Date())); }
   let weekNotes = {}; // { 'Lunedì': { 'Cena': 'nota libera', ... }, ... }
   // Stato "spuntato" della lista della spesa, tenuto per nome ingrediente normalizzato (non per
   // singola lista): così lo stesso ingrediente resta spuntato anche se compare in una lista
   // rigenerata in seguito (es. dopo aver cambiato la pianificazione).
   let shoppingCheckedItems = {};
+  let shoppingHiddenItems = {};   // voci della lista tolte a mano: { 'nome|unità': true }
+  let shoppingQtyOverrides = {};  // quantità modificate a mano: { 'nome|unità': numero }
   let editingDispensaId = null;
   let editingId = null;
   let formDirty = false; // true se il modulo ricetta o prodotto Dispensa aperto ha modifiche non salvate
@@ -230,17 +252,37 @@
       }
     }catch(e){ shoppingExtraItems = []; }
     try{
+      const rawSpesa = localStorage.getItem(SPESA_LISTA_KEY);
+      spesaLista = rawSpesa ? JSON.parse(rawSpesa) : [];
+      if(!Array.isArray(spesaLista)) spesaLista = [];
+      spesaLista = spesaLista.filter(x => x && typeof x.name === 'string' && x.name.trim());
+    }catch(e){ spesaLista = []; }
+    try{
       const rawNotes = localStorage.getItem(WEEK_NOTES_KEY);
       weekNotes = rawNotes ? JSON.parse(rawNotes) : {};
       if(!weekNotes || typeof weekNotes !== 'object') weekNotes = {};
     }catch(e){ weekNotes = {}; }
+    inizializzaSettimane();
     try{
       const rawChecked = localStorage.getItem(SHOPPING_CHECKED_KEY);
       shoppingCheckedItems = rawChecked ? JSON.parse(rawChecked) : {};
       if(!shoppingCheckedItems || typeof shoppingCheckedItems !== 'object') shoppingCheckedItems = {};
     }catch(e){ shoppingCheckedItems = {}; }
+    try{
+      const h = JSON.parse(localStorage.getItem(SHOPPING_HIDDEN_KEY) || '{}');
+      shoppingHiddenItems = (h && typeof h === 'object' && !Array.isArray(h)) ? h : {};
+    }catch(e){ shoppingHiddenItems = {}; }
+    try{
+      const q = JSON.parse(localStorage.getItem(SHOPPING_QTY_KEY) || '{}');
+      shoppingQtyOverrides = (q && typeof q === 'object' && !Array.isArray(q)) ? q : {};
+    }catch(e){ shoppingQtyOverrides = {}; }
+  }
+  function saveShoppingEdits(){
+    safeStorageSet(SHOPPING_HIDDEN_KEY, JSON.stringify(shoppingHiddenItems));
+    return safeStorageSet(SHOPPING_QTY_KEY, JSON.stringify(shoppingQtyOverrides));
   }
   function saveWeekNotes(){
+    salvaSettimane();
     const ok = safeStorageSet(WEEK_NOTES_KEY, JSON.stringify(weekNotes));
     scriviSuFileCollegato();
     return ok;
@@ -267,7 +309,112 @@
       return false;
     }
   }
-  function saveRecipes(){ const ok = safeStorageSet(STORAGE_KEY, JSON.stringify(recipes)); scriviSuFileCollegato(); return ok; }
+  // ---------- Foto delle ricette in IndexedDB ----------
+  // localStorage ha un limite di ~5 MB nel browser: bastano poche decine di foto per riempirlo.
+  // Le foto stanno quindi in IndexedDB (centinaia di MB); nel salvataggio principale resta solo
+  // il segnaposto '@idb'. In memoria r.photo contiene sempre l'immagine, quindi il resto del codice,
+  // i backup e il file collegato non cambiano. Se IndexedDB non è disponibile si torna al vecchio
+  // modo (foto dentro il salvataggio principale).
+  const FOTO_DB_NAME = 'mc_ricettario_foto_db', FOTO_STORE = 'foto', FOTO_MARKER = '@idb';
+  let fotoDbPromise = null, fotoDbOk = true;
+  const fotoConfermate = new Map();   // id -> foto già scritta in IndexedDB
+  const fotoNonCaricate = new Set();  // id con segnaposto la cui foto non è stato possibile leggere: il segnaposto va conservato
+  const fotoInCoda = new Map();       // id -> foto in attesa di essere scritta
+  let fotoFlushInCorso = false;
+  function apriFotoDb(){
+    if(fotoDbPromise) return fotoDbPromise;
+    fotoDbPromise = new Promise(res=>{
+      try{
+        if(!window.indexedDB){ res(null); return; }
+        const rq = indexedDB.open(FOTO_DB_NAME, 1);
+        rq.onupgradeneeded = ()=> rq.result.createObjectStore(FOTO_STORE);
+        rq.onsuccess = ()=> res(rq.result);
+        rq.onerror = rq.onblocked = ()=> res(null);
+      }catch(e){ res(null); }
+    });
+    return fotoDbPromise;
+  }
+  function fotoTx(mode, fn){
+    return apriFotoDb().then(db => !db ? null : new Promise(res=>{
+      try{
+        const tx = db.transaction(FOTO_STORE, mode);
+        const out = fn(tx.objectStore(FOTO_STORE));
+        tx.oncomplete = ()=> res(out === undefined ? true : out);
+        tx.onerror = tx.onabort = ()=> res(null);
+      }catch(e){ res(null); }
+    }));
+  }
+  async function caricaFotoDaIdb(){
+    const marcate = recipes.filter(r => r.photo === FOTO_MARKER);
+    const db = await apriFotoDb();
+    if(!db){
+      fotoDbOk = false;
+      marcate.forEach(r=>{ r.photo = ''; fotoNonCaricate.add(r.id); });
+      return;
+    }
+    let keys = null, vals = null;
+    const ok = await fotoTx('readonly', st=>{ keys = st.getAllKeys(); vals = st.getAll(); });
+    if(!ok){
+      marcate.forEach(r=>{ r.photo = ''; fotoNonCaricate.add(r.id); });
+      return;
+    }
+    const mappa = new Map();
+    keys.result.forEach((k, i)=> mappa.set(k, vals.result[i]));
+    recipes.forEach(r=>{
+      if(r.photo === FOTO_MARKER){
+        const f = mappa.get(r.id);
+        if(typeof f === 'string' && f){ r.photo = f; fotoConfermate.set(r.id, f); }
+        else{ r.photo = ''; fotoNonCaricate.add(r.id); }
+      }
+    });
+    // pulizia: foto di ricette che non esistono più
+    const idsVivi = new Set(recipes.map(r => r.id).concat(cestino.map(e => e.recipe.id)));
+    const orfane = keys.result.filter(k => !idsVivi.has(k));
+    if(orfane.length) fotoTx('readwrite', st=>{ orfane.forEach(k => st.delete(k)); });
+  }
+  async function scriviFotoInCoda(){
+    if(fotoFlushInCorso || !fotoInCoda.size) return;
+    fotoFlushInCorso = true;
+    const lotto = new Map(fotoInCoda); fotoInCoda.clear();
+    const ok = await fotoTx('readwrite', st=>{ lotto.forEach((f, id)=> st.put(f, id)); });
+    fotoFlushInCorso = false;
+    if(!ok){ fotoDbOk = false; return; } // IndexedDB non utilizzabile: da ora le foto restano nel salvataggio principale
+    lotto.forEach((f, id)=> fotoConfermate.set(id, f));
+    saveRecipes(); // ora le foto confermate possono uscire dal salvataggio principale
+    if(fotoInCoda.size) scriviFotoInCoda();
+  }
+  function recipesPerSalvataggio(forzaSnello){
+    if(!fotoDbOk) return recipes;
+    return recipes.map(r=>{
+      const f = r.photo;
+      if(!f) return fotoNonCaricate.has(r.id) ? { ...r, photo: FOTO_MARKER } : r;
+      if(fotoConfermate.get(r.id) === f) return { ...r, photo: FOTO_MARKER };
+      fotoInCoda.set(r.id, f);
+      return forzaSnello ? { ...r, photo: FOTO_MARKER } : r;
+    });
+  }
+  function saveRecipes(){
+    let ok = false;
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(recipesPerSalvataggio(false)));
+      ok = true;
+    }catch(err){
+      // Spazio esaurito: se la foto è in coda per IndexedDB, il salvataggio principale la lascia fuori.
+      if(fotoDbOk && fotoInCoda.size){
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(recipesPerSalvataggio(true))); ok = true; }catch(e2){ ok = false; }
+      }
+      if(!ok) ok = safeStorageSet(STORAGE_KEY, JSON.stringify(recipesPerSalvataggio(false))); // mostra l'avviso di spazio esaurito
+    }
+    if(fotoInCoda.size) scriviFotoInCoda();
+    scriviSuFileCollegato();
+    return ok;
+  }
+  function saveRaccolte(){ const ok = safeStorageSet(RACCOLTE_KEY, JSON.stringify(raccolte)); scriviSuFileCollegato(); return ok; }
+  function caricaRaccolte(){
+    try{ const raw = localStorage.getItem(RACCOLTE_KEY); raccolte = raw ? JSON.parse(raw) : []; }catch(e){ raccolte = []; }
+    if(!Array.isArray(raccolte)) raccolte = [];
+    raccolte = raccolte.filter(x => x && x.id && x.name);
+  }
   function saveRicettari(){ const ok = safeStorageSet(RICETTARI_KEY, JSON.stringify(ricettari)); scriviSuFileCollegato(); return ok; }
 
   // Ricetta -> id del suo ricettario, con fallback a quello di partenza per le ricette salvate
@@ -318,7 +465,7 @@
   document.getElementById('manage-ricettari-btn').addEventListener('click', openRicettariManage);
 
   function renderRicettariManageList(){
-    ricettariManageList.innerHTML = ricettari.map(rb=>{
+    ricettariManageList.innerHTML = ricettari.map((rb, rbIdx)=>{
       const count = recipes.filter(r => recipeRicettarioId(r) === rb.id).length;
       const coverStyle = rb.cover ? `background-image:url('${rb.cover}');` : '';
       return `
@@ -328,6 +475,10 @@
             <input type="text" class="ricettario-row-name" value="${escapeAttr(rb.name)}" ${rb.id === DEFAULT_RICETTARIO_ID ? '' : ''}>
             <div class="ricettario-row-count">${count} ricett${count===1?'a':'e'}</div>
           </div>
+          <span class="ricettario-row-order">
+            <button type="button" class="btn-ghost btn-small ricettario-row-up-btn" aria-label="Sposta ${escapeAttr(rb.name)} prima" title="Sposta prima" ${rbIdx === 0 ? 'disabled' : ''}>↑</button>
+            <button type="button" class="btn-ghost btn-small ricettario-row-down-btn" aria-label="Sposta ${escapeAttr(rb.name)} dopo" title="Sposta dopo" ${rbIdx === ricettari.length-1 ? 'disabled' : ''}>↓</button>
+          </span>
           <input type="file" class="ricettario-row-cover-input" accept="image/*" style="display:none;">
           <button type="button" class="btn-ghost btn-small ricettario-row-cover-btn">📷 Copertina</button>
           <button type="button" class="btn-ghost btn-small ricettario-row-delete-btn" ${ricettari.length <= 1 ? 'disabled title="Deve restare almeno un ricettario"' : ''}>🗑 Elimina</button>
@@ -338,6 +489,23 @@
     ricettariManageList.querySelectorAll('.ricettario-row').forEach(row=>{
       const id = row.dataset.id;
       const nameInput = row.querySelector('.ricettario-row-name');
+      [['.ricettario-row-up-btn', -1], ['.ricettario-row-down-btn', 1]].forEach(([sel, dir])=>{
+        row.querySelector(sel).addEventListener('click', ()=>{
+          const from = ricettari.findIndex(rb => rb.id === id);
+          const to = from + dir;
+          if(from < 0 || to < 0 || to >= ricettari.length) return;
+          const [mosso] = ricettari.splice(from, 1);
+          ricettari.splice(to, 0, mosso);
+          saveRicettari();
+          refreshRicettarioSelects();
+          renderRicettariManageList();
+          // il focus resta sul pulsante appena usato (o sull'altro se è arrivato in cima/fondo)
+          const nuovaRiga = ricettariManageList.querySelector(`.ricettario-row[data-id="${CSS.escape(id)}"]`);
+          const btn = nuovaRiga && (nuovaRiga.querySelector(sel + ':not([disabled])') || nuovaRiga.querySelector('.ricettario-row-order button:not([disabled])'));
+          if(btn) btn.focus();
+          renderToday();
+        });
+      });
       nameInput.addEventListener('change', ()=>{
         const nuovo = nameInput.value.trim();
         if(!nuovo){ nameInput.value = ricettarioName(id); return; }
@@ -406,7 +574,10 @@
   // al volume, oppure null se il volume era già vuoto.
   function eliminaRicettario(id, target){
     if(target === 'ELIMINA_RICETTE'){
+      const daTogliere = recipes.filter(r => recipeRicettarioId(r) === id);
+      spostaNelCestino(daTogliere);
       recipes = recipes.filter(r => recipeRicettarioId(r) !== id);
+      aggiornaVoceCestino();
     } else if(target){
       recipes.forEach(r=>{ if(recipeRicettarioId(r) === id) r.ricettarioId = target; });
     }
@@ -450,12 +621,42 @@
     renderRicettariManageList();
     renderToday();
   });
-  function saveWeek(){ const ok = safeStorageSet(WEEK_KEY, JSON.stringify(weekPlan)); scriviSuFileCollegato(); return ok; }
+  function settimanaHaContenuto(w){
+    return !!w && (DAYS.some(d => (w.plan && w.plan[d] || []).length) || DAYS.some(d => w.notes && w.notes[d] && Object.keys(w.notes[d]).length));
+  }
+  function inizializzaSettimane(){
+    let salvate = null;
+    try{ const raw = localStorage.getItem(PLAN_WEEKS_KEY); salvate = raw ? JSON.parse(raw) : null; }catch(e){ salvate = null; }
+    planWeekStart = realMonday();
+    if(salvate && typeof salvate === 'object'){
+      planWeeks = salvate;
+      const w = planWeeks[planWeekStart] || {};
+      weekPlan = w.plan || {}; weekNotes = w.notes || {};
+    }else{
+      // Prima volta con le date: la settimana "ricorrente" di prima diventa quella corrente.
+      planWeeks = {};
+      salvaSettimane();
+    }
+  }
+  function salvaSettimane(){
+    planWeeks[planWeekStart] = { plan: weekPlan, notes: weekNotes };
+    Object.keys(planWeeks).forEach(k => { if(!settimanaHaContenuto(planWeeks[k])) delete planWeeks[k]; });
+    return safeStorageSet(PLAN_WEEKS_KEY, JSON.stringify(planWeeks));
+  }
+  function setPlanWeek(monday){
+    salvaSettimane();
+    planWeekStart = monday;
+    const w = planWeeks[monday] || {};
+    weekPlan = w.plan || {}; weekNotes = w.notes || {};
+  }
+  function settimaneComplete(){ salvaSettimane(); return planWeeks; }
+  function saveWeek(){ salvaSettimane(); const ok = safeStorageSet(WEEK_KEY, JSON.stringify(weekPlan)); scriviSuFileCollegato(); return ok; }
   function saveMealTypes(){ const ok = safeStorageSet(MEALTYPES_KEY, JSON.stringify(mealTypes)); scriviSuFileCollegato(); return ok; }
   function savePantry(text){ return safeStorageSet(PANTRY_KEY, text); }
   function savePlanServings(){ return safeStorageSet(PLAN_SERVINGS_KEY, String(planServings)); }
   function savePreviousWeek(plan){ return safeStorageSet(PREV_WEEK_KEY, JSON.stringify(plan)); }
   function saveDispensaItems(){ const ok = safeStorageSet(DISPENSA_ITEMS_KEY, JSON.stringify(dispensaItems)); scriviSuFileCollegato(); return ok; }
+  function saveSpesaLista(){ const ok = safeStorageSet(SPESA_LISTA_KEY, JSON.stringify(spesaLista)); scriviSuFileCollegato(); return ok; }
   function saveShoppingExtra(){ const ok = safeStorageSet(SHOPPING_EXTRA_KEY, JSON.stringify(shoppingExtraItems)); scriviSuFileCollegato(); return ok; }
 
   // ================================================================
@@ -517,7 +718,7 @@
   }
 
   function datiCompletiPerFile(){
-    return { recipes, ricettari, weekPlan, mealTypes, dispensaItems, shoppingExtraItems, weekNotes };
+    return { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista };
   }
 
   function aggiornaControlliMenuStorage(){
@@ -559,17 +760,20 @@
     const dati = JSON.parse(testo);
     if (Array.isArray(dati.recipes)) safeStorageSet(STORAGE_KEY, JSON.stringify(dati.recipes));
     if (Array.isArray(dati.ricettari) && dati.ricettari.length) safeStorageSet(RICETTARI_KEY, JSON.stringify(dati.ricettari));
+    if (Array.isArray(dati.raccolte)) safeStorageSet(RACCOLTE_KEY, JSON.stringify(dati.raccolte));
     if (dati.weekPlan) safeStorageSet(WEEK_KEY, JSON.stringify(dati.weekPlan));
+    if (dati.planWeeks && typeof dati.planWeeks === 'object') safeStorageSet(PLAN_WEEKS_KEY, JSON.stringify(dati.planWeeks));
     if (Array.isArray(dati.mealTypes)) safeStorageSet(MEALTYPES_KEY, JSON.stringify(dati.mealTypes));
     if (Array.isArray(dati.dispensaItems)) safeStorageSet(DISPENSA_ITEMS_KEY, JSON.stringify(dati.dispensaItems));
     if (Array.isArray(dati.shoppingExtraItems)) safeStorageSet(SHOPPING_EXTRA_KEY, JSON.stringify(dati.shoppingExtraItems));
     if (dati.weekNotes && typeof dati.weekNotes === 'object') safeStorageSet(WEEK_NOTES_KEY, JSON.stringify(dati.weekNotes));
+    if (Array.isArray(dati.spesaLista)) safeStorageSet(SPESA_LISTA_KEY, JSON.stringify(dati.spesaLista));
   }
 
   function mostraBannerRiconnessione(handle){
     fileCollegatoInAttesaDiPermesso = handle;
     document.getElementById('file-reconnect-text').textContent =
-      `🔓 Il file "${handle.name}" ha bisogno di conferma per riconnettersi (i browser la richiedono a ogni sessione, per sicurezza). Intanto i dati restano salvati nel browser.`;
+      `🔓 Il file "${handle.name}" ha bisogno di conferma per riconnettersi (i browser la richiedono a ogni sessione, per sicurezza). Se non lo trova, usa "Scegli di nuovo il file" e cerca la tua cartella «Il Mio Ricettario». Intanto i dati restano salvati nel browser.`;
     document.getElementById('file-reconnect-banner').style.display = 'flex';
   }
 
@@ -600,15 +804,59 @@
         fileCollegatoInAttesaDiPermesso = null;
         document.getElementById('file-reconnect-banner').style.display = 'none';
         aggiornaControlliMenuStorage();
-        location.reload(); // il modo più semplice e sicuro per rileggere tutto con i nuovi dati
+        await ricaricaDatiInMemoria(); // niente ricarica della pagina: il permesso sul file vale solo finché la pagina resta aperta
       } else {
         alert('Permesso non concesso: il file resta scollegato per questa sessione. Puoi riprovare o collegarne un altro dal menu "Backup e CSV".');
       }
     } catch (err) {
       console.error('Errore nel richiedere il permesso sul file collegato:', err);
-      alert('Non è stato possibile riconnettersi al file. Puoi collegarne un altro dal menu "Backup e CSV".');
+      alert('Non è stato possibile riconnettersi al file (forse è stato spostato, rinominato o il browser ha perso il collegamento). Usa "Scegli di nuovo il file" per indicare dove si trova adesso.');
     }
   });
+
+  // Se il collegamento automatico non trova più il file, si può indicarlo di nuovo a mano:
+  // il selettore si apre nell'ultima cartella usata.
+  document.getElementById('file-reconnect-pick-btn').addEventListener('click', async () => {
+    try {
+      const [handle] = await apriSelettoreFile('showOpenFilePicker', {
+        types: [{ description: 'File dati Il Mio Ricettario', accept: { 'application/json': ['.json'] } }]
+      });
+      if (!(await assicuraPermessoScrittura(handle))) { alert(MSG_PERMESSO_SCRITTURA); return; }
+      if (!confirm('I dati salvati in questo file sostituiranno quelli che vedi ora. Continuare?')) return;
+      await caricaDatiDaFileCollegato(handle);
+      try { await salvaHandleFileSalvato(handle); } catch (err) { console.error(err); }
+      fileCollegatoHandle = handle; fileCollegatoInAttesaDiPermesso = null;
+      document.getElementById('file-reconnect-banner').style.display = 'none';
+      await ricaricaDatiInMemoria();
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      console.error('Errore scegliendo di nuovo il file:', err);
+      alert(messaggioErroreFileSystem(err) || 'Non è stato possibile aprire il file: verifica che sia un file dati valido di questo sito.');
+    }
+  });
+
+  /** Rilegge tutti i dati (dal browser, dopo che il file collegato li ha aggiornati) e ridisegna l'app
+   * SENZA ricaricare la pagina: con la ricarica, su alcuni browser (es. pagina aperta come file sul
+   * telefono) il permesso appena concesso sul file andava perso e tornava il messaggio "Riconnetti". */
+  async function ricaricaDatiInMemoria(){
+    loadRecipes();
+    caricaCestino();
+    await caricaFotoDaIdb();
+    caricaRaccolte();
+    refreshRaccolteUi();
+    aggiornaVoceCestino();
+    recipes = recipes.map(migrateRecipe);
+    saveRecipes();
+    migrateWeekPlan();
+    planServingsInput.value = planServings;
+    updatePantryPanelSub();
+    refreshRicettarioSelects();
+    renderList();
+    switchView('today');
+    aggiornaTopbarAlerts();
+    aggiornaControlliMenuStorage();
+    aggiornaBannerBackup();
+  }
 
   /** All'avvio: se un file era già stato collegato in precedenza, prova a
    * ricollegarlo automaticamente (senza bisogno di un nuovo clic, quando il
@@ -662,6 +910,33 @@
     chiudiSceltaStorage();
   });
 
+  /** Apre i selettori di file con un "id" fisso: Chrome ricorda l'ultima cartella usata con quell'id,
+   * quindi il file dati e i backup si ritrovano nella stessa cartella (es. «Il Mio Ricettario»).
+   * Se il browser non conosce le opzioni extra, riprova senza. */
+  async function apriSelettoreFile(nome, opzioni){
+    try{
+      const extra = { id: 'il-mio-ricettario', startIn: 'documents' };
+      // showOpenFilePicker di default dà un file in SOLA LETTURA: senza mode readwrite il browser
+      // chiederebbe di nuovo il permesso di scrittura a ogni apertura ("Riconnetti" all'infinito).
+      if(nome === 'showOpenFilePicker') extra.mode = 'readwrite';
+      return await window[nome](Object.assign(extra, opzioni));
+    }catch(err){
+      if(err instanceof TypeError) return await window[nome](opzioni);
+      throw err;
+    }
+  }
+
+  /** showOpenFilePicker concede solo la LETTURA: senza chiedere subito anche la scrittura, dopo il
+   * ricaricamento della pagina il file risulta "da riconnettere" e le modifiche non vi verrebbero scritte.
+   * Va chiamata subito dopo la scelta del file, mentre il tocco dell'utente è ancora valido. */
+  async function assicuraPermessoScrittura(handle){
+    try{
+      if(await handle.queryPermission({ mode: 'readwrite' }) === 'granted') return true;
+      return await handle.requestPermission({ mode: 'readwrite' }) === 'granted';
+    }catch(err){ console.error('Permesso di scrittura sul file:', err); return false; }
+  }
+  const MSG_PERMESSO_SCRITTURA = 'Senza il permesso di scrittura il file non può essere tenuto aggiornato: collegamento annullato. Riprova e, quando il browser lo chiede, scegli di consentire la modifica del file (meglio se "a ogni visita", quando l\'opzione compare).';
+
   /** Distingue, quando possibile, PERCHÉ showSaveFilePicker/showOpenFilePicker
    * hanno fallito, per dare un messaggio utile invece che uno generico. */
   function messaggioErroreFileSystem(err){
@@ -677,7 +952,7 @@
   document.getElementById('storage-choice-new-btn').addEventListener('click', async () => {
     const statusEl = document.getElementById('storage-choice-status');
     try {
-      const handle = await window.showSaveFilePicker({
+      const handle = await apriSelettoreFile('showSaveFilePicker', {
         suggestedName: 'il-mio-ricettario-dati.json',
         types: [{ description: 'File dati Il Mio Ricettario', accept: { 'application/json': ['.json'] } }]
       });
@@ -706,9 +981,10 @@
   document.getElementById('storage-choice-open-btn').addEventListener('click', async () => {
     const statusEl = document.getElementById('storage-choice-status');
     try {
-      const [handle] = await window.showOpenFilePicker({
+      const [handle] = await apriSelettoreFile('showOpenFilePicker', {
         types: [{ description: 'File dati Il Mio Ricettario', accept: { 'application/json': ['.json'] } }]
       });
+      if (!(await assicuraPermessoScrittura(handle))) { statusEl.textContent = MSG_PERMESSO_SCRITTURA; return; }
       const confermato = confirm('Aprire questo file sostituirà quello che vedi ora (ricette, dispensa, pianificazione) con il contenuto salvato nel file. Continuare?');
       if (!confermato) return;
       await caricaDatiDaFileCollegato(handle);
@@ -718,7 +994,10 @@
       } catch (err) {
         console.error('File aperto correttamente, ma non è stato possibile ricordarlo per la prossima visita:', err);
       }
-      location.reload();
+      fileCollegatoHandle = handle; fileCollegatoInAttesaDiPermesso = null;
+      document.getElementById('file-reconnect-banner').style.display = 'none';
+      chiudiSceltaStorage();
+      await ricaricaDatiInMemoria();
     } catch (err) {
       if (err && err.name === 'AbortError') return;
       console.error('Errore aprendo il file di salvataggio:', err);
@@ -803,6 +1082,8 @@
 
   function migrateRecipe(r){
     if(r.favorite === undefined) r.favorite = false;
+    r.rating = Math.max(0, Math.min(5, parseInt(r.rating, 10) || 0));
+    if(!Array.isArray(r.raccolte)) r.raccolte = [];
     if(r.photo === undefined) r.photo = '';
     if(r.lastMade === undefined) r.lastMade = null;
     if(!Array.isArray(r.tags)) r.tags = [];
@@ -912,7 +1193,7 @@
   }
   // Solo i dati davvero presenti: il tempo compare se c'è, le porzioni hanno sempre un valore
   function recipeMetaHtml(r){
-    return `${r.time ? `<span>${icon('clock')} ${r.time} min</span>` : ''}<span>${icon('user')} ${porzioniLabel(r.servings)}</span>`;
+    return `${r.time ? `<span>${icon('clock')} ${r.time} min</span>` : ''}<span>${icon('user')} ${porzioniLabel(r.servings)}</span>${r.rating ? `<span class="rating-mini" title="Il tuo voto">★ ${r.rating}</span>` : ''}`;
   }
   function recipeTagsHtml(r){
     return `<span class="cat-tag">${escapeHtml(r.category)}</span>`
@@ -943,6 +1224,7 @@
         if(b.lastMade) return 1;
         return a.name.localeCompare(b.name);
       });
+      case 'rating': return arr.sort((a,b)=> (b.rating||0) - (a.rating||0) || a.name.localeCompare(b.name));
       case 'most-made': return arr.sort((a,b)=> (b.timesMade||0) - (a.timesMade||0) || a.name.localeCompare(b.name));
       case 'name-asc':
       default: return arr.sort((a,b)=> a.name.localeCompare(b.name));
@@ -1328,18 +1610,12 @@
     const nomi = recipes.filter(r=>ricetteSelezionate.has(r.id)).map(r=>`• ${r.name}`).join('\n');
     const ok = await confirmDialog({
       title: `Eliminare ${n} ricett${n===1?'a':'e'}?`,
-      message: `${nomi}\n\nL'operazione non si può annullare.`,
+      message: `${nomi}\n\nFiniranno nel Cestino (menu ⋯) per 30 giorni; subito dopo potrai anche toccare «Annulla».`,
       confirmText: `Elimina ${n} ricett${n===1?'a':'e'}`,
       danger: true
     });
     if(!ok) return;
-    recipes = recipes.filter(r => !ricetteSelezionate.has(r.id));
-    // Toglie anche le voci pianificate che puntavano alle ricette eliminate,
-    // per non lasciare "(ricetta eliminata)" nella settimana.
-    DAYS.forEach(d=>{
-      if(weekPlan[d]) weekPlan[d] = weekPlan[d].filter(e => !e.recipeId || !ricetteSelezionate.has(e.recipeId));
-    });
-    saveRecipes(); saveWeek();
+    eliminaRicetteConAnnulla(recipes.filter(r => ricetteSelezionate.has(r.id)), `${n} ricett${n===1?'a eliminata':'e eliminate'}`);
     impostaModalitaSelezione(false);
     renderPlanningDays();
   });
@@ -1363,6 +1639,9 @@
       const matchesCat = !cat || r.category === cat;
       if(!matchesCat) return false;
       if(activeRicettarioFilter && recipeRicettarioId(r) !== activeRicettarioFilter) return false;
+      if(minRatingFilter === 'none'){ if(r.rating) return false; }
+      else if(minRatingFilter && (r.rating || 0) < parseInt(minRatingFilter, 10)) return false;
+      if(raccoltaFilter && !(r.raccolte || []).includes(raccoltaFilter)) return false;
       if(timeFilter === 'has-time' && !r.time) return false;
       if(timeFilter && timeFilter !== 'has-time'){
         if(!r.time || r.time > parseInt(timeFilter, 10)) return false;
@@ -1389,6 +1668,33 @@
     });
   }
 
+  const LIST_CHUNK = 48;
+  let listTotal = 0, listFilteredIds = [], listSentinelObserver = null;
+  function renderCardsChunked(items, makeCard){
+    if(listSentinelObserver){ listSentinelObserver.disconnect(); listSentinelObserver = null; }
+    let shown = 0;
+    const sentinel = document.createElement('div');
+    sentinel.className = 'list-sentinel';
+    sentinel.setAttribute('aria-hidden', 'true');
+    const more = ()=>{
+      const frag = document.createDocumentFragment();
+      const end = Math.min(items.length, shown + LIST_CHUNK);
+      for(; shown < end; shown++) frag.appendChild(makeCard(items[shown]));
+      if(sentinel.parentNode) sentinel.remove();
+      listEl.appendChild(frag);
+      if(shown < items.length){
+        listEl.appendChild(sentinel);
+        if(!listSentinelObserver && 'IntersectionObserver' in window){
+          listSentinelObserver = new IntersectionObserver(entries=>{
+            if(entries.some(en => en.isIntersecting)) more();
+          }, { rootMargin: '900px 0px' });
+        }
+        if(listSentinelObserver) listSentinelObserver.observe(sentinel);
+        else more(); // browser senza IntersectionObserver: disegna tutto
+      }else if(listSentinelObserver){ listSentinelObserver.disconnect(); listSentinelObserver = null; }
+    };
+    more();
+  }
   function renderList(){
     syncCategoryChips();
     syncFavoritesUi();
@@ -1418,7 +1724,8 @@
         listEl.innerHTML = `<div class="empty-state">${messaggio}</div>`;
         return;
       }
-      scored.forEach(({recipe:r, match, priorityMatches})=>{
+      listTotal = scored.length;
+      renderCardsChunked(scored, ({recipe:r, match, priorityMatches})=>{
         const card = document.createElement('div');
         card.className = 'card';
         card.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8A8F86');
@@ -1445,16 +1752,26 @@
         `;
         card.addEventListener('click', ()=> openView(r.id));
         makeKeyboardClickable(card, r.name);
-        listEl.appendChild(card);
+        return card;
       });
       return;
     }
 
-    if(filtered.length === 0){ listEl.innerHTML = '<div class="empty-state">Nessuna ricetta trovata. Prova a cercare altro, oppure aggiungine una nuova.</div>'; return; }
+    if(filtered.length === 0){
+      const nessunaPreferita = favoritesOnly && !showArchivedOnly && !recipes.some(r => r.favorite && !r.archived);
+      listEl.innerHTML = nessunaPreferita
+        ? '<div class="empty-state">Non hai ancora ricette preferite: tocca il cuore su una ricetta per ritrovarla qui.</div>'
+        : (favoritesOnly && categoryFilterEl.value
+          ? '<div class="empty-state">Nessuna ricetta preferita in questa categoria. Scegli un\'altra categoria o "Tutte".</div>'
+          : '<div class="empty-state">Nessuna ricetta trovata. Prova a cercare altro, oppure aggiungine una nuova.</div>');
+      return;
+    }
 
     filtered = sortRecipes(filtered);
+    listTotal = filtered.length;
+    listFilteredIds = filtered.map(r => r.id);
 
-    filtered.forEach(r=>{
+    renderCardsChunked(filtered, r=>{
       const card = document.createElement('div');
       card.className = 'card';
       card.dataset.recipeId = r.id;
@@ -1493,17 +1810,30 @@
         }
       });
       makeKeyboardClickable(card, r.name);
-      listEl.appendChild(card);
+      return card;
     });
   }
 
-  searchEl.addEventListener('input', renderList);
+  // Con molte ricette le schede si disegnano a blocchi: le prime subito, le altre quando
+  // ci si avvicina in fondo all'elenco (e la ricerca aspetta un attimo prima di partire).
+  let searchTimer = null;
+  searchEl.addEventListener('input', ()=>{ clearTimeout(searchTimer); searchTimer = setTimeout(renderList, 140); });
   categoryFilterEl.addEventListener('change', renderList);
   ricettarioFilterEl.addEventListener('change', ()=>{
     activeRicettarioFilter = ricettarioFilterEl.value;
     renderList();
   });
   timeFilterEl.addEventListener('change', renderList);
+  const ratingFilterEl = document.getElementById('rating-filter');
+  const raccoltaFilterEl = document.getElementById('raccolta-filter');
+  ratingFilterEl.addEventListener('change', ()=>{ minRatingFilter = ratingFilterEl.value; renderList(); });
+  raccoltaFilterEl.addEventListener('change', ()=>{ raccoltaFilter = raccoltaFilterEl.value; renderList(); });
+  function refreshRaccolteUi(){
+    const cur = raccoltaFilter;
+    raccoltaFilterEl.innerHTML = '<option value="">Tutte le ricette</option>' + raccolte.map(x => `<option value="${escapeAttr(x.id)}">${escapeHtml(x.name)}</option>`).join('');
+    if(raccolte.some(x => x.id === cur)) raccoltaFilterEl.value = cur; else { raccoltaFilter = ''; raccoltaFilterEl.value = ''; }
+    if(typeof currentViewId !== 'undefined' && currentViewId) renderViewRaccolteRating();
+  }
   sortSelectEl.addEventListener('change', ()=>{
     sortMode = sortSelectEl.value;
     renderList();
@@ -1514,6 +1844,8 @@
     favoritesFilterBtn.setAttribute('aria-pressed', String(favoritesOnly));
     const title = document.getElementById('recipes-title');
     if(title) title.textContent = favoritesOnly ? 'Preferiti' : 'Le mie ricette';
+    const sub = document.getElementById('recipes-sub');
+    if(sub) sub.textContent = favoritesOnly ? 'Le ricette che hai segnato con il cuore, per categoria.' : 'Tutte le tue ricette, organizzate in un posto.';
     updateNavActive();
   }
   function setFavoritesOnly(v){
@@ -1541,10 +1873,25 @@
     });
   }
   function syncCategoryChips(){
+    // Quante ricette ci sono per categoria, con gli stessi filtri attuali (ricerca, preferite…)
+    // tranne la categoria stessa: così, ad esempio in "Preferiti", si vede subito in quali
+    // categorie ci sono ricette e quali sono vuote.
+    const corrente = categoryFilterEl.value;
+    categoryFilterEl.value = '';
+    const conteggi = {};
+    let totale = 0;
+    try{
+      getFilteredRecipes().forEach(r=>{ conteggi[r.category] = (conteggi[r.category] || 0) + 1; totale++; });
+    }finally{ categoryFilterEl.value = corrente; }
     categoryChipsEl.querySelectorAll('.chip').forEach(b=>{
-      const on = b.dataset.value === categoryFilterEl.value;
+      const on = b.dataset.value === corrente;
       b.classList.toggle('active', on);
       b.setAttribute('aria-pressed', String(on));
+      const n = b.dataset.value === '' ? totale : (conteggi[b.dataset.value] || 0);
+      if(!b.dataset.label) b.dataset.label = b.textContent;
+      b.innerHTML = `${escapeHtml(b.dataset.label)} <span class="chip-n">${n}</span>`;
+      b.classList.toggle('chip-empty', n === 0 && !on);
+      b.setAttribute('aria-label', `${b.dataset.label}: ${n} ricett${n === 1 ? 'a' : 'e'}`);
     });
   }
   buildCategoryChips();
@@ -1765,6 +2112,20 @@
   function updateFiltersCount(){
     const count = (pressureOnly?1:0) + (robotOnly?1:0) + (airFryerOnly?1:0) + (traditionalOnly?1:0) + activeTagFilters.size + activeAllergenExclusions.size + (excludeItems.length?1:0);
     advFiltersToggle.textContent = count ? `Cottura, tag ed esclusioni (${count}) ▾` : 'Cottura, tag ed esclusioni ▾';
+    updateFiltersBadge();
+  }
+  // Numero di filtri attivi (oltre a ricerca e categoria) accanto al pulsante "Filtri"
+  function updateFiltersBadge(){
+    const n = (pressureOnly?1:0) + (robotOnly?1:0) + (airFryerOnly?1:0) + (traditionalOnly?1:0)
+      + activeTagFilters.size + activeAllergenExclusions.size + (excludeItems.length?1:0)
+      + (activeRicettarioFilter ? 1 : 0) + (timeFilterEl.value ? 1 : 0) + (minRatingFilter ? 1 : 0) + (raccoltaFilter ? 1 : 0) + (favoritesOnly ? 1 : 0) + (showArchivedOnly ? 1 : 0);
+    const badge = document.getElementById('filters-badge');
+    if(badge){ badge.textContent = String(n); badge.hidden = !n; }
+    const btn = document.getElementById('filters-open-btn');
+    if(btn){
+      btn.classList.toggle('has-filters', n > 0);
+      btn.setAttribute('aria-label', n ? `Filtri: ${n} attiv${n===1?'o':'i'}` : 'Filtri');
+    }
   }
   advFiltersToggle.addEventListener('click', ()=>{
     const opening = advFiltersPanel.style.display === 'none';
@@ -1772,12 +2133,49 @@
     advFiltersToggle.classList.toggle('active', opening);
   });
 
+  // ---------- Finestra "Filtri" ----------
+  const filtersOverlay = document.getElementById('filters-overlay');
+  document.getElementById('filters-open-btn').addEventListener('click', ()=>{
+    updateFiltersBadge(); updateRecipesMeta();
+    filtersOverlay.classList.add('active');
+  });
+  const closeFilters = ()=> filtersOverlay.classList.remove('active');
+  document.getElementById('filters-close').addEventListener('click', closeFilters);
+  document.getElementById('filters-apply-btn').addEventListener('click', closeFilters);
+  filtersOverlay.addEventListener('click', (e)=>{ if(e.target === filtersOverlay) closeFilters(); });
+  // "Azzera" riporta tutto allo stato iniziale riusando i comandi che già esistono
+  document.getElementById('filters-reset-btn').addEventListener('click', ()=>{
+    filtersOverlay.querySelectorAll('.tag-filter-chip.active').forEach(b=> b.click());
+    const ex = document.getElementById('exclude-clear-btn');
+    if(ex && ex.style.display !== 'none') ex.click();
+    if(favoritesOnly) favoritesFilterBtn.click();
+    if(showArchivedOnly) archivedFilterBtn.click();
+    ricettarioFilterEl.value = ''; ricettarioFilterEl.dispatchEvent(new Event('change'));
+    timeFilterEl.value = ''; timeFilterEl.dispatchEvent(new Event('change'));
+    ratingFilterEl.value = ''; ratingFilterEl.dispatchEvent(new Event('change'));
+    raccoltaFilterEl.value = ''; raccoltaFilterEl.dispatchEvent(new Event('change'));
+    updateFiltersBadge(); updateRecipesMeta();
+  });
+  // Conteggio delle ricette mostrate (accanto all'ordinamento e nel pulsante dei filtri)
+  function updateRecipesMeta(){
+    const n = listEl.querySelector(':scope > .empty-state') ? 0 : listTotal;
+    const cnt = document.getElementById('recipes-count');
+    if(cnt) cnt.textContent = n === 1 ? '1 ricetta' : `${n} ricette`;
+    const ap = document.getElementById('filters-apply-btn');
+    if(ap) ap.textContent = n === 1 ? 'Mostra 1 ricetta' : `Mostra ${n} ricette`;
+    updateFiltersBadge();
+  }
+  new MutationObserver(updateRecipesMeta).observe(listEl, { childList: true });
+  updateRecipesMeta();
+  document.getElementById('recipes-fab').addEventListener('click', ()=> document.getElementById('new-recipe-btn').click());
+
   // ---------- Menu "Importa ricetta" ----------
-  const importMenuBtn = document.getElementById('import-menu-btn');
-  const importMenuDropdown = document.getElementById('import-menu-dropdown');
+  const importMenuBtn = document.getElementById('more-menu-btn');
+  const importMenuDropdown = document.getElementById('more-menu-dropdown');
   importMenuBtn.addEventListener('click', (e)=>{
     e.stopPropagation();
     importMenuDropdown.classList.toggle('open');
+    if(importMenuDropdown.classList.contains('open')) updateBackupReminder();
   });
   importMenuDropdown.querySelectorAll('button').forEach(btn=>{
     btn.addEventListener('click', ()=> importMenuDropdown.classList.remove('open'));
@@ -1806,8 +2204,6 @@
   });
 
   // ---------- Menu "Backup e CSV" ----------
-  const dataMenuBtn = document.getElementById('data-menu-btn');
-  const dataMenuDropdown = document.getElementById('data-menu-dropdown');
   const backupReminderText = document.getElementById('backup-reminder-text');
   function updateBackupReminder(){
     const raw = localStorage.getItem(LAST_BACKUP_KEY);
@@ -1842,19 +2238,6 @@
   // il colore è già quello corretto.
   applicaTema(localStorage.getItem(TEMA_STORAGE_KEY) || 'chiaro', false);
 
-  dataMenuBtn.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    dataMenuDropdown.classList.toggle('open');
-    if(dataMenuDropdown.classList.contains('open')) updateBackupReminder();
-  });
-  dataMenuDropdown.querySelectorAll('button').forEach(btn=>{
-    btn.addEventListener('click', ()=> dataMenuDropdown.classList.remove('open'));
-  });
-  document.addEventListener('click', (e)=>{
-    if(dataMenuDropdown.classList.contains('open') && !dataMenuDropdown.contains(e.target) && e.target !== dataMenuBtn){
-      dataMenuDropdown.classList.remove('open');
-    }
-  });
 
   // ---------- Edit modal ----------
   const editOverlay = document.getElementById('edit-overlay');
@@ -2130,7 +2513,7 @@
     if (html5QrcodeCaricato) return Promise.resolve();
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://unpkg.com/html5-qrcode';
+      script.src = 'js/vendor/html5-qrcode.min.js';
       script.onload = () => { html5QrcodeCaricato = true; resolve(); };
       script.onerror = () => reject(new Error('Impossibile caricare html5-qrcode (verifica la connessione)'));
       document.head.appendChild(script);
@@ -2432,6 +2815,10 @@
     recipeNutritionPanel.style.display = nutrizioneUtente ? 'flex' : 'none';
     recipeNutritionBtn.classList.toggle('active', !!nutrizioneUtente);
 
+    // Le informazioni facoltative restano ripiegate, a meno che la ricetta ne abbia già qualcuna
+    const moreEl = document.getElementById('f-more');
+    if(moreEl) moreEl.open = !!(sourceTags.length || sourceAllergens.length || (source && source.freezable) || (source && source.cookerType) || nutrizioneUtente);
+
     editOverlay.classList.add('active');
     formDirty = false;
   }
@@ -2576,13 +2963,13 @@
     closePhotoCropOverlay(canvasToResizedDataUrl(canvas, 1400, 0.82));
   });
 
-  fPhoto.addEventListener('change', ()=>{
-    const file = fPhoto.files[0];
+  function gestisciFileFoto(inputEl){
+    const file = inputEl.files[0];
     if(!file) return;
     const reader = new FileReader();
     reader.onload = async (e)=>{
       const result = await openPhotoCropOverlay(e.target.result);
-      fPhoto.value = ''; // permette di riselezionare lo stesso file in seguito, se si annulla
+      inputEl.value = ''; // permette di riselezionare lo stesso file in seguito, se si annulla
       if(result){
         currentPhotoData = result;
         fPhotoPreview.src = currentPhotoData;
@@ -2593,7 +2980,14 @@
     };
     reader.onerror = () => alert('Non è stato possibile leggere il file immagine scelto.');
     reader.readAsDataURL(file);
-  });
+  }
+  fPhoto.addEventListener('change', ()=> gestisciFileFoto(fPhoto));
+  // Su telefono e tablet: pulsante che apre direttamente la fotocamera posteriore
+  const fPhotoCamera = document.getElementById('f-photo-camera');
+  const fPhotoCameraBtn = document.getElementById('f-photo-camera-btn');
+  try{ if(window.matchMedia('(pointer:coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) fPhotoCameraBtn.hidden = false; }catch(e){}
+  fPhotoCameraBtn.addEventListener('click', ()=> fPhotoCamera.click());
+  fPhotoCamera.addEventListener('change', ()=> gestisciFileFoto(fPhotoCamera));
   document.getElementById('f-photo-edit-btn').addEventListener('click', async ()=>{
     if(!currentPhotoData) return;
     const result = await openPhotoCropOverlay(currentPhotoData);
@@ -2812,17 +3206,17 @@
 
   deleteBtn.addEventListener('click', async ()=>{
     if(!editingId) return;
-    const recipeName = (recipes.find(r=>r.id===editingId) || {}).name || 'questa ricetta';
+    const ricetta = recipes.find(r=>r.id===editingId);
+    const recipeName = (ricetta || {}).name || 'questa ricetta';
     const ok = await confirmDialog({
       title: 'Eliminare la ricetta?',
-      message: `"${recipeName}" verrà eliminata definitivamente, insieme a eventuali voci pianificate che la usano. L'operazione non si può annullare.`,
+      message: `"${recipeName}" verrà tolta, insieme a eventuali voci pianificate che la usano. Per 30 giorni la ritrovi nel Cestino (menu ⋯) e subito dopo puoi toccare «Annulla».`,
       confirmText: 'Elimina ricetta',
       danger: true
     });
-    if(ok){
-      recipes = recipes.filter(r=>r.id !== editingId);
-      DAYS.forEach(day=>{ weekPlan[day] = (weekPlan[day]||[]).filter(e=>e.recipeId !== editingId); });
-      saveRecipes(); saveWeek(); renderList(); renderPlanningDays(); closeEdit();
+    if(ok && ricetta){
+      eliminaRicetteConAnnulla([ricetta], `«${recipeName}» eliminata`);
+      renderList(); renderPlanningDays(); closeEdit();
     }
   });
 
@@ -2838,9 +3232,205 @@
   const markMadeBtn = document.getElementById('mark-made-btn');
   const viewServingsCount = document.getElementById('view-servings-count');
   const viewIngredients = document.getElementById('view-ingredients');
+  const practicalToggle = document.getElementById('practical-toggle');
+  practicalToggle.setAttribute('aria-pressed', String(misurePratiche));
+  practicalToggle.addEventListener('click', ()=>{
+    misurePratiche = !misurePratiche;
+    practicalToggle.setAttribute('aria-pressed', String(misurePratiche));
+    try{ localStorage.setItem(MISURE_PRATICHE_KEY, misurePratiche ? '1' : '0'); }catch(e){}
+    const r = recipes.find(x => x.id === currentViewId);
+    if(r) renderView(r);
+  });
   const viewSteps = document.getElementById('view-steps');
   const viewNotesBlock = document.getElementById('view-notes-block');
   const viewNotes = document.getElementById('view-notes');
+
+  // ---------- Cestino delle ricette eliminate ----------
+  // Le ricette eliminate restano 30 giorni nel cestino (nel browser, non nei backup). La foto
+  // resta in IndexedDB con lo stesso id della ricetta.
+  const CESTINO_KEY = 'mc_ricettario_cestino_v1';
+  const CESTINO_GIORNI = 30;
+  let cestino = []; // [{ recipe, deletedAt, hasPhoto }]
+  function saveCestino(){ return safeStorageSet(CESTINO_KEY, JSON.stringify(cestino)); }
+  function caricaCestino(){
+    try{ const raw = localStorage.getItem(CESTINO_KEY); cestino = raw ? JSON.parse(raw) : []; }catch(e){ cestino = []; }
+    if(!Array.isArray(cestino)) cestino = [];
+    const limite = Date.now() - CESTINO_GIORNI * 86400000;
+    const prima = cestino.length;
+    cestino = cestino.filter(e => e && e.recipe && e.recipe.id && new Date(e.deletedAt).getTime() > limite);
+    if(cestino.length !== prima) saveCestino();
+  }
+  function spostaNelCestino(lista){
+    const ora = new Date().toISOString();
+    lista.forEach(r=>{
+      const copia = JSON.parse(JSON.stringify(r));
+      const foto = r.photo || '';
+      if(foto && fotoDbOk){
+        copia.photo = '';
+        if(fotoConfermate.get(r.id) !== foto) fotoInCoda.set(r.id, foto);
+      } // se IndexedDB non c'è, la foto resta dentro la voce del cestino
+      cestino.push({ recipe: copia, deletedAt: ora, hasPhoto: !!foto });
+    });
+    saveCestino();
+    if(fotoInCoda.size) scriviFotoInCoda();
+  }
+  async function ripristinaDalCestino(id){
+    const i = cestino.findIndex(e => e.recipe.id === id);
+    if(i < 0) return false;
+    const e = cestino[i];
+    const r = JSON.parse(JSON.stringify(e.recipe));
+    if(e.hasPhoto && !r.photo){
+      let rq = null;
+      await fotoTx('readonly', st=>{ rq = st.get(id); });
+      r.photo = (rq && typeof rq.result === 'string') ? rq.result : '';
+    }
+    if(recipes.some(x => x.id === r.id)) r.id = cryptoId();
+    recipes.push(migrateRecipe(r));
+    cestino.splice(i, 1);
+    saveRecipes(); saveCestino();
+    return true;
+  }
+  let undoTimer = null;
+  function mostraAnnulla(testo, onUndo, durataMs){
+    const el = document.getElementById('undo-toast');
+    document.getElementById('undo-toast-text').textContent = testo;
+    el.hidden = false;
+    clearTimeout(undoTimer);
+    const chiudi = ()=>{ el.hidden = true; };
+    document.getElementById('undo-toast-btn').onclick = async ()=>{ chiudi(); clearTimeout(undoTimer); await onUndo(); };
+    undoTimer = setTimeout(chiudi, durataMs || 9000);
+  }
+  // Toglie dalla pianificazione (settimana mostrata) le voci che usano le ricette indicate e le restituisce, per poterle rimettere con "Annulla"
+  function togliVociPianoDi(ids){
+    const tolte = {};
+    DAYS.forEach(d=>{
+      const tutte = weekPlan[d] || [];
+      tolte[d] = tutte.filter(e => e.recipeId && ids.has(e.recipeId));
+      weekPlan[d] = tutte.filter(e => !(e.recipeId && ids.has(e.recipeId)));
+    });
+    return tolte;
+  }
+  function rimettiVociPiano(tolte){
+    DAYS.forEach(d=>{ if((tolte[d] || []).length) weekPlan[d] = (weekPlan[d] || []).concat(tolte[d]); });
+    saveWeek();
+  }
+  function eliminaRicetteConAnnulla(lista, etichetta){
+    const ids = new Set(lista.map(r => r.id));
+    spostaNelCestino(lista);
+    recipes = recipes.filter(r => !ids.has(r.id));
+    const tolte = togliVociPianoDi(ids);
+    saveRecipes(); saveWeek();
+    mostraAnnulla(etichetta, async ()=>{
+      for(const id of ids) await ripristinaDalCestino(id);
+      rimettiVociPiano(tolte);
+      renderList(); renderPlanningDays(); aggiornaVoceCestino();
+    });
+    aggiornaVoceCestino();
+  }
+  function aggiornaVoceCestino(){
+    const b = document.getElementById('open-cestino-btn');
+    if(b) b.textContent = cestino.length ? `🗑 Cestino (${cestino.length})` : '🗑 Cestino';
+  }
+  const cestinoOverlay = document.getElementById('cestino-overlay');
+  function renderCestino(){
+    const ul = document.getElementById('cestino-list');
+    document.getElementById('cestino-empty-btn').hidden = !cestino.length;
+    if(!cestino.length){ ul.innerHTML = '<li class="empty">Il cestino è vuoto.</li>'; return; }
+    ul.innerHTML = '';
+    cestino.slice().reverse().forEach(e=>{
+      const giorni = Math.max(0, CESTINO_GIORNI - Math.floor((Date.now() - new Date(e.deletedAt).getTime()) / 86400000));
+      const li = document.createElement('li');
+      li.innerHTML = `<div class="c-info"><div class="c-name">${escapeHtml(e.recipe.name)}</div><div class="c-when">Eliminata il ${new Date(e.deletedAt).toLocaleDateString('it-IT')} · resta ancora ${giorni} giorni</div></div><button type="button" class="btn-gold btn-small c-restore">Ripristina</button><button type="button" class="btn-ghost btn-small btn-danger-action c-delete">Elimina</button>`;
+      li.querySelector('.c-restore').addEventListener('click', async ()=>{
+        await ripristinaDalCestino(e.recipe.id); renderCestino(); renderList(); aggiornaVoceCestino();
+      });
+      li.querySelector('.c-delete').addEventListener('click', async ()=>{
+        const ok = await confirmDialog({ title: 'Eliminare per sempre?', message: `«${e.recipe.name}» verrà eliminata definitivamente.`, confirmText: 'Elimina per sempre', danger: true });
+        if(!ok) return;
+        cestino = cestino.filter(x => x !== e); saveCestino();
+        if(!recipes.some(r => r.id === e.recipe.id)) fotoTx('readwrite', st=>{ st.delete(e.recipe.id); });
+        renderCestino(); aggiornaVoceCestino();
+      });
+      ul.appendChild(li);
+    });
+  }
+  document.getElementById('open-cestino-btn').addEventListener('click', ()=>{ renderCestino(); cestinoOverlay.classList.add('active'); });
+  const chiudiCestino = ()=> cestinoOverlay.classList.remove('active');
+  ['cestino-close','cestino-done'].forEach(id => document.getElementById(id).addEventListener('click', chiudiCestino));
+  cestinoOverlay.addEventListener('click', e=>{ if(e.target === cestinoOverlay) chiudiCestino(); });
+  document.getElementById('cestino-empty-btn').addEventListener('click', async ()=>{
+    const ok = await confirmDialog({ title: 'Svuotare il cestino?', message: `Le ${cestino.length} ricette nel cestino verranno eliminate definitivamente.`, confirmText: 'Svuota il cestino', danger: true });
+    if(!ok) return;
+    const ids = cestino.map(e => e.recipe.id).filter(id => !recipes.some(r => r.id === id));
+    cestino = []; saveCestino();
+    if(ids.length) fotoTx('readwrite', st=>{ ids.forEach(id => st.delete(id)); });
+    renderCestino(); aggiornaVoceCestino();
+  });
+
+  // ---------- Voto a stelle e raccolte (scheda ricetta) ----------
+  function renderViewRaccolteRating(){
+    const r = recipes.find(x => x.id === currentViewId);
+    const starsEl = document.getElementById('view-rating');
+    if(!r || !starsEl) return;
+    starsEl.innerHTML = [1,2,3,4,5].map(n =>
+      `<button type="button" class="${n <= (r.rating || 0) ? 'on' : ''}" role="radio" aria-checked="${n === r.rating}" data-n="${n}" aria-label="${n} ${n === 1 ? 'stella' : 'stelle'}" title="${n} ${n === 1 ? 'stella' : 'stelle'}${n === r.rating ? ' (tocca di nuovo per togliere)' : ''}">★</button>`).join('');
+    const chips = (r.raccolte || []).map(id => raccolte.find(x => x.id === id)).filter(Boolean)
+      .map(x => `<span class="raccolta-chip">${escapeHtml(x.name)}</span>`).join('');
+    document.getElementById('view-raccolte').innerHTML = chips;
+    document.getElementById('view-raccolte-btn').textContent = chips ? '📂 Modifica raccolte' : '📂 Raccolte';
+  }
+  document.getElementById('view-rating').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-n]');
+    const r = recipes.find(x => x.id === currentViewId);
+    if(!b || !r) return;
+    const n = parseInt(b.dataset.n, 10);
+    r.rating = r.rating === n ? 0 : n;
+    saveRecipes(); renderViewRaccolteRating(); renderList();
+  });
+  const raccolteOverlay = document.getElementById('raccolte-overlay');
+  function renderRaccolteList(){
+    const r = recipes.find(x => x.id === currentViewId);
+    document.getElementById('raccolte-sub').textContent = r ? `Scegli in quali raccolte inserire «${r.name}».` : '';
+    const ul = document.getElementById('raccolte-list');
+    if(!raccolte.length){ ul.innerHTML = '<li class="empty">Non hai ancora nessuna raccolta: creane una qui sotto.</li>'; return; }
+    ul.innerHTML = '';
+    raccolte.forEach(x=>{
+      const n = recipes.filter(rr => (rr.raccolte || []).includes(x.id)).length;
+      const li = document.createElement('li');
+      li.innerHTML = `<label><input type="checkbox" ${r && (r.raccolte || []).includes(x.id) ? 'checked' : ''}><span>${escapeHtml(x.name)}</span><span class="n-ric">${n} ${n === 1 ? 'ricetta' : 'ricette'}</span></label><button type="button" class="icon-btn" aria-label="Elimina la raccolta ${escapeAttr(x.name)}" title="Elimina la raccolta (le ricette restano)">${icon('trash')}</button>`;
+      li.querySelector('input').addEventListener('change', ev=>{
+        if(!r) return;
+        const set = new Set(r.raccolte || []);
+        if(ev.target.checked) set.add(x.id); else set.delete(x.id);
+        r.raccolte = Array.from(set);
+        saveRecipes(); renderRaccolteList(); renderViewRaccolteRating(); renderList();
+      });
+      li.querySelector('button').addEventListener('click', async ()=>{
+        const ok = await confirmDialog({ title: 'Eliminare la raccolta?', message: `La raccolta «${x.name}» verrà eliminata. Le ${n} ricette al suo interno restano nel ricettario.`, confirmText: 'Elimina raccolta', danger: true });
+        if(!ok) return;
+        raccolte = raccolte.filter(y => y.id !== x.id);
+        recipes.forEach(rr => { if((rr.raccolte || []).includes(x.id)) rr.raccolte = rr.raccolte.filter(i => i !== x.id); });
+        saveRaccolte(); saveRecipes(); refreshRaccolteUi(); renderRaccolteList(); renderList();
+      });
+      ul.appendChild(li);
+    });
+  }
+  document.getElementById('view-raccolte-btn').addEventListener('click', ()=>{ renderRaccolteList(); raccolteOverlay.classList.add('active'); });
+  const chiudiRaccolte = ()=> raccolteOverlay.classList.remove('active');
+  ['raccolte-close','raccolte-done'].forEach(id => document.getElementById(id).addEventListener('click', chiudiRaccolte));
+  raccolteOverlay.addEventListener('click', e=>{ if(e.target === raccolteOverlay) chiudiRaccolte(); });
+  document.getElementById('raccolte-new-form').addEventListener('submit', e=>{
+    e.preventDefault();
+    const inp = document.getElementById('raccolte-new-name');
+    const nome = inp.value.trim();
+    if(!nome){ inp.focus(); return; }
+    let x = raccolte.find(y => normalize(y.name) === normalize(nome));
+    if(!x){ x = { id: cryptoId(), name: nome }; raccolte.push(x); saveRaccolte(); }
+    const r = recipes.find(rr => rr.id === currentViewId);
+    if(r && !(r.raccolte || []).includes(x.id)){ r.raccolte = (r.raccolte || []).concat(x.id); saveRecipes(); }
+    inp.value = '';
+    refreshRaccolteUi(); renderRaccolteList(); renderList();
+  });
 
   function openView(id){
     const r = recipes.find(x=>x.id === id);
@@ -2850,6 +3440,30 @@
     renderView(r);
     viewOverlay.classList.add('active');
   }
+
+  // La scheda ricetta si comporta come una pagina: apre una voce nella cronologia del browser,
+  // così il tasto/gesto "indietro" (anche su telefono) torna all'elenco invece di uscire dal sito.
+  // Si aggancia al solo cambio di stato della finestra, quindi vale per ogni modo di chiuderla.
+  try{ if(history.state && history.state.ricetta) history.replaceState(null, ''); }catch(e){}
+  new MutationObserver(()=>{
+    try{
+      const aperta = viewOverlay.classList.contains('active');
+      const inCronologia = !!(history.state && history.state.ricetta);
+      if(aperta && !inCronologia) history.pushState({ ricetta: true }, '');
+      else if(!aperta && inCronologia) history.back();
+    }catch(e){}
+  }).observe(viewOverlay, { attributes: true, attributeFilter: ['class'] });
+  // Scegliere una voce della barra laterale con la scheda aperta torna prima all'elenco.
+  document.querySelector('.app-sidebar').addEventListener('click', (e)=>{
+    if(e.target.closest('button') && viewOverlay.classList.contains('active')){
+      viewOverlay.classList.remove('active'); currentViewId = null;
+    }
+  }, true);
+  window.addEventListener('popstate', ()=>{
+    if(viewOverlay.classList.contains('active')){
+      viewOverlay.classList.remove('active'); currentViewId = null;
+    }
+  });
 
   function roundNice(n){
     const rounded = Math.round(n * 10) / 10;
@@ -2883,6 +3497,51 @@
     if(!match) return roundNice(n);
     return whole > 0 ? `${whole} e ${match.text}` : match.text;
   }
+
+  // ---------- Misure pratiche: quantità scalate arrotondate a valori comodi ----------
+  // Cambiando le porzioni, 187,5 g di farina diventano ~190 g, 1500 g diventano 1,5 kg, 2,4 uova
+  // diventano ~2 uova. Il segno ~ avvisa che il valore è stato arrotondato. Si può spegnere.
+  function arrotondaPratico(v){
+    if(v < 5) return Math.round(v * 2) / 2;
+    if(v < 20) return Math.round(v);
+    if(v < 100) return Math.round(v / 5) * 5;
+    if(v < 500) return Math.round(v / 10) * 10;
+    return Math.round(v / 25) * 25;
+  }
+  function numeroBreve(n){ return String(Math.round(n * 100) / 100); }
+  // Ritorna { q, unit, approx } per un ingrediente {name, qty, unit} alla scala indicata.
+  function quantitaScalata(i, scale){
+    const unit = String(i.unit || '').trim();
+    if(!i.qty) return { q: '', unit, approx: false };
+    const exact = (parseFloat(i.qty) || 0) * scale;
+    if(!misurePratiche || Math.abs(scale - 1) < 1e-9 || !(exact > 0)) return { q: formatQtyForUnit(exact, unit), unit, approx: false };
+    const u = unit.toLowerCase();
+    const diverso = (val) => Math.abs(val - exact) / exact > 0.01;
+    const base = (['kg'].includes(u) ? 1000 : (['g','gr','grammi'].includes(u) ? 1 : (['l','lt','litro','litri'].includes(u) ? 1000 : (['ml'].includes(u) ? 1 : 0))));
+    if(base){
+      const peso = ['kg','g','gr','grammi'].includes(u);
+      const tot = exact * base; // in g o ml
+      const r = tot >= 1000 ? Math.round(tot / 50) * 50 : arrotondaPratico(tot);
+      const approx = Math.abs(r - tot) / tot > 0.01;
+      if(r >= 1000) return { q: numeroBreve(r / 1000), unit: peso ? 'kg' : 'l', approx };
+      return { q: numeroBreve(r), unit: peso ? 'g' : 'ml', approx };
+    }
+    if(!unit){
+      if(/uov/i.test(i.name || '')){
+        const r = Math.max(1, Math.round(exact));
+        return { q: String(r), unit, approx: diverso(r) };
+      }
+      const h = Math.max(0.5, Math.round(exact * 2) / 2);
+      const whole = Math.floor(h), mezzo = h - whole >= 0.5;
+      return { q: mezzo ? (whole ? `${whole} e 1/2` : '1/2') : String(whole), unit, approx: diverso(h) };
+    }
+    return { q: formatQtyForUnit(exact, unit), unit, approx: false };
+  }
+  function quantitaScalataHtml(i, scale){
+    const x = quantitaScalata(i, scale);
+    return `${x.approx ? '<span class="approx" title="Valore arrotondato">~</span>' : ''}${escapeHtml(x.q)} ${escapeHtml(x.unit)}`.trim();
+  }
+
   function plural(n, one, many){ return n === 1 ? one : many; }
 
   // I valori nutrizionali per ricetta NON si calcolano sommando i singoli
@@ -2917,6 +3576,7 @@
       viewRicettarioEl.style.display = 'none';
     }
     viewName.textContent = r.name;
+    renderViewRaccolteRating();
     viewTime.innerHTML = (r.time ? `<span>${icon('clock', 'ico-sm')} ${r.time} min</span>` : '')
       + `<span>${icon('user', 'ico-sm')} Ricetta per ${porzioniLabel(r.servings)}</span>`;
     const extraChips = [];
@@ -2953,9 +3613,8 @@
     const scale = currentServings / (r.servings || 1);
     viewIngredients.innerHTML = '';
     r.ingredients.forEach(i=>{
-      const scaledQty = i.qty ? formatQtyForUnit(i.qty * scale, i.unit) : '';
       const li = document.createElement('li');
-      li.innerHTML = `<span>${escapeHtml(i.name)}</span><span class="amt">${scaledQty} ${escapeHtml(i.unit)}</span>`;
+      li.innerHTML = `<span>${escapeHtml(i.name)}</span><span class="amt">${quantitaScalataHtml(i, scale)}</span>`;
       viewIngredients.appendChild(li);
     });
 
@@ -3104,12 +3763,85 @@
     r.favorite = !r.favorite;
     saveRecipes(); renderView(r); renderList();
   });
+  // Calcola cosa togliere dalla Dispensa cucinando una ricetta per un certo numero di porzioni.
+  // Stesse regole prudenti del "consumato" del piano: solo prodotti identificati con certezza e unità convertibili.
+  function calcolaScaloDispensa(recipe, porzioni){
+    const scale = (parseFloat(porzioni) || recipe.servings || 1) / (recipe.servings || 1);
+    const running = new Map(), toUpdate = [], skipped = new Set(), ambigui = [];
+    (recipe.ingredients || []).forEach(ing=>{
+      if(!ing.name) return;
+      const { match, ambiguous } = findDispensaMatch(ing.name);
+      if(ambiguous.length){ ambigui.push(ing.name); return; }
+      if(!match) return;
+      const amount = (parseFloat(ing.qty) || 0) * scale;
+      if(!amount) return;
+      const conv = convertQty(amount, ing.unit, match.unit);
+      const cur = running.has(match) ? running.get(match) : parseFloat(match.qty);
+      if(conv === null || isNaN(cur)){ skipped.add(match.name); return; }
+      const next = Math.round(Math.max(0, cur - conv) * 100) / 100;
+      running.set(match, next);
+      toUpdate.push({ item: match, amount, unit: ing.unit, conv, next });
+    });
+    return { toUpdate, skipped: Array.from(skipped), ambigui };
+  }
+  function registraPreparata(r){
+    const prima = { lastMade: r.lastMade, timesMade: r.timesMade };
+    r.lastMade = new Date().toISOString();
+    r.timesMade = (r.timesMade || 0) + 1;
+    return prima;
+  }
+  const madeOverlay = document.getElementById('made-overlay');
+  let madeCtx = null;
+  function chiediPreparata(r, porzioni){
+    if(!r) return;
+    const piano = calcolaScaloDispensa(r, porzioni);
+    madeCtx = { r, porzioni, piano };
+    document.getElementById('made-sub').textContent = `«${r.name}» · ${porzioni} ${porzioni == 1 ? 'porzione' : 'porzioni'}`;
+    const box = document.getElementById('made-list');
+    let html = '';
+    if(piano.toUpdate.length){
+      html += '<b>Verranno tolti dalla Dispensa:</b><ul>' + piano.toUpdate.map(u => `<li>${escapeHtml(u.item.name)}: −${escapeHtml(formatQtyForUnit(u.amount, u.unit))} ${escapeHtml(u.unit || '')} (restano ${roundNice(u.next)} ${escapeHtml(u.item.unit || '')})</li>`).join('') + '</ul>';
+    }else{
+      html += 'Nessun ingrediente di questa ricetta è stato riconosciuto con certezza in Dispensa: non c\'è nulla da scalare.';
+    }
+    const note = [];
+    if(piano.skipped.length) note.push(`Non modificati (unità diverse o quantità non indicata): ${piano.skipped.map(escapeHtml).join(', ')}.`);
+    if(piano.ambigui.length) note.push(`Non modificati (più prodotti simili, verifica tu): ${piano.ambigui.map(escapeHtml).join(', ')}.`);
+    if(note.length) html += `<div class="made-note">${note.join(' ')}</div>`;
+    box.innerHTML = html;
+    document.getElementById('made-scala-btn').hidden = !piano.toUpdate.length;
+    madeOverlay.classList.add('active');
+  }
+  function chiudiMade(){ madeOverlay.classList.remove('active'); madeCtx = null; }
+  document.getElementById('made-cancel-btn').addEventListener('click', chiudiMade);
+  document.getElementById('made-close').addEventListener('click', chiudiMade);
+  madeOverlay.addEventListener('click', e=>{ if(e.target === madeOverlay) chiudiMade(); });
+  document.getElementById('made-solo-btn').addEventListener('click', ()=>{
+    if(!madeCtx) return;
+    const { r } = madeCtx; chiudiMade();
+    registraPreparata(r); saveRecipes(); if(currentViewId === r.id) renderView(r); renderList();
+  });
+  document.getElementById('made-scala-btn').addEventListener('click', ()=>{
+    if(!madeCtx) return;
+    const { r, piano } = madeCtx; chiudiMade();
+    const prima = registraPreparata(r);
+    const annullo = piano.toUpdate.map(u => ({ id: u.item.id, qty: u.item.qty }));
+    piano.toUpdate.forEach(u => { u.item.qty = String(u.next); });
+    saveRecipes(); saveDispensaItems(); renderDispensaList(); aggiornaTopbarAlerts();
+    if(currentViewId === r.id) renderView(r);
+    renderList();
+    mostraAnnulla(`«${r.name}» preparata · Dispensa aggiornata`, ()=>{
+      annullo.forEach(a => { const it = dispensaItems.find(x => x.id === a.id); if(it) it.qty = a.qty; });
+      r.lastMade = prima.lastMade; r.timesMade = prima.timesMade;
+      saveRecipes(); saveDispensaItems(); renderDispensaList(); aggiornaTopbarAlerts();
+      if(currentViewId === r.id) renderView(r);
+      renderList();
+    }, 12000);
+  });
   markMadeBtn.addEventListener('click', ()=>{
     const r = recipes.find(x=>x.id === currentViewId);
     if(!r) return;
-    r.lastMade = new Date().toISOString();
-    r.timesMade = (r.timesMade || 0) + 1;
-    saveRecipes(); renderView(r); renderList();
+    chiediPreparata(r, currentServings || r.servings || 1);
   });
 
   // ---------- Pianifica dalla scheda ricetta ----------
@@ -3130,6 +3862,7 @@
       scheduleDaySelect.selectedIndex = jsDay === 0 ? 6 : jsDay - 1;
       scheduleTimeInput.value = '';
       scheduleStatus.style.display = 'none';
+      document.getElementById('schedule-week-select').value = '0';
     }
   });
   document.addEventListener('click', (e)=>{
@@ -3142,10 +3875,15 @@
     const day = scheduleDaySelect.value;
     const mealType = scheduleMealtypeSelect.value;
     if(!mealType) return;
+    const delta = parseInt(document.getElementById('schedule-week-select').value, 10) || 0;
+    const target = shiftIsoDays(realMonday(), delta * 7);
+    const prima = planWeekStart;
+    setPlanWeek(target); // di solito è già la settimana reale (fuori dalla pianificazione)
     weekPlan[day] = weekPlan[day] || [];
     weekPlan[day].push({ id: cryptoId(), recipeId: currentViewId, mealType, time: scheduleTimeInput.value || '' });
     saveWeek();
-    scheduleStatus.textContent = `✓ Aggiunta a ${day}`;
+    if(prima !== target) setPlanWeek(prima);
+    scheduleStatus.textContent = `✓ Aggiunta a ${day} ${dataBreve(shiftIsoDays(target, DAYS.indexOf(day)))}`;
     scheduleStatus.style.display = 'block';
     offerAddMissingToShoppingList(recipes.find(r=>r.id === currentViewId));
   });
@@ -3202,12 +3940,19 @@
     return sections;
   }
 
+  // Nome file "pulito" (senza accenti né simboli) per i PDF.
+  function pdfFileSlug(testo, fallback){
+    const t = String(testo || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\-]+/g,'_').replace(/^_+|_+$/g,'');
+    return t || fallback;
+  }
+
   document.getElementById('export-recipe-pdf-btn').addEventListener('click', ()=>{
     const r = recipes.find(x=>x.id === currentViewId);
     if(!r) return;
     const pdfStr = buildPdfFromSections(r.name, recipePdfSections(r, currentServings));
-    const safeName = r.name.replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g,'') || 'ricetta';
-    downloadPdf(pdfStr, `${safeName}.pdf`);
+    const safeName = pdfFileSlug(r.name, 'ricetta');
+    const libro = pdfFileSlug(ricettarioName(recipeRicettarioId(r)), 'ricettario');
+    downloadPdf(pdfStr, `${libro}_${safeName}.pdf`);
   });
 
   // Esporta il ricettario (o una selezione di categorie/ricette) in un solo PDF: un indice
@@ -3465,10 +4210,15 @@
     });
 
     const tutte = selezionate.length === active.length;
-    const pdfStr = buildPdfFromSections('Il Mio Ricettario', sections);
+    // Se tutte le ricette scelte stanno in un solo ricettario, il PDF ne porta il nome
+    // (titolo e nome file); altrimenti resta quello generico.
+    const idsLibri = [...new Set(selezionate.map(recipeRicettarioId))];
+    const libroUnico = idsLibri.length === 1 ? ricettarioName(idsLibri[0]) : '';
+    const pdfStr = buildPdfFromSections(libroUnico || 'Il Mio Ricettario', sections);
+    const prefisso = libroUnico ? pdfFileSlug(libroUnico, 'ricettario') : 'ricettario';
     const filename = tutte
-      ? `ricettario-completo-${new Date().toISOString().slice(0,10)}.pdf`
-      : `ricettario-selezione-${new Date().toISOString().slice(0,10)}.pdf`;
+      ? `${prefisso}-completo-${new Date().toISOString().slice(0,10)}.pdf`
+      : `${prefisso}-selezione-${new Date().toISOString().slice(0,10)}.pdf`;
     downloadPdf(pdfStr, filename);
     exportPdfOverlay.classList.remove('active');
   });
@@ -3883,7 +4633,7 @@
     }
     if(window.showSaveFilePicker){
       try{
-        const handle = await window.showSaveFilePicker({
+        const handle = await apriSelettoreFile('showSaveFilePicker', {
           suggestedName: filename,
           types: [{ description, accept: { [mimeType]: [extension] } }]
         });
@@ -3928,14 +4678,138 @@
     downloadPdf(pdfStr, `pianificazione-settimanale-${new Date().toISOString().slice(0,10)}.pdf`);
   });
 
+  // ---------- Condividi la lista della spesa come testo ----------
+  function testoListaDa(ul, titolo){
+    const righe = [titolo, ''];
+    let n = 0;
+    Array.from(ul.children).forEach(li=>{
+      if(li.classList.contains('shopping-reparto-header')){
+        if(n || righe.length > 2) righe.push('');
+        righe.push(li.textContent.trim().toUpperCase());
+        return;
+      }
+      const cb = li.querySelector('input[type=checkbox]');
+      if((cb && cb.checked) || li.classList.contains('checked')) return;
+      const name = (li.querySelector('.spesa-name, span') || {}).textContent || '';
+      const amt = (li.querySelector('.amt') || {}).textContent || '';
+      if(!name.trim() || li.classList.contains('shopping-empty')) return;
+      righe.push(`☐ ${name.trim()}${amt.trim() ? ' — ' + amt.trim() : ''}`); n++;
+    });
+    return n ? righe.join('\n') : '';
+  }
+  async function condividiTestoLista(ul, titolo, btn){
+    const testo = testoListaDa(ul, titolo);
+    if(!testo){ alert('Non c\'è nulla da condividere: la lista è vuota o è già tutta spuntata.'); return; }
+    const orig = btn.textContent;
+    const ok = msg => { btn.textContent = msg; setTimeout(()=>{ btn.textContent = orig; }, 2000); };
+    if(navigator.share){
+      try{ await navigator.share({ title: titolo, text: testo }); return; }
+      catch(err){ if(err && err.name === 'AbortError') return; }
+    }
+    try{ await navigator.clipboard.writeText(testo); ok('✓ Copiata negli appunti'); }
+    catch(_){ window.prompt('Copia la lista:', testo); }
+  }
+  document.getElementById('share-spesa-btn').addEventListener('click', e => condividiTestoLista(spesaItemsEl, 'Lista della spesa', e.currentTarget));
+  document.getElementById('share-shopping-btn').addEventListener('click', e => condividiTestoLista(shoppingListItems, 'Lista della spesa (settimana)', e.currentTarget));
+
+  // ---------- Promemoria settimanale di backup ----------
+  const BACKUP_SNOOZE_KEY = 'mc_ricettario_backup_snooze_v1';
+  const BACKUP_REMINDER_OFF_KEY = 'mc_ricettario_backup_promemoria_off_v1';
+  function aggiornaBannerBackup(){
+    const ban = document.getElementById('backup-weekly-banner');
+    const tog = document.getElementById('backup-reminder-toggle-btn');
+    if(!ban) return;
+    const off = localStorage.getItem(BACKUP_REMINDER_OFF_KEY) === '1';
+    if(tog) tog.textContent = off ? '🔕 Promemoria settimanale: disattivato' : '🔔 Promemoria settimanale: attivo';
+    const raw = localStorage.getItem(LAST_BACKUP_KEY);
+    const days = raw ? (Date.now() - new Date(raw).getTime()) / 86400000 : Infinity;
+    const snooze = parseInt(localStorage.getItem(BACKUP_SNOOZE_KEY) || '0', 10);
+    const due = !off && recipes.length > 0 && days >= 7 && Date.now() >= snooze;
+    if(due){
+      document.getElementById('backup-weekly-text').textContent = raw
+        ? `💾 Ultimo backup ${Math.floor(days)} giorni fa: salvane uno nuovo per non perdere le ricette.`
+        : '💾 Non hai ancora fatto nessun backup: salvane uno per non perdere le ricette.';
+    }
+    ban.style.display = due ? 'flex' : 'none';
+  }
+  document.getElementById('backup-weekly-do-btn').addEventListener('click', () => document.getElementById('export-btn').click());
+  document.getElementById('backup-weekly-later-btn').addEventListener('click', () => {
+    safeStorageSet(BACKUP_SNOOZE_KEY, String(Date.now() + 86400000)); aggiornaBannerBackup();
+  });
+  document.getElementById('backup-weekly-off-btn').addEventListener('click', () => {
+    safeStorageSet(BACKUP_REMINDER_OFF_KEY, '1'); aggiornaBannerBackup();
+  });
+  document.getElementById('backup-reminder-toggle-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    safeStorageSet(BACKUP_REMINDER_OFF_KEY, localStorage.getItem(BACKUP_REMINDER_OFF_KEY) === '1' ? '0' : '1');
+    aggiornaBannerBackup();
+  });
+
+  // ---------- Annulla importazione: fotografia dei dati prima dell'importazione ----------
+  async function ripristinaSnapshotDati(json){
+    const d = JSON.parse(json);
+    recipes = (d.recipes || []).map(migrateRecipe);
+    ricettari = Array.isArray(d.ricettari) && d.ricettari.length ? d.ricettari : ricettari;
+    raccolte = Array.isArray(d.raccolte) ? d.raccolte : [];
+    dispensaItems = d.dispensaItems || [];
+    shoppingExtraItems = d.shoppingExtraItems || [];
+    spesaLista = d.spesaLista || [];
+    if(Array.isArray(d.mealTypes) && d.mealTypes.length) mealTypes = d.mealTypes;
+    planWeeks = d.planWeeks && typeof d.planWeeks === 'object' ? d.planWeeks : {};
+    const w = planWeeks[planWeekStart] || {};
+    weekPlan = w.plan || {}; weekNotes = w.notes || {};
+    saveRecipes(); saveRicettari(); saveRaccolte(); saveDispensaItems(); saveShoppingExtra(); saveSpesaLista(); saveMealTypes();
+    saveWeek(); saveWeekNotes();
+    refreshRicettarioSelects(); refreshRaccolteUi(); renderList(); renderPlanningDays(); renderDispensaList(); renderSpesaLista(); renderToday();
+  }
+
+  // ---------- Cambio dispositivo ----------
+  const trasfOverlay = document.getElementById('trasferimento-overlay');
+  function mostraTabTrasferimento(invia){
+    document.getElementById('trasf-invia').hidden = !invia;
+    document.getElementById('trasf-ricevi').hidden = invia;
+    [['trasf-tab-invia', invia], ['trasf-tab-ricevi', !invia]].forEach(([id, on])=>{
+      const b = document.getElementById(id); b.classList.toggle('active', on); b.setAttribute('aria-selected', String(on));
+    });
+  }
+  document.getElementById('open-trasferimento-btn').addEventListener('click', ()=>{
+    salvaSettimane();
+    const nFoto = recipes.filter(r => r.photo).length;
+    const nSett = Object.keys(planWeeks).length;
+    const parti = [`${recipes.length} ${recipes.length === 1 ? 'ricetta' : 'ricette'}`, `${nFoto} ${nFoto === 1 ? 'foto' : 'foto'}`,
+      `${dispensaItems.length} prodott${dispensaItems.length === 1 ? 'o' : 'i'} in dispensa`, `${nSett} settiman${nSett === 1 ? 'a' : 'e'} pianificat${nSett === 1 ? 'a' : 'e'}`];
+    if(raccolte.length) parti.push(`${raccolte.length} ${raccolte.length === 1 ? 'raccolta' : 'raccolte'}`);
+    document.getElementById('trasf-summary').textContent = 'Verranno trasferiti: ' + parti.join(' · ') + '.';
+    const web = location.protocol === 'http:' || location.protocol === 'https:';
+    document.getElementById('trasf-share-url-btn').disabled = !web;
+    document.getElementById('trasf-url-note').textContent = web ? '' : 'Stai usando una copia locale del ricettario: pubblica il sito (GitHub Pages) per avere un indirizzo da condividere.';
+    mostraTabTrasferimento(true);
+    trasfOverlay.classList.add('active');
+  });
+  document.getElementById('trasf-tab-invia').addEventListener('click', ()=> mostraTabTrasferimento(true));
+  document.getElementById('trasf-tab-ricevi').addEventListener('click', ()=> mostraTabTrasferimento(false));
+  document.getElementById('trasf-export-btn').addEventListener('click', ()=> document.getElementById('export-btn').click());
+  document.getElementById('trasf-import-btn').addEventListener('click', ()=>{ trasfOverlay.classList.remove('active'); document.getElementById('import-file-input').click(); });
+  document.getElementById('trasf-share-url-btn').addEventListener('click', async ()=>{
+    const url = location.href.split('#')[0].replace(/index\.html$/, '');
+    const nota = document.getElementById('trasf-url-note');
+    if(navigator.share){ try{ await navigator.share({ title: 'Il Mio Ricettario', url }); return; }catch(err){ if(err && err.name === 'AbortError') return; } }
+    try{ await navigator.clipboard.writeText(url); nota.textContent = '✓ Indirizzo copiato'; }
+    catch(_){ window.prompt('Copia l\'indirizzo:', url); }
+  });
+  const chiudiTrasf = ()=> trasfOverlay.classList.remove('active');
+  ['trasf-close','trasf-done'].forEach(id => document.getElementById(id).addEventListener('click', chiudiTrasf));
+  trasfOverlay.addEventListener('click', e=>{ if(e.target === trasfOverlay) chiudiTrasf(); });
+
   // ---------- Export / Import backup ----------
   document.getElementById('export-btn').addEventListener('click', async ()=>{
-    const data = JSON.stringify({ recipes, ricettari, weekPlan, mealTypes, dispensaItems, shoppingExtraItems, weekNotes }, null, 2);
+    const data = JSON.stringify({ recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista }, null, 2);
     const blob = new Blob([data], {type:'application/json'});
     const saved = await saveFileSmart(blob, `ricettario-backup-${new Date().toISOString().slice(0,10)}.json`, 'application/json', '.json', 'Backup JSON');
     if(!saved) return;
     safeStorageSet(LAST_BACKUP_KEY, new Date().toISOString());
     updateBackupReminder();
+    aggiornaBannerBackup();
   });
 
   const importBtn = document.getElementById('import-btn');
@@ -3948,6 +4822,7 @@
     reader.onload = (e)=>{
       try{
         const parsed = JSON.parse(e.target.result);
+        const prima = JSON.stringify(datiCompletiPerFile()); // per «Annulla importazione»
         const incoming = Array.isArray(parsed) ? parsed : (parsed.recipes || []);
         if(!Array.isArray(incoming)) throw new Error('Formato non valido');
         const incomingDispensa = Array.isArray(parsed.dispensaItems) ? parsed.dispensaItems : [];
@@ -4001,7 +4876,29 @@
           });
           if(parsed.ricettari.length) saveRicettari();
         }
-        if(parsed.weekPlan){ weekPlan = {...weekPlan, ...parsed.weekPlan}; migrateWeekPlan(); saveWeek(); }
+        if(Array.isArray(parsed.raccolte)){
+          const note = new Set(raccolte.map(x=>x.id));
+          parsed.raccolte.forEach(x=>{ if(x && x.id && x.name && !note.has(x.id)) raccolte.push({ id: x.id, name: String(x.name) }); });
+          saveRaccolte(); refreshRaccolteUi();
+        }
+        if(parsed.planWeeks && typeof parsed.planWeeks === 'object'){
+          // Backup con date: unisce settimana per settimana senza perdere ciò che c'è già
+          salvaSettimane();
+          Object.keys(parsed.planWeeks).forEach(lun=>{
+            const inc = parsed.planWeeks[lun] || {};
+            const loc = planWeeks[lun] || { plan: {}, notes: {} };
+            DAYS.forEach(d=>{
+              const gia = new Set((loc.plan[d] || []).map(e=>e.id));
+              const nuovi = ((inc.plan || {})[d] || []).filter(e=>e && !gia.has(e.id));
+              if(nuovi.length) loc.plan[d] = (loc.plan[d] || []).concat(nuovi);
+              if(inc.notes && inc.notes[d]) loc.notes[d] = Object.assign({}, inc.notes[d], loc.notes[d] || {});
+            });
+            planWeeks[lun] = loc;
+          });
+          const w = planWeeks[planWeekStart] || {};
+          weekPlan = w.plan || {}; weekNotes = w.notes || {};
+          migrateWeekPlan(); saveWeek();
+        }else if(parsed.weekPlan){ weekPlan = {...weekPlan, ...parsed.weekPlan}; migrateWeekPlan(); saveWeek(); }
 
         let addedDispensa = 0, updatedDispensa = 0;
         incomingDispensa.forEach(i=>{
@@ -4022,7 +4919,12 @@
           parsed.shoppingExtraItems.forEach(i=>{ if(i && !existingExtraIds.has(i.id)) shoppingExtraItems.push(i); });
           saveShoppingExtra();
         }
-        if(parsed.weekNotes && typeof parsed.weekNotes === 'object'){
+        if(Array.isArray(parsed.spesaLista)){
+          const idsSpesa = new Set(spesaLista.map(i=>i.id));
+          parsed.spesaLista.forEach(i=>{ if(i && i.name && !idsSpesa.has(i.id)) spesaLista.push(i); });
+          saveSpesaLista();
+        }
+        if(!parsed.planWeeks && parsed.weekNotes && typeof parsed.weekNotes === 'object'){
           Object.keys(parsed.weekNotes).forEach(day=>{
             if(!weekNotes[day]) weekNotes[day] = {};
             Object.assign(weekNotes[day], parsed.weekNotes[day]);
@@ -4041,6 +4943,7 @@
           msg += '.';
         }
         alert(msg);
+        mostraAnnulla('Importazione completata', ()=> ripristinaSnapshotDati(prima), 20000);
       }catch(err){
         alert('File non valido. Assicurati di selezionare un backup esportato da questo ricettario.');
       }
@@ -4443,6 +5346,52 @@
   const cookNextBtn = document.getElementById('cook-next-btn');
 
   let cookSteps = [];
+  let cookServings = 1;
+  let cookIngrDone = new Set();
+  const cookIngrPanel = document.getElementById('cook-ingr-panel');
+  const cookIngrBtn = document.getElementById('cook-ingr-btn');
+  const cookStepIngrEl = document.getElementById('cook-step-ingr');
+  function cookIngrLabel(i){
+    const scale = cookServings / (cookRecipe.servings || 1);
+    const x = quantitaScalata(i, scale);
+    return `${x.approx ? '~' : ''}${x.q} ${x.unit}`.trim();
+  }
+  function renderCookIngrPanel(){
+    document.getElementById('cook-ingr-title').textContent = `Ingredienti · ${cookServings} ${cookServings === 1 ? 'porzione' : 'porzioni'}`;
+    const ul = document.getElementById('cook-ingr-list');
+    ul.innerHTML = '';
+    (cookRecipe.ingredients || []).forEach((i, idx)=>{
+      const li = document.createElement('li');
+      li.className = cookIngrDone.has(idx) ? 'done' : '';
+      li.innerHTML = `<input type="checkbox" aria-label="Preparato: ${escapeAttr(i.name)}"${cookIngrDone.has(idx) ? ' checked' : ''}><span class="n">${escapeHtml(i.name)}</span><span class="amt">${escapeHtml(cookIngrLabel(i))}</span>`;
+      li.addEventListener('click', e=>{
+        if(e.target.tagName !== 'INPUT'){ const cb = li.querySelector('input'); cb.checked = !cb.checked; }
+        if(li.querySelector('input').checked) cookIngrDone.add(idx); else cookIngrDone.delete(idx);
+        li.classList.toggle('done', cookIngrDone.has(idx));
+      });
+      ul.appendChild(li);
+    });
+  }
+  function setCookIngrPanel(open){
+    cookIngrPanel.hidden = !open;
+    cookIngrBtn.setAttribute('aria-expanded', String(open));
+    if(open) renderCookIngrPanel();
+  }
+  cookIngrBtn.addEventListener('click', ()=> setCookIngrPanel(cookIngrPanel.hidden));
+  document.getElementById('cook-ingr-close').addEventListener('click', ()=> setCookIngrPanel(false));
+  // Ingredienti citati nel passaggio corrente (nome intero o prima parola di almeno 4 lettere)
+  function cookIngredientiDelPassaggio(testo){
+    const t = String(testo || '').toLowerCase();
+    return (cookRecipe.ingredients || []).filter(i=>{
+      const n = String(i.name || '').toLowerCase().trim();
+      if(n.length < 3) return false;
+      if(t.includes(n)) return true;
+      const w = n.split(/[\s,(]+/)[0];
+      if(w.length < 4) return false;
+      const stem = w.slice(0, Math.max(4, w.length - 1)).replace(/[^a-zà-ú]/g, '');
+      return stem.length >= 4 && new RegExp('(^|[^a-zà-ú])' + stem).test(t);
+    });
+  }
 
   // ---------- Blocco spegnimento schermo durante la modalità cucina ----------
   // Usa la Screen Wake Lock API (supportata dai principali browser Chromium e da Safari
@@ -4491,6 +5440,9 @@
       return;
     }
     cookStepIndex = 0;
+    cookServings = currentServings || cookRecipe.servings || 1;
+    cookIngrDone = new Set();
+    setCookIngrPanel(false);
     viewOverlay.classList.remove('active');
     cookOverlay.classList.add('active');
     renderCookStep();
@@ -4504,6 +5456,8 @@
     clearInterval(cookReleaseTimerInterval);
     cookReleaseTimerInterval = null;
     cookOverlay.classList.remove('active');
+    setCookIngrPanel(false);
+    resetCookTimers(); fermaVoce();
     cookRecipe = null;
     releaseCookWakeLock();
   }
@@ -4517,6 +5471,9 @@
     const s = cookSteps[cookStepIndex];
     cookProgress.textContent = `Passaggio ${cookStepIndex+1} di ${cookSteps.length} — ${cookRecipe.name}`;
     cookStepText.textContent = s.text;
+    const citati = cookIngredientiDelPassaggio(s.text);
+    cookStepIngrEl.innerHTML = citati.map(i=>`<span>${escapeHtml(i.name)}<b>${escapeHtml(cookIngrLabel(i))}</b></span>`).join('');
+    cookStepIngrEl.style.display = citati.length ? 'flex' : 'none';
     const hasRobot = s.vel || s.temp || (s.mode && s.mode !== 'Normale');
     const hasPressure = !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale'));
     const unitLabel = {bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar';
@@ -4531,13 +5488,13 @@
     ` : '';
     cookDial.style.display = (hasRobot || s.time || hasPressure) ? 'flex' : 'none';
     cookTimerBtn.style.display = s.time ? 'inline-block' : 'none';
-    cookTimerBtn.textContent = 'Avvia timer';
+    cookTimerBtn.textContent = cookTimers.some(t => t.key === 'step-' + cookStepIndex && !t.done) ? 'Timer avviato ✓' : 'Avvia timer';
     cookTimerBtn.disabled = false;
 
     const hasReleaseTimer = hasPressure && s.pressureRelease !== 'Rapido' && !!s.pressureReleaseMin;
     if(hasReleaseTimer){
       cookReleaseRow.style.display = 'flex';
-      cookReleaseTimerBtn.textContent = `Avvia timer rilascio (${s.pressureReleaseMin} min)`;
+      cookReleaseTimerBtn.textContent = cookTimers.some(t => t.key === 'rel-' + cookStepIndex && !t.done) ? 'Timer rilascio avviato ✓' : `Avvia timer rilascio (${s.pressureReleaseMin} min)`;
       cookReleaseTimerBtn.disabled = false;
     }
 
@@ -4548,43 +5505,212 @@
   cookPrevBtn.addEventListener('click', ()=>{ if(cookStepIndex>0){ cookStepIndex--; renderCookStep(); }});
   cookNextBtn.addEventListener('click', ()=>{
     if(cookStepIndex < cookSteps.length - 1){ cookStepIndex++; renderCookStep(); }
-    else{ exitCookMode(); }
+    else{ const rFatta = cookRecipe, pFatte = cookServings; exitCookMode(); chiediPreparata(rFatta, pFatte); }
   });
+  // ---------- Timer multipli, allarme, lettura e comandi vocali ----------
+  const cookTimers = []; // { id, label, key, endsAt, total, done }
+  const cookTimersEl = document.getElementById('cook-timers');
+  let cookTick = null, cookAlarmInterval = null, cookAudioCtx = null;
+  function cookBeep(){
+    try{
+      cookAudioCtx = cookAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if(cookAudioCtx.state === 'suspended') cookAudioCtx.resume();
+      [0, 0.28, 0.56].forEach(dt=>{
+        const o = cookAudioCtx.createOscillator(), g = cookAudioCtx.createGain();
+        o.type = 'sine'; o.frequency.value = 880;
+        g.gain.setValueAtTime(0.0001, cookAudioCtx.currentTime + dt);
+        g.gain.exponentialRampToValueAtTime(0.35, cookAudioCtx.currentTime + dt + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, cookAudioCtx.currentTime + dt + 0.22);
+        o.connect(g); g.connect(cookAudioCtx.destination);
+        o.start(cookAudioCtx.currentTime + dt); o.stop(cookAudioCtx.currentTime + dt + 0.25);
+      });
+    }catch(e){}
+    try{ navigator.vibrate && navigator.vibrate([300, 150, 300]); }catch(e){}
+  }
+  function cookFmt(ms){
+    const t = Math.max(0, Math.ceil(ms / 1000));
+    const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+    return (h ? h + ':' + String(m).padStart(2, '0') : String(m).padStart(2, '0')) + ':' + String(s).padStart(2, '0');
+  }
+  function renderCookTimers(){
+    cookTimersEl.innerHTML = '';
+    cookTimers.forEach(t=>{
+      const el = document.createElement('div');
+      el.className = 'ct' + (t.done ? ' done' : '');
+      el.dataset.id = t.id;
+      el.innerHTML = `<span class="n">${escapeHtml(t.label)}</span><span class="t">${t.done ? 'Finito!' : cookFmt(t.endsAt - Date.now())}</span>` +
+        (t.done ? `<button type="button" data-act="stop" aria-label="Ferma l'allarme">Ferma</button>`
+                : `<button type="button" data-act="plus" aria-label="Aggiungi un minuto">+1′</button><button type="button" data-act="del" aria-label="Elimina il timer">✕</button>`);
+      cookTimersEl.appendChild(el);
+    });
+  }
+  function updateCookTimers(){
+    let nuovoFinito = false;
+    cookTimers.forEach(t=>{ if(!t.done && t.endsAt <= Date.now()){ t.done = true; nuovoFinito = true; } });
+    if(nuovoFinito){
+      cookBeep();
+      clearInterval(cookAlarmInterval);
+      cookAlarmInterval = setInterval(()=>{ if(cookTimers.some(t => t.done)) cookBeep(); else { clearInterval(cookAlarmInterval); cookAlarmInterval = null; } }, 2500);
+    }
+    // aggiorna i numeri senza ricostruire tutto (così i tocchi sui pulsanti non si perdono)
+    if(nuovoFinito || cookTimersEl.children.length !== cookTimers.length) renderCookTimers();
+    else cookTimers.forEach(t=>{ const el = cookTimersEl.querySelector(`[data-id="${t.id}"] .t`); if(el && !t.done) el.textContent = cookFmt(t.endsAt - Date.now()); });
+    if(!cookTimers.length){ clearInterval(cookTick); cookTick = null; }
+  }
+  function avviaCookTimer(minuti, label, key){
+    const ms = Math.round(parseFloat(minuti) * 60000);
+    if(!(ms > 0)) return null;
+    if(key){
+      const gia = cookTimers.find(t => t.key === key && !t.done);
+      if(gia) return gia; // già avviato per questo passaggio
+    }
+    try{ cookAudioCtx = cookAudioCtx || new (window.AudioContext || window.webkitAudioContext)(); if(cookAudioCtx.state === 'suspended') cookAudioCtx.resume(); }catch(e){}
+    const t = { id: cryptoId(), label: label || 'Timer', key: key || null, endsAt: Date.now() + ms, total: ms, done: false };
+    cookTimers.push(t);
+    renderCookTimers();
+    if(!cookTick) cookTick = setInterval(updateCookTimers, 500);
+    return t;
+  }
+  function resetCookTimers(){
+    cookTimers.length = 0;
+    clearInterval(cookTick); cookTick = null;
+    clearInterval(cookAlarmInterval); cookAlarmInterval = null;
+    renderCookTimers();
+  }
+  cookTimersEl.addEventListener('click', e=>{
+    const b = e.target.closest('button[data-act]');
+    const id = b && b.closest('.ct').dataset.id;
+    const i = cookTimers.findIndex(t => t.id === id);
+    if(i < 0) return;
+    if(b.dataset.act === 'plus'){ cookTimers[i].endsAt += 60000; }
+    else{ cookTimers.splice(i, 1); }
+    renderCookTimers();
+  });
+  function fermaAllarmi(){
+    for(let i = cookTimers.length - 1; i >= 0; i--) if(cookTimers[i].done) cookTimers.splice(i, 1);
+    clearInterval(cookAlarmInterval); cookAlarmInterval = null;
+    renderCookTimers();
+  }
+  function etichettaPassaggio(){
+    const t = String((cookSteps[cookStepIndex] || {}).text || '').trim();
+    return `Passo ${cookStepIndex + 1}` + (t ? ': ' + t.split(/\s+/).slice(0, 2).join(' ') : '');
+  }
   cookTimerBtn.addEventListener('click', ()=>{
     const s = cookSteps[cookStepIndex];
-    let remaining = Math.round(parseFloat(s.time) * 60);
-    cookTimerEl.style.display = 'block';
-    cookTimerBtn.disabled = true;
-    cookTimerInterval = setInterval(()=>{
-      remaining--;
-      const mm = Math.floor(remaining/60).toString().padStart(2,'0');
-      const ss = (remaining%60).toString().padStart(2,'0');
-      cookTimerEl.textContent = `${mm}:${ss}`;
-      if(remaining <= 0){
-        clearInterval(cookTimerInterval);
-        cookTimerEl.textContent = 'Fatto!';
-        cookTimerBtn.disabled = false;
-        try{ new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQIAAAAAAA==').play(); }catch(e){}
-      }
-    }, 1000);
+    const t = avviaCookTimer(s.time, etichettaPassaggio(), 'step-' + cookStepIndex);
+    cookTimerBtn.textContent = 'Timer avviato ✓';
   });
   cookReleaseTimerBtn.addEventListener('click', ()=>{
     const s = cookSteps[cookStepIndex];
-    let remaining = Math.round(parseFloat(s.pressureReleaseMin) * 60);
-    cookReleaseTimerEl.style.display = 'block';
-    cookReleaseTimerBtn.disabled = true;
-    cookReleaseTimerInterval = setInterval(()=>{
-      remaining--;
-      const mm = Math.floor(remaining/60).toString().padStart(2,'0');
-      const ss = (remaining%60).toString().padStart(2,'0');
-      cookReleaseTimerEl.textContent = `${mm}:${ss}`;
-      if(remaining <= 0){
-        clearInterval(cookReleaseTimerInterval);
-        cookReleaseTimerEl.textContent = 'Fatto!';
-        cookReleaseTimerBtn.disabled = false;
-        try{ new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQIAAAAAAA==').play(); }catch(e){}
-      }
-    }, 1000);
+    avviaCookTimer(s.pressureReleaseMin, `Rilascio · passo ${cookStepIndex + 1}`, 'rel-' + cookStepIndex);
+    cookReleaseTimerBtn.textContent = 'Timer rilascio avviato ✓';
+  });
+  // Timer libero
+  const cookAddForm = document.getElementById('cook-add-timer-form');
+  document.getElementById('cook-add-timer-btn').addEventListener('click', e=>{
+    cookAddForm.hidden = !cookAddForm.hidden;
+    e.currentTarget.setAttribute('aria-expanded', String(!cookAddForm.hidden));
+    if(!cookAddForm.hidden) document.getElementById('cook-add-timer-min').focus();
+  });
+  cookAddForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    const m = document.getElementById('cook-add-timer-min'), n = document.getElementById('cook-add-timer-name');
+    if(avviaCookTimer(m.value, n.value.trim() || 'Timer')){ m.value = ''; n.value = ''; cookAddForm.hidden = true; document.getElementById('cook-add-timer-btn').setAttribute('aria-expanded', 'false'); }
+  });
+  cookAddForm.querySelectorAll('.cook-quick button').forEach(b => b.addEventListener('click', ()=>{
+    avviaCookTimer(b.dataset.min, document.getElementById('cook-add-timer-name').value.trim() || `${b.dataset.min} min`);
+    cookAddForm.hidden = true;
+  }));
+
+  // Lettura ad alta voce
+  function testoDelPassaggio(){
+    const s = cookSteps[cookStepIndex]; if(!s) return '';
+    const parti = [`Passaggio ${cookStepIndex + 1} di ${cookSteps.length}.`, s.text];
+    if(s.time) parti.push(`Tempo: ${s.time} minuti.`);
+    if(s.temp) parti.push(`Temperatura ${s.temp} gradi.`);
+    if(s.vel) parti.push(`Velocità ${s.vel}.`);
+    return parti.join(' ');
+  }
+  let cookParlando = false;
+  function leggiPassaggio(){
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(testoDelPassaggio());
+    u.lang = 'it-IT';
+    u.onstart = ()=>{ cookParlando = true; if(cookRec) try{ cookRec.stop(); }catch(e){} };
+    u.onend = u.onerror = ()=>{ cookParlando = false; if(cookVoceAttiva) avviaRiconoscimento(); };
+    speechSynthesis.speak(u);
+  }
+  const cookSpeakBtn = document.getElementById('cook-speak-btn');
+  if(!('speechSynthesis' in window)) cookSpeakBtn.hidden = true;
+  cookSpeakBtn.addEventListener('click', leggiPassaggio);
+
+  // Comandi vocali
+  const numeriParole = { un: 1, uno: 1, una: 1, due: 2, tre: 3, quattro: 4, cinque: 5, sei: 6, sette: 7, otto: 8, nove: 9, dieci: 10, undici: 11, dodici: 12, quindici: 15, venti: 20, venticinque: 25, trenta: 30, quaranta: 40, cinquanta: 50, sessanta: 60 };
+  let cookRec = null, cookVoceAttiva = false;
+  const cookVoiceBtn = document.getElementById('cook-voice-btn');
+  const cookVoiceStatus = document.getElementById('cook-voice-status');
+  function statoVoce(t){ cookVoiceStatus.textContent = t; cookVoiceStatus.hidden = !t; }
+  function interpretaComando(testo){
+    const t = String(testo || '').toLowerCase().replace(/[.,!?]/g, ' ').replace(/\s+/g, ' ').trim();
+    if(!t) return;
+    statoVoce(`Ho sentito: «${t}»`);
+    const m = t.match(/timer(?: da| di)? (\d+(?:[.,]\d+)?|[a-zàèéìòù]+) (minut|ora|ore)/);
+    if(m){
+      let n = parseFloat(String(m[1]).replace(',', '.'));
+      if(isNaN(n)) n = numeriParole[m[1]];
+      if(n){ avviaCookTimer(m[2].startsWith('minut') ? n : n * 60, `${n} ${m[2].startsWith('minut') ? 'min' : (n === 1 ? 'ora' : 'ore')}`); return; }
+    }
+    if(/\b(mezz'?ora)\b/.test(t) && /timer/.test(t)){ avviaCookTimer(30, '30 min'); return; }
+    if(/\b(stop|ferma|basta|silenzio|zitto)\b/.test(t)){ speechSynthesis && speechSynthesis.cancel(); fermaAllarmi(); return; }
+    if(/\b(avanti|prossimo|successivo|continua|vai)\b/.test(t)){ cookNextBtn.click(); return; }
+    if(/\b(indietro|precedente|torna)\b/.test(t)){ cookPrevBtn.click(); return; }
+    if(/\b(ripeti|rileggi|leggi)\b/.test(t)){ leggiPassaggio(); return; }
+    if(/\bingredienti\b/.test(t)){ cookIngrBtn.click(); return; }
+    if(/\btimer\b/.test(t) && cookTimerBtn.style.display !== 'none'){ cookTimerBtn.click(); return; }
+  }
+  function avviaRiconoscimento(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR || !cookVoceAttiva || cookParlando) return;
+    try{
+      cookRec = new SR();
+      cookRec.lang = 'it-IT'; cookRec.continuous = true; cookRec.interimResults = false;
+      cookRec.onresult = ev=>{
+        for(let i = ev.resultIndex; i < ev.results.length; i++){
+          if(ev.results[i].isFinal) interpretaComando(ev.results[i][0].transcript);
+        }
+      };
+      cookRec.onerror = ev=>{
+        if(ev.error === 'not-allowed' || ev.error === 'service-not-allowed'){
+          cookVoceAttiva = false; aggiornaPulsanteVoce();
+          statoVoce('Il browser non ha consentito il microfono: abilitalo nelle impostazioni del sito e riprova.');
+        }else if(ev.error === 'network'){
+          statoVoce('Il riconoscimento vocale richiede la connessione a internet.');
+        }
+      };
+      cookRec.onend = ()=>{ if(cookVoceAttiva && !cookParlando && cookOverlay.classList.contains('active')) setTimeout(avviaRiconoscimento, 300); };
+      cookRec.start();
+    }catch(e){ /* già avviato */ }
+  }
+  function aggiornaPulsanteVoce(){
+    cookVoiceBtn.setAttribute('aria-pressed', String(cookVoceAttiva));
+    cookVoiceBtn.textContent = cookVoceAttiva ? '🎤 Voce attiva' : '🎤 Voce';
+    if(!cookVoceAttiva) statoVoce('');
+    else statoVoce('Di\': «avanti», «indietro», «ripeti», «ingredienti», «timer 10 minuti», «stop».');
+  }
+  function fermaVoce(){
+    cookVoceAttiva = false;
+    if(cookRec){ try{ cookRec.onend = null; cookRec.stop(); }catch(e){} cookRec = null; }
+    try{ speechSynthesis && speechSynthesis.cancel(); }catch(e){}
+    aggiornaPulsanteVoce();
+  }
+  cookVoiceBtn.addEventListener('click', ()=>{
+    if(!(window.SpeechRecognition || window.webkitSpeechRecognition)){
+      statoVoce('Questo browser non supporta i comandi vocali (funzionano su Chrome e simili, con connessione internet).');
+      return;
+    }
+    if(cookVoceAttiva){ fermaVoce(); return; }
+    cookVoceAttiva = true; aggiornaPulsanteVoce(); avviaRiconoscimento();
   });
 
   // ---------- Vista: Ricettario / Pianificazione ----------
@@ -4888,8 +6014,8 @@
         : ''
     ].join('') : '<p class="today-empty">Nessun prodotto in scadenza nei prossimi 3 giorni.</p>';
     const shoppingText = shoppingCount
-      ? `${shoppingCount} voci da verificare per i pasti pianificati.`
-      : (shoppingExtraItems.length ? `${shoppingExtraItems.length} promemoria dalla Dispensa.` : 'Nessuna lista della spesa da preparare.');
+      ? `${shoppingCount} voci da verificare per i pasti pianificati.${spesaLista.length ? ` Più ${spesaLista.length} nella tua lista.` : ''}`
+      : (shoppingExtraItems.length ? `${shoppingExtraItems.length} promemoria dalla Dispensa.` : (spesaLista.length ? `${spesaLista.length} voci nella tua lista della spesa.` : 'Nessuna lista della spesa da preparare.'));
     const libraryHtml = ricettari.map(rb=>{
       const count = recipes.filter(r=>!r.archived && recipeRicettarioId(r) === rb.id).length;
       const coverStyle = rb.cover ? `background-image:url('${rb.cover}');` : '';
@@ -4948,6 +6074,11 @@
           <p class="today-hello"><strong>${saluto}!</strong> Cosa si cucina oggi?</p></div>
         <button type="button" class="btn-gold" id="today-plan-btn">${icon('calendar','ico-sm')} Organizza la settimana</button>
       </div>
+      <a class="guide-card" href="guida.html" data-guida>
+        <span class="qi">${icon('help')}</span>
+        <span class="guide-card-text"><b>Hai un dubbio? Apri la guida illustrata</b><small>Tutte le funzioni spiegate passo dopo passo, con le immagini.</small></span>
+        <span class="guide-card-go">Apri la guida ${icon('right','ico-sm')}</span>
+      </a>
       <div class="today-layout">
         <section class="today-block" aria-labelledby="today-meals-h">
           <div class="block-head"><h3 id="today-meals-h">I pasti di oggi</h3></div>
@@ -4963,7 +6094,7 @@
         <div class="quick-grid">
           <button type="button" class="quick-tile" id="today-quick-pantry-btn"><span class="qi">${icon('book')}</span><span><b>Le mie ricette</b><small>Sfoglia e cerca tra le ricette</small></span></button>
           <button type="button" class="quick-tile" id="today-quick-dispensa-btn"><span class="qi">${icon('box')}</span><span><b>La mia dispensa</b><small>Controlla scorte e scadenze</small></span></button>
-          <button type="button" class="quick-tile" id="today-quick-shopping-btn"><span class="qi">${icon('cart')}</span><span><b>Lista della spesa</b><small>Prepara la lista dai pasti</small></span></button>
+          <button type="button" class="quick-tile" id="today-quick-shopping-btn"><span class="qi">${icon('cart')}</span><span><b>Lista della spesa</b><small>La tua lista, anche senza pianificare</small></span></button>
           <button type="button" class="quick-tile" id="today-quick-planning-btn"><span class="qi">${icon('calendar')}</span><span><b>Pianificazione</b><small>Organizza i pasti della settimana</small></span></button>
         </div>
       </section>
@@ -4998,7 +6129,7 @@
     document.getElementById('today-shopping-btn').addEventListener('click', ()=>document.getElementById('generate-shopping-btn').click());
     document.getElementById('today-quick-pantry-btn').addEventListener('click', ()=>{ favoritesOnly = false; switchView('recipes'); });
     document.getElementById('today-quick-dispensa-btn').addEventListener('click', ()=>switchView('dispensa'));
-    document.getElementById('today-quick-shopping-btn').addEventListener('click', ()=>document.getElementById('generate-shopping-btn').click());
+    document.getElementById('today-quick-shopping-btn').addEventListener('click', ()=> switchView('spesa'));
     document.getElementById('today-quick-planning-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-library-manage-btn').addEventListener('click', ()=> openRicettariManage());
     content.querySelectorAll('.library-book').forEach(btn=>{
@@ -5015,8 +6146,8 @@
   // Etichetta breve mostrata nella barra ☰ su schermo piccolo, per vista corrente.
   const NAV_LABELS = {
     today: 'Oggi', recipes: 'Le mie ricette', planning: 'Pianificazione',
-    dispensa: 'Dispensa', 'crea-alimenti': 'Valori alimenti CREA',
-    'crea-menu': 'Ricette CREA', info: 'Come funziona'
+    spesa: 'Lista della spesa', dispensa: 'Dispensa', 'crea-alimenti': 'Valori alimenti CREA',
+    'crea-menu': 'Ricette CREA', info: 'Come funziona', stats: 'Statistiche'
   };
   let currentView = 'today';
   // Evidenzia la voce attiva nella barra laterale e nella barra a schede dello smartphone.
@@ -5029,13 +6160,16 @@
       'nav-favorites-btn': v === 'recipes' && favoritesOnly,
       'nav-planning-btn': v === 'planning',
       'nav-dispensa-btn': v === 'dispensa',
+      'nav-shopping-btn': v === 'spesa',
+      'nav-stats-btn': v === 'stats',
       'nav-crea-alimenti-btn': v === 'crea-alimenti',
       'nav-crea-menu-btn': v === 'crea-menu',
       'nav-info-btn': v === 'info',
       'tab-today': v === 'today',
       'tab-recipes': v === 'recipes',
       'tab-planning': v === 'planning',
-      'tab-dispensa': v === 'dispensa'
+      'tab-dispensa': v === 'dispensa',
+      'tab-shopping': v === 'spesa'
     };
     Object.keys(stato).forEach(id=>{
       const btn = document.getElementById(id);
@@ -5047,10 +6181,14 @@
   }
   function switchView(view){
     currentView = view;
+    // Fuori dalla pianificazione si lavora sempre sulla settimana reale in corso
+    if(view !== 'planning' && planWeekStart && planWeekStart !== realMonday()) setPlanWeek(realMonday());
     document.getElementById('today-view').style.display = view === 'today' ? '' : 'none';
     document.getElementById('recipes-view').style.display = view === 'recipes' ? '' : 'none';
     document.getElementById('planning-view').style.display = view === 'planning' ? '' : 'none';
     document.getElementById('dispensa-view').style.display = view === 'dispensa' ? '' : 'none';
+    document.getElementById('spesa-view').style.display = view === 'spesa' ? '' : 'none';
+    document.getElementById('stats-view').style.display = view === 'stats' ? '' : 'none';
     document.getElementById('crea-alimenti-view').style.display = view === 'crea-alimenti' ? '' : 'none';
     document.getElementById('crea-menu-view').style.display = view === 'crea-menu' ? '' : 'none';
     document.getElementById('info-view').style.display = view === 'info' ? '' : 'none';
@@ -5059,6 +6197,8 @@
     if(view === 'recipes') renderList();
     if(view === 'planning') renderPlanningDays();
     if(view === 'dispensa') renderDispensaList();
+    if(view === 'spesa') renderSpesaLista();
+    if(view === 'stats') renderStatistiche();
     if(view === 'crea-alimenti') apriVistaCreaAlimenti();
     if(view === 'crea-menu') apriVistaCreaMenu();
     const navCurrentLabel = document.getElementById('nav-current-label');
@@ -5070,17 +6210,78 @@
   document.getElementById('nav-recipes-btn').addEventListener('click', ()=>{ favoritesOnly = false; switchView('recipes'); });
   document.getElementById('nav-favorites-btn').addEventListener('click', ()=>{ favoritesOnly = true; switchView('recipes'); });
   // Voci che aprono finestre o menu già esistenti (nessuna funzione duplicata)
-  document.getElementById('nav-shopping-btn').addEventListener('click', ()=>{
-    closeMobileNav();
-    document.getElementById('generate-shopping-btn').click();
-  });
+  document.getElementById('nav-shopping-btn').addEventListener('click', ()=> switchView('spesa'));
+  document.getElementById('nav-stats-btn').addEventListener('click', ()=> switchView('stats'));
+
+  // ---------- Statistiche (v5.26) ----------
+  // Tutto calcolato al volo dai dati già presenti (nessun nuovo dato salvato).
+  function calcolaStatistiche(){
+    const attive = recipes.filter(r=>!r.archived);
+    const oggi = Date.now(), GIORNO = 86400000;
+    const fatte = attive.filter(r=>(r.timesMade||0) > 0);
+    const totPreparazioni = attive.reduce((n,r)=> n + (r.timesMade||0), 0);
+    const conVoto = attive.filter(r=>r.rating > 0);
+    const conTempo = attive.filter(r=>r.time > 0);
+    const perCategoria = {};
+    attive.forEach(r=>{ const c = r.category || 'Senza categoria'; perCategoria[c] = (perCategoria[c]||0) + 1; });
+    const giorniDa = r => r.lastMade ? Math.floor((oggi - new Date(r.lastMade).getTime())/GIORNO) : null;
+    return {
+      n: attive.length,
+      archiviate: recipes.length - attive.length,
+      preferite: attive.filter(r=>r.favorite).length,
+      conFoto: attive.filter(r=>r.photo).length,
+      mai: attive.filter(r=>!(r.timesMade>0)),
+      fatte: fatte.length,
+      totPreparazioni,
+      piuCucinate: fatte.slice().sort((a,b)=> (b.timesMade||0)-(a.timesMade||0) || (b.lastMade||'').localeCompare(a.lastMade||'')).slice(0,5),
+      miglioriVoti: conVoto.slice().sort((a,b)=> b.rating-a.rating || (b.timesMade||0)-(a.timesMade||0)).slice(0,5),
+      votoMedio: conVoto.length ? conVoto.reduce((n,r)=>n+r.rating,0)/conVoto.length : 0,
+      nConVoto: conVoto.length,
+      tempoMedio: conTempo.length ? Math.round(conTempo.reduce((n,r)=>n+r.time,0)/conTempo.length) : 0,
+      veloci: conTempo.filter(r=>r.time <= 30).length,
+      dimenticate: fatte.filter(r=>giorniDa(r) >= 60).sort((a,b)=> a.lastMade.localeCompare(b.lastMade)).slice(0,5),
+      giorniDa,
+      categorie: Object.entries(perCategoria).sort((a,b)=> b[1]-a[1])
+    };
+  }
+  function renderStatistiche(){
+    const box = document.getElementById('stats-body');
+    if(!box) return;
+    const S = calcolaStatistiche();
+    if(!S.n){ box.innerHTML = '<div class="stats-empty">Non hai ancora ricette: appena ne aggiungi qualcuna qui compariranno le statistiche.</div>'; return; }
+    const tile = (n, etichetta) => `<div class="stat-tile"><div class="stat-num">${n}</div><div class="stat-lbl">${etichetta}</div></div>`;
+    const riga = (r, extra) => `<li><button type="button" class="stat-link" data-id="${escapeAttr(r.id)}">${escapeHtml(r.name)}</button><span class="stat-extra">${extra}</span></li>`;
+    const lista = (titolo, righe, vuoto) => `<section class="stat-card"><h3>${titolo}</h3>${righe.length ? `<ol>${righe.join('')}</ol>` : `<p class="stat-vuoto">${vuoto}</p>`}</section>`;
+    const max = Math.max(...S.categorie.map(c=>c[1]));
+    const barre = S.categorie.map(([c,n])=>`<div class="stat-bar"><span class="stat-bar-lbl">${escapeHtml(c)}</span><span class="stat-bar-track"><span class="stat-bar-fill" style="width:${Math.round(n/max*100)}%;background:${CATEGORY_COLORS[c] || '#8A8F86'}"></span></span><span class="stat-bar-n">${n}</span></div>`).join('');
+    const volte = n => `${n} volt${n===1?'a':'e'}`;
+    const giorniTxt = r => { const g = S.giorniDa(r); return g >= 365 ? 'oltre un anno fa' : g >= 60 ? `${Math.round(g/30)} mesi fa` : `${g} giorni fa`; };
+    box.innerHTML = `
+      <div class="stat-tiles">
+        ${tile(S.n, 'ricette')}
+        ${tile(S.preferite, 'preferite')}
+        ${tile(S.totPreparazioni, 'preparazioni totali')}
+        ${tile(S.nConVoto ? S.votoMedio.toFixed(1).replace('.',',') + ' ★' : '–', 'voto medio')}
+        ${tile(S.tempoMedio ? S.tempoMedio + ' min' : '–', 'tempo medio')}
+        ${tile(S.veloci, 'pronte in 30 min')}
+      </div>
+      <div class="stat-grid">
+        ${lista('Le più cucinate', S.piuCucinate.map(r=>riga(r, volte(r.timesMade))), 'Non hai ancora segnato nessuna ricetta come preparata.')}
+        ${lista('Le meglio votate', S.miglioriVoti.map(r=>riga(r, '★ '+r.rating)), 'Non hai ancora dato voti.')}
+        ${lista('Da riscoprire (ferme da 2 mesi o più)', S.dimenticate.map(r=>riga(r, giorniTxt(r))), 'Niente di dimenticato: bene così.')}
+        ${lista('Mai preparate', S.mai.slice(0,5).map(r=>riga(r, '')), 'Le hai preparate tutte almeno una volta.').replace('<h3>Mai preparate</h3>', `<h3>Mai preparate (${S.mai.length})</h3>`)}
+      </div>
+      <section class="stat-card"><h3>Per categoria</h3><div class="stat-bars">${barre}</div></section>
+      <p class="stat-foot">${S.conFoto} ricette su ${S.n} hanno una foto${S.archiviate ? ` · ${S.archiviate} archiviate non contate` : ''}. Il conteggio delle preparazioni parte da quando segni «Ho preparato questa oggi» o chiudi la modalità cucina con «Fine».</p>`;
+    box.querySelectorAll('.stat-link').forEach(b=> b.addEventListener('click', ()=> openView(b.dataset.id)));
+  }
   document.getElementById('nav-import-btn').addEventListener('click', ()=>{
     switchView('recipes');
-    setTimeout(()=> document.getElementById('import-menu-btn').click(), 0);
+    setTimeout(()=> document.getElementById('more-menu-btn').click(), 0);
   });
   document.getElementById('nav-backup-btn').addEventListener('click', ()=>{
     switchView('recipes');
-    setTimeout(()=> document.getElementById('data-menu-btn').click(), 0);
+    setTimeout(()=> document.getElementById('more-menu-btn').click(), 0);
   });
   document.getElementById('nav-ricettari-btn').addEventListener('click', ()=>{
     closeMobileNav();
@@ -5091,12 +6292,16 @@
   document.getElementById('tab-recipes').addEventListener('click', ()=>{ favoritesOnly = false; switchView('recipes'); });
   document.getElementById('tab-planning').addEventListener('click', ()=> switchView('planning'));
   document.getElementById('tab-dispensa').addEventListener('click', ()=> switchView('dispensa'));
-  document.getElementById('tab-shopping').addEventListener('click', ()=> document.getElementById('generate-shopping-btn').click());
+  document.getElementById('tab-shopping').addEventListener('click', ()=> switchView('spesa'));
   document.getElementById('nav-planning-btn').addEventListener('click', ()=> switchView('planning'));
   document.getElementById('nav-dispensa-btn').addEventListener('click', ()=> switchView('dispensa'));
   document.getElementById('nav-crea-alimenti-btn').addEventListener('click', ()=> switchView('crea-alimenti'));
   document.getElementById('nav-crea-menu-btn').addEventListener('click', ()=> switchView('crea-menu'));
   document.getElementById('nav-info-btn').addEventListener('click', ()=> switchView('info'));
+  document.getElementById('legal-link').addEventListener('click', e=>{
+    e.preventDefault(); switchView('info');
+    setTimeout(()=> document.getElementById('note-legali').scrollIntoView({behavior:'smooth', block:'start'}), 50);
+  });
   // Scorciatoie dirette tra Pianificazione e Dispensa, per non dover passare dal menu di
   // navigazione in alto quando si passa dall'una all'altra mentre si organizza la settimana.
   document.getElementById('planning-goto-dispensa-btn').addEventListener('click', ()=> switchView('dispensa'));
@@ -5173,6 +6378,59 @@
   });
   document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeMobileNav(); });
 
+  // ---------- Accessibilità delle finestre (modali) ----------
+  // Esc chiude la finestra in primo piano, il Tab resta dentro la finestra aperta e, alla chiusura,
+  // il focus torna al pulsante che l'aveva aperta. Le finestre sono marcate come "dialog" per
+  // le tecnologie assistive. La finestra di conferma gestisce già da sola il proprio Esc.
+  (function setupDialogA11y(){
+    const overlays = Array.from(document.querySelectorAll('.overlay'));
+    const openers = new Map();
+    overlays.forEach(ov=>{
+      const modal = ov.querySelector('.modal');
+      if(modal){
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('tabindex', '-1');
+        const h = modal.querySelector('h2');
+        if(h){ if(!h.id) h.id = ov.id + '-title'; modal.setAttribute('aria-labelledby', h.id); }
+      }
+      new MutationObserver(()=>{
+        const attiva = ov.classList.contains('active');
+        if(attiva && !openers.has(ov)){
+          openers.set(ov, document.activeElement);
+          if(modal) setTimeout(()=>{ if(!modal.contains(document.activeElement)) modal.focus({preventScroll:true}); }, 30);
+        }else if(!attiva && openers.has(ov)){
+          const el = openers.get(ov); openers.delete(ov);
+          if(el && el.isConnected && typeof el.focus === 'function' && !document.querySelector('.overlay.active')) el.focus({preventScroll:true});
+        }
+      }).observe(ov, { attributes:true, attributeFilter:['class'] });
+    });
+    const topOverlay = ()=>{
+      const attivi = overlays.filter(o=>o.classList.contains('active'));
+      return attivi.length ? attivi[attivi.length - 1] : null;
+    };
+    document.addEventListener('keydown', (e)=>{
+      const top = topOverlay();
+      if(!top) return;
+      if(e.key === 'Escape'){
+        if(top.id === 'confirm-overlay') return;
+        const closeBtn = top.querySelector('.close-x');
+        if(closeBtn){ e.preventDefault(); closeBtn.click(); }
+        return;
+      }
+      if(e.key === 'Tab'){
+        const focusables = Array.from(top.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])'))
+          .filter(el => !el.disabled && el.offsetParent !== null && getComputedStyle(el).visibility !== 'hidden');
+        if(!focusables.length) return;
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if(!top.contains(document.activeElement) || document.activeElement.classList.contains('modal')){
+          e.preventDefault(); (e.shiftKey ? last : first).focus();
+        }else if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+        else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+      }
+    });
+  })();
+
   // ---------- Pianificazione settimanale ----------
   const planningDaysEl = document.getElementById('planning-days');
   let selectedPlanDay = null;
@@ -5185,13 +6443,16 @@
 
   function renderRecipePickerList(query){
     const q = normalize(query);
-    const matches = recipes.filter(r => !q || normalize(r.name).includes(q) || r.ingredients.some(i => normalize(i.name).includes(q)))
+    const piuLibri = ricettari.length > 1;
+    const matches = recipes
+      .filter(r => !q || normalize(r.name).includes(q) || r.ingredients.some(i => normalize(i.name).includes(q)) || (piuLibri && normalize(ricettarioName(recipeRicettarioId(r))).includes(q)))
       .sort((a,b) => a.name.localeCompare(b.name));
     recipePickerList.innerHTML = matches.length ? matches.map(r => `
       <div class="recipe-picker-item" data-id="${r.id}">
         <span class="cat-dot" style="background:${CATEGORY_COLORS[r.category] || '#8A8F86'}"></span>
         <span class="name">${escapeHtml(r.name)}</span>
         <span class="meta">${escapeHtml(r.category)}${r.time ? ` · ${r.time} min` : ''}${recipeHasPressure(r) ? ' · 🍲' : ''}</span>
+        ${piuLibri ? `<span class="picker-book">${icon('book')} ${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : ''}
       </div>
     `).join('') : '<div class="recipe-picker-empty">Nessuna ricetta trovata.</div>';
     recipePickerList.querySelectorAll('.recipe-picker-item').forEach(item=>{
@@ -5399,7 +6660,25 @@
   document.getElementById('plan-mode-week').addEventListener('click', ()=> setPlanMode('week'));
   document.getElementById('plan-mode-day').addEventListener('click', ()=> setPlanMode('day'));
   const planWeekLabelText = document.getElementById('plan-week-label-text');
-  if(planWeekLabelText) planWeekLabelText.textContent = 'Settimana corrente';
+  const MESI_BREVI = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  function dataBreve(iso){ const d = dateFromIso(iso); return `${d.getDate()} ${MESI_BREVI[d.getMonth()]}`; }
+  function dataDelGiorno(day){ return shiftIsoDays(planWeekStart, DAYS.indexOf(day)); }
+  function etichettaSettimana(lun){
+    const dom = shiftIsoDays(lun, 6), a = dateFromIso(lun), b = dateFromIso(dom);
+    const rng = a.getMonth() === b.getMonth() ? `${a.getDate()}–${b.getDate()} ${MESI_BREVI[b.getMonth()]} ${b.getFullYear()}` : `${dataBreve(lun)} – ${dataBreve(dom)} ${b.getFullYear()}`;
+    const diff = Math.round((dateFromIso(lun) - dateFromIso(realMonday())) / (7*86400000));
+    const rel = diff === 0 ? 'questa settimana' : diff === 1 ? 'prossima settimana' : diff === -1 ? 'settimana scorsa' : '';
+    return rel ? `${rng} · ${rel}` : rng;
+  }
+  function aggiornaEtichettaSettimana(){
+    if(planWeekLabelText) planWeekLabelText.textContent = etichettaSettimana(planWeekStart);
+    const oggiBtn = document.getElementById('plan-week-today');
+    if(oggiBtn) oggiBtn.hidden = planWeekStart === realMonday();
+  }
+  function vaiSettimana(lun){ setPlanWeek(lun); renderPlanningDays(); }
+  document.getElementById('plan-week-prev').addEventListener('click', ()=> vaiSettimana(shiftIsoDays(planWeekStart, -7)));
+  document.getElementById('plan-week-next').addEventListener('click', ()=> vaiSettimana(shiftIsoDays(planWeekStart, 7)));
+  document.getElementById('plan-week-today').addEventListener('click', ()=> vaiSettimana(realMonday()));
   const onPlanMQChange = ()=>{ if(typeof currentView !== 'undefined' && currentView === 'planning') renderPlanningDays(); };
   if(planNarrowMQ.addEventListener) planNarrowMQ.addEventListener('change', onPlanMQChange);
   else if(planNarrowMQ.addListener) planNarrowMQ.addListener(onPlanMQChange);
@@ -5408,7 +6687,7 @@
   // e mostra a colpo d'occhio gli spazi vuoti (cella più chiara) rispetto a quelli già pianificati.
   function buildPlanGridHtml(){
     const jsDay = new Date().getDay();
-    const todayName = DAYS[jsDay === 0 ? 6 : jsDay - 1];
+    const todayName = planWeekStart === realMonday() ? DAYS[jsDay === 0 ? 6 : jsDay - 1] : '';
     const hasOrphans = DAYS.some(d => (weekPlan[d]||[]).some(e => !mealTypes.includes(e.mealType)));
     const cols = mealTypes.length + (hasOrphans ? 1 : 0);
     let html = `<div class="plan-grid" style="--plan-cols:${cols}" role="group" aria-label="Pianificazione della settimana">`;
@@ -5422,18 +6701,19 @@
       const rowLast = di === DAYS.length - 1 ? ' plan-last-row' : '';
       const isToday = day === todayName;
       const dayEntries = weekPlan[day] || [];
-      html += `<div class="plan-grid-dayhead${isToday ? ' today' : ''}${rowLast}"><span class="dname">${escapeHtml(day)}</span><span class="dtools"><button type="button" class="icon-btn plan-grid-day-shopping" data-day="${escapeAttr(day)}" title="Lista della spesa di ${escapeAttr(day)}" aria-label="Lista della spesa di ${escapeAttr(day)}">${icon('cart','ico-xs')}</button><button type="button" class="icon-btn plan-grid-day-open" data-day="${escapeAttr(day)}" title="Apri ${escapeAttr(day)} nel dettaglio" aria-label="Apri ${escapeAttr(day)} nel dettaglio">${icon('pencil','ico-xs')}</button></span></div>`;
+      html += `<div class="plan-grid-dayhead${isToday ? ' today' : ''}${rowLast}"><span class="dname">${escapeHtml(day)}</span><span class="ddate">${escapeHtml(dataBreve(dataDelGiorno(day)))}</span><span class="dtools"><button type="button" class="icon-btn plan-grid-day-shopping" data-day="${escapeAttr(day)}" title="Lista della spesa di ${escapeAttr(day)}" aria-label="Lista della spesa di ${escapeAttr(day)}">${icon('cart','ico-xs')}</button><button type="button" class="icon-btn plan-grid-day-open" data-day="${escapeAttr(day)}" title="Apri ${escapeAttr(day)} nel dettaglio" aria-label="Apri ${escapeAttr(day)} nel dettaglio">${icon('pencil','ico-xs')}</button></span></div>`;
       mealTypes.forEach((mt, i)=>{
         const last = (i === cols - 1) ? ' plan-last-col' : '';
         const entries = dayEntries.filter(e=>e.mealType === mt).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
         const note = (weekNotes[day] && weekNotes[day][mt]) || '';
         html += `<div class="plan-meal-block${entries.length ? ' filled' : ''}${isToday ? ' is-today' : ''}${last}${rowLast}" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
           ${entries.length ? `<div class="plan-entry-list">${entries.map(renderPlanEntry).join('')}</div>` : ''}
-          ${note ? `<div class="plan-grid-note">${escapeHtml(note)}</div>` : ''}
+          <input type="text" class="plan-grid-note-input" placeholder="Nota…" value="${escapeAttr(note)}" aria-label="Nota: ${escapeAttr(day)}, ${escapeAttr(mt)}"${note ? '' : ' hidden'}>
           <div class="plan-add-row">
             <input type="time" class="plan-add-time" aria-hidden="true" tabindex="-1">
             <button type="button" class="btn-ghost btn-small plan-add-btn" aria-label="Aggiungi una ricetta: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Cerca una ricetta">${icon('plus','ico-xs')} Ricetta</button>
             <button type="button" class="btn-ghost btn-small plan-add-dispensa-btn" aria-label="Aggiungi dalla dispensa: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Aggiungi un prodotto dalla dispensa">${icon('box','ico-xs')} Dispensa</button>
+            ${note ? '' : `<button type="button" class="btn-ghost btn-small plan-add-note-btn" aria-label="Aggiungi una nota: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Aggiungi una nota">${icon('pencil','ico-xs')}</button>`}
           </div>
         </div>`;
       });
@@ -5449,8 +6729,9 @@
     if(!planningDaysEl) return;
     if(!selectedPlanDay){
       const jsDay = new Date().getDay(); // 0=domenica...6=sabato
-      selectedPlanDay = DAYS[jsDay === 0 ? 6 : jsDay - 1];
+      selectedPlanDay = planWeekStart === realMonday() ? DAYS[jsDay === 0 ? 6 : jsDay - 1] : DAYS[0];
     }
+    aggiornaEtichettaSettimana();
 
     const weekMode = effectivePlanMode() === 'week';
     const narrow = planNarrowMQ.matches;
@@ -5463,7 +6744,7 @@
 
     const dayTabsEl = document.getElementById('plan-day-tabs');
     dayTabsEl.innerHTML = DAYS.map(day =>
-      `<button type="button" class="plan-day-tab ${day === selectedPlanDay ? 'active' : ''}" data-day="${escapeAttr(day)}">${escapeHtml(day.slice(0,3))}</button>`
+      `<button type="button" class="plan-day-tab ${day === selectedPlanDay ? 'active' : ''}" data-day="${escapeAttr(day)}">${escapeHtml(day.slice(0,3))} ${dataDelGiorno(day).slice(8).replace(/^0/,'')}</button>`
     ).join('');
     dayTabsEl.querySelectorAll('.plan-day-tab').forEach(btn=>{
       btn.addEventListener('click', ()=>{
@@ -5517,7 +6798,7 @@
     const totaleGiornoHtml = totaleGiorno
       ? `<div class="plan-day-total">📊 Totale ${escapeHtml(day.toLowerCase())}: ${formattaNutrizioneCompatta(totaleGiorno)}</div>` : '';
 
-    card.innerHTML = `<h3>${escapeHtml(day)}</h3>
+    card.innerHTML = `<h3>${escapeHtml(day)} <span class="plan-day-date">${escapeHtml(dataBreve(dataDelGiorno(day)))}</span></h3>
       <div style="text-align:center;margin:-6px 0 14px;">
         <button type="button" class="btn-ghost btn-small plan-day-shopping-btn">🛒 Lista della spesa del giorno</button>
         <button type="button" class="btn-ghost btn-small plan-week-totals-btn">📊 Totali settimana</button>
@@ -5548,6 +6829,23 @@
     }
 
     }
+    planningDaysEl.querySelectorAll('.plan-add-note-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const inp = btn.closest('.plan-meal-block').querySelector('.plan-grid-note-input');
+        if(!inp) return;
+        inp.hidden = false; btn.remove(); inp.focus();
+      });
+    });
+    planningDaysEl.querySelectorAll('.plan-grid-note-input').forEach(inp=>{
+      inp.addEventListener('change', ()=>{
+        const block = inp.closest('.plan-meal-block');
+        const day = block.dataset.day, mt = block.dataset.mealtype;
+        const testo = inp.value.trim();
+        if(!weekNotes[day]) weekNotes[day] = {};
+        if(testo) weekNotes[day][mt] = testo; else delete weekNotes[day][mt];
+        saveWeekNotes();
+      });
+    });
     planningDaysEl.querySelectorAll('.plan-add-btn').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const block = btn.closest('.plan-meal-block');
@@ -5983,18 +7281,20 @@
   });
 
   document.getElementById('copy-last-week-btn').addEventListener('click', ()=>{
-    const hasPrev = previousWeekPlan && DAYS.some(d => (previousWeekPlan[d] || []).length);
+    const precedente = (planWeeks[shiftIsoDays(planWeekStart, -7)] || {}).plan;
+    const sorgente = (precedente && DAYS.some(d => (precedente[d] || []).length)) ? precedente : previousWeekPlan;
+    const hasPrev = sorgente && DAYS.some(d => (sorgente[d] || []).length);
     if(!hasPrev){
-      alert('Nessuna settimana precedente salvata ancora. Viene creata automaticamente ogni volta che premi "Svuota settimana".');
+      alert('La settimana precedente è vuota. Se hai appena svuotato questa settimana, la copia viene recuperata da lì.');
       return;
     }
-    const totaleVoci = DAYS.reduce((n, d) => n + (previousWeekPlan[d] || []).length, 0);
-    if(!confirm(`Aggiungere ${totaleVoci} vo${totaleVoci===1?'ce':'ci'} della settimana scorsa a quella attuale? Quello che hai già pianificato per questa settimana resta invariato.`)) return;
+    const totaleVoci = DAYS.reduce((n, d) => n + (sorgente[d] || []).length, 0);
+    if(!confirm(`Aggiungere ${totaleVoci} vo${totaleVoci===1?'ce':'ci'} della settimana precedente a quella mostrata (${etichettaSettimana(planWeekStart)})? Quello che hai già pianificato resta invariato.`)) return;
     // Aggiunge, non sostituisce: ogni voce viene copiata con un nuovo identificativo e segnata
     // come "da consumare", così non eredita per sbaglio lo stato (✓) della settimana precedente,
     // e quanto già pianificato per questa settimana non viene toccato.
     DAYS.forEach(day=>{
-      const voci = previousWeekPlan[day] || [];
+      const voci = sorgente[day] || [];
       if(!voci.length) return;
       if(!weekPlan[day]) weekPlan[day] = [];
       voci.forEach(voce=>{
@@ -6003,6 +7303,100 @@
     });
     saveWeek();
     renderPlanningDays();
+  });
+
+  // ---------- Ripeti la settimana / lista della spesa per date ----------
+  function vociDellaSettimana(w){ return DAYS.reduce((n, d) => n + (((w || {}).plan || {})[d] || []).length, 0); }
+  const repeatOverlay = document.getElementById('repeat-week-overlay');
+  const closeRepeat = ()=> repeatOverlay.classList.remove('active');
+  function aggiornaAnteprimaRipeti(){
+    salvaSettimane();
+    const n = Math.max(1, Math.min(12, parseInt(document.getElementById('repeat-week-count').value, 10) || 1));
+    const salta = document.getElementById('repeat-week-skip').checked;
+    let ok = 0, saltate = 0;
+    for(let i = 1; i <= n; i++){
+      const w = planWeeks[shiftIsoDays(planWeekStart, 7*i)];
+      if(salta && vociDellaSettimana(w) > 0) saltate++; else ok++;
+    }
+    document.getElementById('repeat-week-preview').textContent = `Verrà copiata su ${ok} settiman${ok === 1 ? 'a' : 'e'}` + (saltate ? ` (${saltate} già pianificat${saltate === 1 ? 'a' : 'e'}, saltat${saltate === 1 ? 'a' : 'e'})` : '') + '.';
+    document.getElementById('repeat-week-confirm').disabled = ok === 0;
+  }
+  document.getElementById('repeat-week-btn').addEventListener('click', ()=>{
+    salvaSettimane();
+    const tot = vociDellaSettimana({ plan: weekPlan });
+    if(!tot){ alert('Questa settimana è vuota: non c\'è nulla da ripetere.'); return; }
+    document.getElementById('repeat-week-info').textContent = `Copia le ${tot} voci di ${etichettaSettimana(planWeekStart).split(' · ')[0]} sulle settimane successive. Le note per fascia pasto vengono copiate insieme.`;
+    aggiornaAnteprimaRipeti();
+    repeatOverlay.classList.add('active');
+  });
+  ['repeat-week-count','repeat-week-skip'].forEach(id => document.getElementById(id).addEventListener('input', aggiornaAnteprimaRipeti));
+  ['repeat-week-close','repeat-week-cancel'].forEach(id => document.getElementById(id).addEventListener('click', closeRepeat));
+  repeatOverlay.addEventListener('click', e => { if(e.target === repeatOverlay) closeRepeat(); });
+  document.getElementById('repeat-week-confirm').addEventListener('click', ()=>{
+    salvaSettimane();
+    const n = Math.max(1, Math.min(12, parseInt(document.getElementById('repeat-week-count').value, 10) || 1));
+    const salta = document.getElementById('repeat-week-skip').checked;
+    const copiaVoci = JSON.parse(JSON.stringify(weekPlan));
+    const copiaNote = JSON.parse(JSON.stringify(weekNotes));
+    for(let i = 1; i <= n; i++){
+      const lun = shiftIsoDays(planWeekStart, 7*i);
+      const esistente = planWeeks[lun];
+      if(salta && vociDellaSettimana(esistente) > 0) continue;
+      const plan = (esistente && esistente.plan) || {}, notes = (esistente && esistente.notes) || {};
+      DAYS.forEach(day=>{
+        const voci = copiaVoci[day] || [];
+        if(!voci.length) return;
+        if(!plan[day]) plan[day] = [];
+        voci.forEach(v => plan[day].push({ ...v, id: cryptoId(), consumed: false }));
+        Object.keys(copiaNote[day] || {}).forEach(mt => { if(!notes[day]) notes[day] = {}; if(!notes[day][mt]) notes[day][mt] = copiaNote[day][mt]; });
+      });
+      planWeeks[lun] = { plan, notes };
+    }
+    safeStorageSet(PLAN_WEEKS_KEY, JSON.stringify(planWeeks));
+    scriviSuFileCollegato();
+    closeRepeat();
+    renderPlanningDays();
+  });
+
+  const rangeOverlay = document.getElementById('range-shopping-overlay');
+  const closeRange = ()=> rangeOverlay.classList.remove('active');
+  function vociNelIntervallo(da, a){
+    salvaSettimane();
+    const out = [];
+    if(!da || !a || da > a) return out;
+    for(let iso = da, guard = 0; iso <= a && guard < 400; iso = shiftIsoDays(iso, 1), guard++){
+      const lun = mondayOfIso(iso);
+      const w = planWeeks[lun];
+      const day = DAYS[(dateFromIso(iso).getDay() + 6) % 7];
+      ((w && w.plan && w.plan[day]) || []).forEach(e => { const p = entryRecipePair(e); if(p) out.push(p); });
+    }
+    return out;
+  }
+  function aggiornaAnteprimaIntervallo(){
+    const pairs = vociNelIntervallo(document.getElementById('range-from').value, document.getElementById('range-to').value);
+    const el = document.getElementById('range-shopping-preview');
+    const da = document.getElementById('range-from').value, a = document.getElementById('range-to').value;
+    el.textContent = (!da || !a || da > a) ? 'Scegli un intervallo valido.' : `${pairs.length} ricett${pairs.length === 1 ? 'a pianificata' : 'e pianificate'} in questo intervallo.`;
+    document.getElementById('range-shopping-confirm').disabled = !pairs.length;
+  }
+  document.getElementById('range-shopping-btn').addEventListener('click', ()=>{
+    const oggi = isoLocal(new Date());
+    const from = document.getElementById('range-from'), to = document.getElementById('range-to');
+    if(!from.value){ from.value = planWeekStart === realMonday() ? oggi : planWeekStart; }
+    if(!to.value || to.value < from.value){ to.value = shiftIsoDays(from.value, 6); }
+    aggiornaAnteprimaIntervallo();
+    rangeOverlay.classList.add('active');
+  });
+  ['range-from','range-to'].forEach(id => document.getElementById(id).addEventListener('input', aggiornaAnteprimaIntervallo));
+  ['range-shopping-close','range-shopping-cancel'].forEach(id => document.getElementById(id).addEventListener('click', closeRange));
+  rangeOverlay.addEventListener('click', e => { if(e.target === rangeOverlay) closeRange(); });
+  document.getElementById('range-shopping-confirm').addEventListener('click', ()=>{
+    const da = document.getElementById('range-from').value, a = document.getElementById('range-to').value;
+    const pairs = vociNelIntervallo(da, a);
+    if(!pairs.length) return;
+    closeRange();
+    const items = buildAggregatedShoppingItems(pairs, false);
+    openShoppingListOverlay(items, `Dal ${escapeHtml(dataBreve(da))} al ${escapeHtml(dataBreve(a))}: ${formatRicetteSubtitle(pairs.map(p => p.recipe), 'volte in questo periodo')}`);
   });
 
   // ---------- Shopping list ----------
@@ -6065,7 +7459,34 @@
 
   // Popola e apre il modal della lista della spesa con un elenco di voci già calcolato
   // (usata sia dalla lista della settimana, sia da quella di un giorno o di una singola ricetta).
-  function openShoppingListOverlay(items, subtitleText){
+  function shoppingItemKey(item){ return normalize(item.name) + '|' + normalize(item.unit || ''); }
+  function updateShoppingSummary(){
+    const el = document.getElementById('shopping-summary');
+    if(!el) return;
+    let todo = 0, done = 0;
+    shoppingListItems.querySelectorAll('li').forEach(li=>{
+      const cb = li.querySelector(':scope > input[type=checkbox]');
+      if(!cb || li.classList.contains('covered')) return;
+      if(cb.checked) done++; else todo++;
+    });
+    el.innerHTML = `<span class="shopping-count todo"><b>${todo}</b> da comprare</span><span class="shopping-count done"><b>${done}</b> nel carrello</span>`;
+    el.style.display = (todo + done) ? 'flex' : 'none';
+  }
+  function openShoppingListOverlay(itemsOriginali, subtitleText){
+    // Copie di lavoro: le modifiche a mano (voci tolte, quantità cambiate) si applicano qui,
+    // senza toccare i dati di partenza (ricette, pianificazione, Dispensa).
+    const hiddenHere = [];
+    const items = itemsOriginali.map(i => ({...i})).filter(item=>{
+      if(item.fromDispensaFlag) return true;
+      const k = shoppingItemKey(item);
+      if(shoppingHiddenItems[k]){ hiddenHere.push(k); return false; }
+      return true;
+    });
+    items.forEach(item=>{
+      if(item.fromDispensaFlag) return;
+      const ov = shoppingQtyOverrides[shoppingItemKey(item)];
+      if(ov > 0) item.qty = ov;
+    });
     shoppingSubtitle.innerHTML = subtitleText;
     let dispensaSyncCount = 0;
     shoppingDispensaSyncNote.style.display = 'none';
@@ -6091,9 +7512,59 @@
       const li = document.createElement('li');
       const amt = item.fromDispensaFlag ? 'dalla dispensa' : `${item.qty ? formatQtyForUnit(item.qty, item.unit) : ''} ${item.unit||''}`.trim();
       const giaSpuntato = !!shoppingCheckedItems[normalize(item.name)];
-      li.innerHTML = `<input type="checkbox"${giaSpuntato?' checked':''}><span>${escapeHtml(item.name)}</span><span class="amt">${escapeHtml(amt)}</span>`;
+      li.innerHTML = `<input type="checkbox"${giaSpuntato?' checked':''} aria-label="Segna come comprato: ${escapeAttr(item.name)}"><span>${escapeHtml(item.name)}</span><span class="amt">${escapeHtml(amt)}</span>`;
       if(giaSpuntato) li.classList.add('checked');
       const amtSpan = li.querySelector('.amt');
+
+      // Modifica e rimozione della singola voce
+      const itemKey = shoppingItemKey(item);
+      const actions = document.createElement('div');
+      actions.className = 'shopping-item-actions';
+      actions.innerHTML = (item.fromDispensaFlag ? '' : `<button type="button" class="icon-btn shopping-edit-btn" aria-label="Modifica la quantità di ${escapeAttr(item.name)}" title="Modifica quantità">${icon('pencil')}</button>`)
+        + `<button type="button" class="icon-btn shopping-remove-btn" aria-label="Togli ${escapeAttr(item.name)} dalla lista" title="Togli dalla lista">${icon('trash')}</button>`;
+      li.appendChild(actions);
+      const editBtn = actions.querySelector('.shopping-edit-btn');
+      if(editBtn) editBtn.addEventListener('click', ()=>{
+        if(li.querySelector('.shopping-edit-form')) return;
+        const form = document.createElement('form');
+        form.className = 'shopping-edit-form';
+        form.innerHTML = `<input type="number" min="0" step="any" inputmode="decimal" aria-label="Quantità di ${escapeAttr(item.name)}" value="${item.qty ? escapeAttr(String(item.qty)) : ''}"><span class="u">${escapeHtml(item.unit || '')}</span><button type="submit" class="btn-gold btn-small">Salva</button><button type="button" class="btn-ghost btn-small shopping-edit-cancel">Annulla</button>`;
+        const inp = form.querySelector('input');
+        const closeForm = ()=>{ form.remove(); amtSpan.style.display = ''; actions.style.display = ''; };
+        form.addEventListener('submit', ev=>{
+          ev.preventDefault();
+          const val = parseFloat(String(inp.value).replace(',', '.'));
+          if(!(val > 0)){ inp.focus(); return; }
+          item.qty = val;
+          shoppingQtyOverrides[itemKey] = val;
+          saveShoppingEdits();
+          amtSpan.textContent = `${formatQtyForUnit(val, item.unit)} ${item.unit || ''}`.trim();
+          closeForm();
+        });
+        form.querySelector('.shopping-edit-cancel').addEventListener('click', closeForm);
+        amtSpan.style.display = 'none';
+        actions.style.display = 'none';
+        li.insertBefore(form, amtSpan);
+        inp.focus(); inp.select();
+      });
+      actions.querySelector('.shopping-remove-btn').addEventListener('click', async ()=>{
+        if(item.fromDispensaFlag){
+          const ok = await confirmDialog({
+            title: 'Togliere dalla lista?',
+            message: `"${item.name}" è un promemoria dalla Dispensa: verrà eliminato dalla lista.`,
+            confirmText: 'Togli', danger: true
+          });
+          if(!ok) return;
+          shoppingExtraItems = shoppingExtraItems.filter(x => x.id !== item.extraId);
+          saveShoppingExtra();
+        }else{
+          shoppingHiddenItems[itemKey] = true;
+          delete shoppingQtyOverrides[itemKey];
+          saveShoppingEdits();
+          hiddenHere.push(itemKey);
+        }
+        removeShoppingRow(li);
+      });
 
       // Controllo incrociato con la Dispensa: se il prodotto risulta già presente, propone di
       // sottrarre la quantità disponibile da quella ancora da acquistare (con "Annulla" per
@@ -6174,6 +7645,7 @@
         if(e.target.checked) shoppingCheckedItems[chiave] = true;
         else delete shoppingCheckedItems[chiave];
         saveShoppingCheckedItems();
+        updateShoppingSummary();
         if(e.target.checked && !li.dataset.synced){
           li.dataset.synced = '1';
           if(item.fromDispensaFlag){
@@ -6197,6 +7669,35 @@
       });
       shoppingListItems.appendChild(li);
     });
+
+    // Una voce tolta sparisce dalla lista; se il reparto resta vuoto sparisce anche l'intestazione.
+    function removeShoppingRow(li){
+      const prev = li.previousElementSibling;
+      li.remove();
+      if(prev && prev.classList.contains('shopping-reparto-header')){
+        const next = prev.nextElementSibling;
+        if(!next || next.classList.contains('shopping-reparto-header') || next.classList.contains('shopping-hidden-note')) prev.remove();
+      }
+      refreshHiddenNote();
+      updateShoppingSummary();
+    }
+    // In fondo: quante voci sono state tolte, con il modo di rimetterle (nessuna perdita irreversibile)
+    function refreshHiddenNote(){
+      shoppingListItems.querySelectorAll('.shopping-hidden-note').forEach(n=>n.remove());
+      if(!hiddenHere.length) return;
+      const note = document.createElement('li');
+      note.className = 'shopping-hidden-note';
+      note.innerHTML = `<div>${hiddenHere.length} ${hiddenHere.length === 1 ? 'voce tolta' : 'voci tolte'} dalla lista</div><button type="button" class="link-btn">Rimetti ${hiddenHere.length === 1 ? 'la voce' : 'le voci'} in lista</button>`;
+      note.querySelector('button').addEventListener('click', ()=>{
+        hiddenHere.forEach(k => { delete shoppingHiddenItems[k]; });
+        saveShoppingEdits();
+        openShoppingListOverlay(itemsOriginali, subtitleText);
+      });
+      shoppingListItems.appendChild(note);
+    }
+    refreshHiddenNote();
+    updateShoppingSummary();
+    if(!items.length && !hiddenHere.length) shoppingListItems.innerHTML = '<li class="shopping-empty">La lista è vuota.</li>';
     shoppingOverlay.classList.add('active');
   }
 
@@ -6231,8 +7732,11 @@
     if(!ok) return;
     shoppingExtraItems = [];
     shoppingCheckedItems = {};
+    shoppingHiddenItems = {};
+    shoppingQtyOverrides = {};
     saveShoppingExtra();
     saveShoppingCheckedItems();
+    saveShoppingEdits();
     shoppingOverlay.classList.remove('active');
   });
 
@@ -6261,6 +7765,251 @@
     downloadPdf(pdfStr, `lista-della-spesa-${new Date().toISOString().slice(0,10)}.pdf`);
   });
 
+
+  // ============ Lista della spesa indipendente dalla pianificazione ============
+  // Una lista "libera" (spesaLista): ci si aggiungono ingredienti a mano e le righe di una ricetta,
+  // e la si può unire con la lista generata dalla settimana pianificata, sommando i doppioni.
+  let spesaUndoSnapshot = null; // copia della lista prima dell'ultima unione, per "Annulla"
+  const spesaItemsEl = document.getElementById('spesa-items');
+
+  // Somma (o aggiunge) delle righe {name, qty, unit} alla lista libera. Righe con lo stesso
+  // ingrediente e unità equivalenti (g/kg, ml/l, singolare/plurale) diventano una sola riga.
+  // Ritorna { aggiunte, sommate }.
+  function spesaAggiungiRighe(righe, fonte){
+    let aggiunte = 0, sommate = 0;
+    righe.forEach(r=>{
+      const name = String(r.name || '').trim();
+      if(!name) return;
+      const qty = parseFloat(r.qty) || 0;
+      const unit = r.unit || '';
+      const gruppo = unitGroupKey(unit);
+      const esistente = spesaLista.find(x => normalize(x.name) === normalize(name) && unitGroupKey(x.unit) === gruppo);
+      if(esistente){
+        const base = unitBaseQty(parseFloat(esistente.qty) || 0, esistente.unit) + unitBaseQty(qty, unit);
+        if(base > 0){
+          const disp = displayUnitForGroup(gruppo, base, esistente.unit || unit);
+          esistente.qty = Math.round(disp.qty * 100) / 100;
+          esistente.unit = disp.unit;
+        }
+        esistente.checked = false;
+        if(fonte && !(esistente.fonti || []).includes(fonte)) esistente.fonti = (esistente.fonti || []).concat(fonte);
+        sommate++;
+      }else{
+        spesaLista.push({ id: cryptoId(), name, qty, unit, checked: false, fonti: fonte ? [fonte] : [] });
+        aggiunte++;
+      }
+    });
+    saveSpesaLista();
+    return { aggiunte, sommate };
+  }
+  function spesaRigheDiRicetta(r, porzioni){
+    const scala = (parseFloat(porzioni) || r.servings || 1) / (r.servings || 1);
+    return r.ingredients.map(ing => ({ name: ing.name, qty: (parseFloat(ing.qty) || 0) * scala, unit: ing.unit || '' }));
+  }
+
+  function renderSpesaLista(){
+    if(!spesaItemsEl) return;
+    const undoBtn = document.getElementById('spesa-undo-btn');
+    if(undoBtn) undoBtn.hidden = !spesaUndoSnapshot;
+    spesaItemsEl.innerHTML = '';
+    if(!spesaLista.length){
+      spesaItemsEl.innerHTML = '<li class="shopping-empty">La lista è vuota. Scrivi un ingrediente qui sopra, aggiungi una ricetta oppure unisci la lista della settimana.</li>';
+    }
+    const conReparto = spesaLista.map(item => ({ item, reparto: repartoIngrediente(item.name) }));
+    conReparto.sort((a, b)=>{
+      const ia = REPARTO_ORDINE.indexOf(a.reparto), ib = REPARTO_ORDINE.indexOf(b.reparto);
+      const d = (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      return d || a.reparto.localeCompare(b.reparto) || a.item.name.localeCompare(b.item.name);
+    });
+    let corrente = null;
+    conReparto.forEach(({item, reparto})=>{
+      if(reparto !== corrente){
+        corrente = reparto;
+        const h = document.createElement('li');
+        h.className = 'shopping-reparto-header';
+        h.innerHTML = `<span class="reparto-dot" style="background:${PANTRY_CATEGORY_COLORS[reparto] || '#8A8F86'}"></span>${escapeHtml(reparto)}`;
+        spesaItemsEl.appendChild(h);
+      }
+      const li = document.createElement('li');
+      li.dataset.id = item.id;
+      if(item.checked) li.classList.add('checked');
+      const amt = item.qty ? `${formatQtyForUnit(item.qty, item.unit)} ${item.unit || ''}`.trim() : '';
+      const fonti = (item.fonti || []).length ? `<span class="spesa-fonti">da ${escapeHtml(item.fonti.join(', '))}</span>` : '';
+      li.innerHTML = `<input type="checkbox"${item.checked ? ' checked' : ''} aria-label="Segna come comprato: ${escapeAttr(item.name)}"><span class="spesa-name">${escapeHtml(item.name)}${fonti}</span><span class="amt">${escapeHtml(amt)}</span><div class="shopping-item-actions"><button type="button" class="icon-btn spesa-edit-btn" aria-label="Modifica ${escapeAttr(item.name)}" title="Modifica">${icon('pencil')}</button><button type="button" class="icon-btn shopping-remove-btn spesa-del-btn" aria-label="Togli ${escapeAttr(item.name)} dalla lista" title="Togli dalla lista">${icon('trash')}</button></div>`;
+      li.querySelector('input[type=checkbox]').addEventListener('change', e=>{
+        item.checked = e.target.checked; saveSpesaLista(); renderSpesaLista();
+      });
+      li.querySelector('.spesa-del-btn').addEventListener('click', ()=>{
+        spesaLista = spesaLista.filter(x => x.id !== item.id); saveSpesaLista(); renderSpesaLista();
+      });
+      li.querySelector('.spesa-edit-btn').addEventListener('click', ()=>{
+        if(li.querySelector('.shopping-edit-form')) return;
+        const form = document.createElement('form');
+        form.className = 'shopping-edit-form';
+        form.innerHTML = `<input type="text" class="e-name" aria-label="Nome" value="${escapeAttr(item.name)}" style="width:150px"><input type="number" class="e-qty" min="0" step="any" inputmode="decimal" aria-label="Quantità" value="${item.qty ? escapeAttr(String(item.qty)) : ''}"><input type="text" class="e-unit" list="unit-suggestions" aria-label="Unità" value="${escapeAttr(item.unit || '')}" style="width:80px"><button type="submit" class="btn-gold btn-small">Salva</button><button type="button" class="btn-ghost btn-small e-cancel">Annulla</button>`;
+        form.addEventListener('submit', ev=>{
+          ev.preventDefault();
+          const nome = form.querySelector('.e-name').value.trim();
+          if(!nome){ form.querySelector('.e-name').focus(); return; }
+          item.name = nome;
+          item.qty = parseFloat(String(form.querySelector('.e-qty').value).replace(',', '.')) || 0;
+          item.unit = form.querySelector('.e-unit').value.trim();
+          saveSpesaLista(); renderSpesaLista();
+        });
+        form.querySelector('.e-cancel').addEventListener('click', ()=> renderSpesaLista());
+        li.querySelector('.amt').style.display = 'none';
+        li.querySelector('.shopping-item-actions').style.display = 'none';
+        li.appendChild(form);
+        form.querySelector('.e-name').focus();
+      });
+      spesaItemsEl.appendChild(li);
+    });
+    const daComprare = spesaLista.filter(x => !x.checked).length, nelCarrello = spesaLista.length - daComprare;
+    document.getElementById('spesa-summary').innerHTML = spesaLista.length
+      ? `<span class="shopping-count todo"><b>${daComprare}</b> da comprare</span><span class="shopping-count done"><b>${nelCarrello}</b> nel carrello</span>`
+      : '';
+    document.getElementById('spesa-to-dispensa-btn').disabled = !nelCarrello;
+    document.getElementById('spesa-remove-checked-btn').disabled = !nelCarrello;
+    document.getElementById('spesa-clear-btn').disabled = !spesaLista.length;
+    document.getElementById('spesa-pdf-btn').disabled = !spesaLista.length;
+  }
+
+  document.getElementById('spesa-add-form').addEventListener('submit', e=>{
+    e.preventDefault();
+    const nameEl = document.getElementById('spesa-add-name');
+    const qtyEl = document.getElementById('spesa-add-qty');
+    const unitEl = document.getElementById('spesa-add-unit');
+    if(!nameEl.value.trim()){ nameEl.focus(); return; }
+    spesaAggiungiRighe([{ name: nameEl.value, qty: String(qtyEl.value).replace(',', '.'), unit: unitEl.value.trim() }], '');
+    nameEl.value = ''; qtyEl.value = ''; unitEl.value = '';
+    renderSpesaLista();
+    nameEl.focus();
+  });
+
+  document.getElementById('spesa-week-btn').addEventListener('click', ()=> document.getElementById('generate-shopping-btn').click());
+
+  document.getElementById('spesa-merge-btn').addEventListener('click', async ()=>{
+    const pairs = DAYS.flatMap(day => weekPlan[day] || []).map(entryRecipePair).filter(Boolean);
+    const itemsSettimana = buildAggregatedShoppingItems(pairs, false);
+    if(!itemsSettimana.length){
+      alert('La lista della settimana è vuota: assegna prima qualche ricetta a un giorno nella Pianificazione.');
+      return;
+    }
+    const gia = itemsSettimana.filter(i => spesaLista.some(x => normalize(x.name) === normalize(i.name) && unitGroupKey(x.unit) === unitGroupKey(i.unit))).length;
+    const ok = await confirmDialog({
+      title: 'Unire le due liste?',
+      message: `Gli ingredienti della settimana (${itemsSettimana.length}) vengono sommati alla tua lista: ${gia} ${gia === 1 ? 'è già presente e la sua quantità si somma' : 'sono già presenti e le loro quantità si sommano'}, gli altri ${itemsSettimana.length - gia} si aggiungono. La lista della settimana non cambia. Se cambi idea, "Annulla ultima unione" ripristina la lista.`,
+      confirmText: 'Unisci'
+    });
+    if(!ok) return;
+    spesaUndoSnapshot = JSON.parse(JSON.stringify(spesaLista));
+    const { aggiunte, sommate } = spesaAggiungiRighe(itemsSettimana, 'Settimana');
+    renderSpesaLista();
+    const sum = document.getElementById('spesa-summary');
+    sum.insertAdjacentHTML('beforeend', `<span class="shopping-count done" role="status">Unite: ${aggiunte} nuove, ${sommate} sommate</span>`);
+  });
+  document.getElementById('spesa-undo-btn').addEventListener('click', ()=>{
+    if(!spesaUndoSnapshot) return;
+    spesaLista = spesaUndoSnapshot; spesaUndoSnapshot = null;
+    saveSpesaLista(); renderSpesaLista();
+  });
+
+  document.getElementById('spesa-to-dispensa-btn').addEventListener('click', async ()=>{
+    const spuntati = spesaLista.filter(x => x.checked);
+    if(!spuntati.length) return;
+    const ok = await confirmDialog({
+      title: 'Mettere in Dispensa?',
+      message: `${spuntati.length} ${spuntati.length === 1 ? 'prodotto spuntato viene aggiunto' : 'prodotti spuntati vengono aggiunti'} in Dispensa (o la loro quantità si somma a quella già presente) e tolti da questa lista.`,
+      confirmText: 'Aggiungi in Dispensa'
+    });
+    if(!ok) return;
+    spuntati.forEach(addOrIncrementDispensaFromShopping);
+    saveDispensaItems();
+    spesaLista = spesaLista.filter(x => !x.checked);
+    saveSpesaLista(); renderSpesaLista();
+  });
+  document.getElementById('spesa-remove-checked-btn').addEventListener('click', ()=>{
+    spesaLista = spesaLista.filter(x => !x.checked); saveSpesaLista(); renderSpesaLista();
+  });
+  document.getElementById('spesa-clear-btn').addEventListener('click', async ()=>{
+    const ok = await confirmDialog({ title: 'Svuotare la lista?', message: `Tutte le ${spesaLista.length} voci della tua lista della spesa verranno tolte. La lista della settimana non cambia.`, confirmText: 'Svuota', danger: true });
+    if(!ok) return;
+    spesaLista = []; spesaUndoSnapshot = null; saveSpesaLista(); renderSpesaLista();
+  });
+  document.getElementById('spesa-pdf-btn').addEventListener('click', ()=>{
+    if(!spesaLista.length) return;
+    const gruppi = new Map();
+    spesaLista.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
+      const rep = repartoIngrediente(item.name);
+      if(!gruppi.has(rep)) gruppi.set(rep, []);
+      const amt = item.qty ? `${formatQtyForUnit(item.qty, item.unit)} ${item.unit || ''}`.trim() : '';
+      gruppi.get(rep).push(`- ${amt ? `${item.name} — ${amt}` : item.name}`);
+    });
+    const sections = Array.from(gruppi.entries())
+      .sort((a,b)=>{ const ia = REPARTO_ORDINE.indexOf(a[0]), ib = REPARTO_ORDINE.indexOf(b[0]); return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib); })
+      .map(([heading, lines]) => ({ heading, lines }));
+    downloadPdf(buildPdfFromSections('Lista della spesa', sections), `lista-della-spesa-${new Date().toISOString().slice(0,10)}.pdf`);
+  });
+
+  // --- Aggiungere gli ingredienti di una ricetta ---
+  const spesaRecipeOverlay = document.getElementById('spesa-recipe-overlay');
+  const spesaRecipeList = document.getElementById('spesa-recipe-list');
+  const spesaRecipeServings = document.getElementById('spesa-recipe-servings');
+  const spesaRecipeAddBtn = document.getElementById('spesa-recipe-add-btn');
+  const spesaRecipeMsg = document.getElementById('spesa-recipe-msg');
+  let spesaRecipeSelectedId = null;
+  function renderSpesaRecipeList(query){
+    const q = normalize(query || '');
+    const trovate = recipes.filter(r => !r.archived && (!q || normalize(r.name).includes(q) || r.ingredients.some(i => normalize(i.name).includes(q))))
+      .sort((a,b)=>a.name.localeCompare(b.name));
+    spesaRecipeList.innerHTML = trovate.length ? trovate.map(r => `
+      <div class="recipe-picker-item${r.id === spesaRecipeSelectedId ? ' selected' : ''}" data-id="${escapeAttr(r.id)}" role="button" tabindex="0" aria-pressed="${r.id === spesaRecipeSelectedId}">
+        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.category] || '#8A8F86'}"></span>
+        <span class="name">${escapeHtml(r.name)}</span>
+        <span class="meta">${escapeHtml(r.category)} · ${r.servings} porz.</span>
+      </div>`).join('') : '<div class="recipe-picker-empty">Nessuna ricetta trovata.</div>';
+    spesaRecipeList.querySelectorAll('.recipe-picker-item').forEach(el=>{
+      const scegli = ()=>{
+        spesaRecipeSelectedId = el.dataset.id;
+        const r = recipes.find(x => x.id === spesaRecipeSelectedId);
+        if(r) spesaRecipeServings.value = r.servings || 1;
+        spesaRecipeAddBtn.disabled = !r;
+        spesaRecipeMsg.textContent = '';
+        renderSpesaRecipeList(document.getElementById('spesa-recipe-search').value);
+      };
+      el.addEventListener('click', scegli);
+      el.addEventListener('keydown', ev=>{ if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); scegli(); } });
+    });
+  }
+  function apriSpesaRecipe(){
+    spesaRecipeSelectedId = null; spesaRecipeAddBtn.disabled = true; spesaRecipeMsg.textContent = '';
+    document.getElementById('spesa-recipe-search').value = '';
+    renderSpesaRecipeList('');
+    spesaRecipeOverlay.classList.add('active');
+    document.getElementById('spesa-recipe-search').focus();
+  }
+  document.getElementById('spesa-add-recipe-btn').addEventListener('click', apriSpesaRecipe);
+  document.getElementById('spesa-recipe-search').addEventListener('input', e=> renderSpesaRecipeList(e.target.value));
+  document.getElementById('spesa-recipe-close').addEventListener('click', ()=>{ spesaRecipeOverlay.classList.remove('active'); renderSpesaLista(); });
+  spesaRecipeOverlay.addEventListener('click', e=>{ if(e.target === spesaRecipeOverlay){ spesaRecipeOverlay.classList.remove('active'); renderSpesaLista(); } });
+  spesaRecipeAddBtn.addEventListener('click', ()=>{
+    const r = recipes.find(x => x.id === spesaRecipeSelectedId);
+    if(!r) return;
+    const { aggiunte, sommate } = spesaAggiungiRighe(spesaRigheDiRicetta(r, spesaRecipeServings.value), r.name);
+    spesaRecipeMsg.textContent = `✓ ${r.name}: ${aggiunte} ingredienti aggiunti${sommate ? `, ${sommate} sommati a voci già presenti` : ''}. Puoi sceglierne un'altra.`;
+  });
+  // Dalla scheda di una ricetta: aggiunge gli ingredienti (con le porzioni visualizzate) alla lista
+  document.getElementById('recipe-to-list-btn').addEventListener('click', ()=>{
+    const r = recipes.find(x => x.id === currentViewId);
+    if(!r) return;
+    const { aggiunte, sommate } = spesaAggiungiRighe(spesaRigheDiRicetta(r, currentServings), r.name);
+    const btn = document.getElementById('recipe-to-list-btn');
+    const orig = btn.innerHTML;
+    btn.textContent = `✓ Aggiunti ${aggiunte + sommate} ingredienti`;
+    btn.disabled = true;
+    setTimeout(()=>{ btn.innerHTML = orig; btn.disabled = false; }, 1800);
+  });
+
   // close overlays on backdrop click (per i moduli con campi da compilare, passa dallo stesso
   // controllo "modifiche non salvate" del tasto × invece di chiudere sempre senza chiedere)
   const dispensaEditOverlayEl = document.getElementById('dispensa-edit-overlay');
@@ -6283,10 +8032,46 @@
     e.returnValue = '';
   });
 
+  // ---------- PWA: service worker, avviso copia locale, installazione ----------
+  (function setupPwa(){
+    const proto = location.protocol;
+    const web = proto === 'http:' || proto === 'https:';
+    const $ = id => document.getElementById(id);
+    const get = k => { try { return localStorage.getItem(k); } catch(_) { return null; } };
+    const set = (k,v) => { try { localStorage.setItem(k,v); } catch(_) {} };
+    if (web && 'serviceWorker' in navigator && location.hostname !== '') {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+    }
+    const ob = $('origin-banner');
+    if (ob && !web && get('mc_origin_banner_nascosto') !== '1') {
+      ob.style.display = 'flex';
+      $('origin-backup-btn').addEventListener('click', () => { const b = $('export-btn') || $('nav-backup'); if (b) b.click(); });
+      $('origin-dismiss-btn').addEventListener('click', () => { ob.style.display = 'none'; set('mc_origin_banner_nascosto','1'); });
+    }
+    let deferred = null;
+    const ib = $('install-banner');
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault(); deferred = e;
+      if (ib && get('mc_install_nascosto') !== '1') ib.style.display = 'flex';
+    });
+    window.addEventListener('appinstalled', () => { if (ib) ib.style.display = 'none'; });
+    if ($('install-btn')) $('install-btn').addEventListener('click', async () => {
+      if (!deferred) return; deferred.prompt(); try { await deferred.userChoice; } catch(_) {}
+      deferred = null; ib.style.display = 'none';
+    });
+    if ($('install-dismiss-btn')) $('install-dismiss-btn').addEventListener('click', () => { ib.style.display = 'none'; set('mc_install_nascosto','1'); });
+  })();
+
   // ---------- Init ----------
   (async function avviaApp(){
     await inizializzaStorageFileAllAvvio();
     loadRecipes();
+    caricaCestino();
+    await caricaFotoDaIdb();
+    caricaRaccolte();
+    refreshRaccolteUi();
+    aggiornaVoceCestino();
     recipes = recipes.map(migrateRecipe);
     saveRecipes();
     migrateWeekPlan();
@@ -6296,6 +8081,7 @@
     switchView('today');
     aggiornaTopbarAlerts();
     aggiornaControlliMenuStorage();
+    aggiornaBannerBackup();
     mostraSceltaStorageSeNecessario();
   })();
 })();

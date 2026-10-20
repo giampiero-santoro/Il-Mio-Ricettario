@@ -35,6 +35,10 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 29. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
 30. [Domande frequenti](#domande-frequenti)
 
+## 📖 Guida illustrata
+
+La **Guida illustrata** (`guida.html`) spiega tutte le funzioni con screenshot. Si apre dal pulsante **"Guida"** in alto a destra (su telefono, l'icona **?** nella barra in alto), dalla voce **"Guida illustrata"** del menu laterale o dal riquadro in cima a **Oggi**. Ha un pulsante "← Torna al ricettario" e si può stampare o salvare in PDF dal browser.
+
 ## ℹ️ Come funziona
 
 Il pulsante **"ℹ️ Come funziona"** nella barra laterale apre una pagina introduttiva pensata per chi apre il sito per la prima volta (o vuole un promemoria): spiega in breve come sono organizzate le varie viste, cos'è il **CREA** e da dove viene la banca dati nutrizionale ufficiale usata nel sito, e cos'è **Open Food Facts**, la banca dati collaborativa usata per la scansione del codice a barre in Dispensa. È solo testo informativo, non richiede alcuna configurazione.
@@ -47,6 +51,8 @@ La navigazione (Oggi, Ricettario, Pianificazione, Dispensa…) è una barra late
 
 ## Aggiungere una ricetta
 
+Il modulo è diviso in sezioni (Informazioni, Foto, Ingredienti, Passaggi, Note). Tag dietetici, allergeni, congelamento, tipo di pentola e valori nutrizionali sono nel riquadro **"Altre informazioni"**: toccalo per aprirlo (si apre da solo se la ricetta ha già questi dati). Annulla e Salva restano sempre visibili in fondo.
+
 1. Premi **"+ Nuova ricetta"** in alto
 2. Compila nome, categoria, porzioni base e tempo totale
 3. Se vuoi, seleziona i **tag dietetici** pertinenti e carica una **foto** — appena scelta si apre un piccolo editor per **ritagliarla e ruotarla** (utile per le foto scattate storte col cellulare, o per inquadrare meglio il piatto): trascina il riquadro dorato per spostarlo, trascina un angolo per ridimensionarlo, e **"⟲ Ruota"** gira l'immagine di 90° ad ogni tocco (**"Reimposta"** annulla rotazione e ritaglio e riparte dall'originale). Premi **"Applica"** per confermare, oppure **"Annulla"** per rinunciare alla foto appena scelta. Una volta salvata, **"✂️ Ritaglia/ruota"** accanto all'anteprima permette di ritoccarla di nuovo in qualsiasi momento. L'immagine finale viene comunque ridimensionata e compressa automaticamente, per occupare meno spazio nel browser
@@ -57,6 +63,10 @@ La navigazione (Oggi, Ricettario, Pianificazione, Dispensa…) è una barra late
 
 Se chiudi il modulo (con la "×" o toccando fuori) mentre hai scritto qualcosa senza aver ancora salvato, il ricettario chiede conferma prima di buttare via le modifiche — capita anche provando a chiudere la scheda del browser o a navigare altrove. Vale anche per il modulo dei prodotti in Dispensa.
 
+> **Note nella griglia:** nella vista Settimana il pulsante ✎ in ogni casella apre un campo per scrivere la nota del pasto; il testo si salva da solo e compare anche nella vista Giorno.
+
+> **La scheda ricetta è una pagina:** si apre nell'area principale; per tornare all'elenco usa "← Le mie ricette", Esc oppure il tasto indietro del browser o del telefono.
+
 ## 📚 Più ricettari
 
 Le ricette possono essere organizzate in più "volumi" distinti — ad esempio "Ricette mie", "Ricette della nonna", "Ricette di Andrea" — invece di stare tutte in un unico elenco. Ogni ricetta appartiene a **un solo ricettario per volta**.
@@ -66,9 +76,12 @@ Le ricette possono essere organizzate in più "volumi" distinti — ad esempio "
   - **rinominare** un ricettario (modifica direttamente il nome e premi fuori dal campo per salvare)
   - assegnargli una **copertina** personalizzata: premi "📷 Copertina", scegli una foto e ritagliala con lo stesso editor usato per le foto delle ricette — senza copertina viene mostrata un'icona 📚 su sfondo colorato
   - **eliminarlo**: se è vuoto sparisce subito; se contiene ancora ricette, ti viene chiesto se spostarle in un altro ricettario (restano tutte, solo cambiano "scaffale") oppure eliminarle insieme al volume. Deve sempre restare almeno un ricettario
+  - **cambiare l'ordine** dei volumi con le frecce ↑ ↓: l'ordine si riflette nella libreria di "Oggi" e nei menu
   - crearne uno **nuovo**: scrivi il nome (e, se vuoi, scegli una copertina prima di premere "+ Aggiungi")
 - Nel modulo di una ricetta, il campo **"Ricettario"** accanto alla categoria indica dove salvarla — una nuova ricetta parte già nel volume che stai guardando in quel momento, se ne hai aperto uno specifico dalla libreria
 - Nella vista Ricettario, il menu a tendina accanto a quello della categoria **filtra per ricettario** ("Tutti i ricettari" mostra tutto insieme, come prima). La Pianificazione e "Cosa posso cucinare?" continuano invece a cercare sempre su **tutti i ricettari insieme**, per non perdere di vista nessuna ricetta mentre pianifichi la settimana
+- Nella finestra "Cerca ricetta" della Pianificazione, con più ricettari ogni ricetta mostra l'etichetta del suo volume e la ricerca trova anche per nome del volume
+- I **PDF** portano il nome del ricettario: una ricetta singola si salva come `nome-ricettario_nome-ricetta.pdf`; l'esportazione di più ricette, se sono tutte dello stesso volume, ne usa nome e titolo
 - Quando esiste più di un ricettario, ogni card e la scheda dettagliata mostrano una piccola etichetta 📚 con il nome del volume a cui appartiene la ricetta
 
 ## Importare una ricetta da testo
@@ -158,13 +171,15 @@ Nel modulo di modifica puoi spuntare **"❄️ Si congela bene"** per le ricette
 
 ## Ricerca, filtri ed esclusione ingredienti
 
+**Barra compatta (novità 5.10):** in cima a "Le mie ricette" ci sono solo la ricerca, il pulsante **Filtri** (con un numero quando hai filtri attivi), il menu **⋯** (Importa, Backup e dati, Seleziona ed elimina, Gestisci ricettari) e le categorie. L'ordinamento e il numero di ricette stanno sopra l'elenco. Su telefono "Aggiungi ricetta" diventa un pulsante tondo in basso.
+
 - Il campo di ricerca cerca sia nel nome della ricetta sia negli ingredienti
 - Il menu a tendina filtra per categoria
 - Se hai più di un ricettario, un altro menu a tendina filtra per ricettario (vedi [📚 Più ricettari](#-più-ricettari)) — "Tutti i ricettari" mostra tutto insieme
 - Il menu a tendina accanto alla categoria cambia l'ordine della lista: Nome (A-Z o Z-A), Aggiunta di recente, Ultima preparata, Più preparate — di base è per nome (A-Z)
 - **Il menu "Qualsiasi tempo"** filtra per tempo di preparazione: entro 15 min, entro 30 min, entro 1 ora, oppure "Con tempo indicato" (mostra solo le ricette a cui hai effettivamente assegnato un tempo, qualunque esso sia). Una ricetta senza tempo indicato non compare in nessuna delle soglie, comprese "entro 15/30/60 min" — non viene considerata "veloce" solo perché non sai quanto ci vuole
-- **"★ Solo preferite"** mostra solo le ricette con la stellina
-- **"🔍 Cottura, tag ed esclusioni"** apre un pannello con altre opzioni, tenute nascoste di default per non affollare la pagina — il pulsante mostra tra parentesi quanti filtri sono attivi (es. "🔍 Cottura, tag ed esclusioni (2)"):
+- **"★ Solo preferite"** (dentro il pannello **"Filtri"**) mostra solo le ricette con la stellina
+- Nel pannello **"Filtri"** trovi anche cottura, tag ed esclusioni: con altre opzioni, tenute nascoste di default per non affollare la pagina — il pulsante mostra tra parentesi quanti filtri sono attivi (es. "🔍 Cottura, tag ed esclusioni (2)"):
   - **Metodo di cottura**: "🍲 Pentola a pressione" (almeno un passaggio a pressione), "🤖 Robot" (almeno un passaggio con velocità, temperatura o una modalità diversa da Normale), "🔥 Tradizionale" (nessuna impostazione robot né pressione) — si possono combinare liberamente tra loro
   - **"Escludi ingredienti"**, che nasconde le ricette contenenti uno o più ingredienti scritti lì (separati da virgola) — utile per allergie o cose che non vuoi usare in quel momento
   - le "pillole" per il tag dietetico (puoi selezionarne più di una insieme)
@@ -184,6 +199,8 @@ Usa automaticamente i prodotti che hai già in **Dispensa** — non serve più r
 Il confronto sui nomi riconosce varianti semplici (es. "pomodoro" riconosce "pomodori pelati"), ma è un controllo testuale di base. Il controllo sulle **quantità** viene fatto solo quando è affidabile: servono una quantità e un'unità confrontabile (g/kg, ml/l...) sia nella ricetta sia nel prodotto in Dispensa. Se mancano, l'ingrediente viene considerato semplicemente disponibile, invece di dare un giudizio su un confronto non attendibile. Se aggiorni la Dispensa mentre questa vista è attiva, l'elenco delle ricette si aggiorna da solo.
 
 ## Preferite, cronologia e contatore preparazioni
+
+Dalla barra laterale, **Preferiti** mostra solo le ricette con il cuore; le pillole delle categorie in alto (Primi, Secondi…) indicano quante ricette ci sono in ciascuna e funzionano anche qui, per vedere solo i primi preferiti, i dolci preferiti e così via.
 
 - La stellina ★ contrassegna una ricetta come preferita; il pulsante **"★ Solo preferite"** filtra rapidamente
 - Nella vista dettagliata, **"Ho preparato questa oggi"** registra la data e aggiorna il contatore di quante volte hai preparato quella ricetta, entrambi visibili nella card e nella vista
@@ -226,6 +243,18 @@ Puoi anche saltare la ricerca e pianificare al volo mentre guardi una ricetta: n
 
 ## Lista della spesa
 
+Il menu **"Lista della spesa"** (su telefono la scheda **Spesa**) apre **la tua lista, indipendente dalla pianificazione**:
+
+- Scrivi un ingrediente, la quantità e l'unità (facoltative) e premi **Aggiungi**. Lo stesso ingrediente con unità equivalenti si somma in una sola riga.
+- **"Aggiungi gli ingredienti di una ricetta"**: scegli la ricetta e le porzioni. Dalla scheda di una ricetta lo stesso si fa con **"Aggiungi alla spesa"**.
+- **"Unisci con la lista della settimana"** somma alla tua lista gli ingredienti delle ricette pianificate. La lista della settimana non cambia; **"Annulla ultima unione"** ripristina la tua lista.
+- Spunta ciò che compri; **"Spuntati in Dispensa"** li sposta in Dispensa. Con ✏️ modifichi una riga, con 🗑 la togli. **"Svuota lista"** e **"Esporta PDF"** sono in fondo.
+- La lista della settimana, generata dalle ricette pianificate, resta disponibile dal pulsante **"Lista della settimana"**.
+
+### Lista generata dalla pianificazione
+
+**Modificare o togliere una voce (novità 5.1):** su ogni riga, ✏️ cambia la quantità e 🗑 toglie la voce dalla lista; in fondo "Rimetti le voci in lista" annulla le rimozioni. In cima, il riepilogo mostra quante voci sono ancora "da comprare" e quante già "nel carrello" (spuntate). Le modifiche valgono per la lista della settimana e dei singoli giorni, e si azzerano con "Svuota lista".
+
 Puoi generare la lista della spesa a tre livelli diversi, a seconda di cosa ti serve in quel momento:
 
 - **Per l'intera settimana pianificata**: nella vista Pianificazione, imposta prima **"Per quante persone stai pianificando?"** — le quantità verranno scalate di conseguenza rispetto alle porzioni base di ogni ricetta — poi premi **"🛒 Lista della spesa (settimana)"**. Il ricettario somma gli ingredienti di tutte le ricette pianificate nei sette giorni, raggruppandoli per nome e unità. I prodotti aggiunti dalla Dispensa non vengono conteggiati, dato che li hai già in casa. Compaiono anche gli ingredienti segnalati come mancanti dalla Dispensa quando hai pianificato una ricetta (etichetta "dalla dispensa"), anche se per questa settimana non hai ripianificato quella ricetta — restano come promemoria finché non li spunti, oppure finché un ingrediente con lo stesso nome non compare già tra quelli di un'altra ricetta pianificata per la settimana in corso. Accanto al pulsante compare un piccolo numero (es. "· 7") con quante voci ci sarebbero già da comprare, così non serve aprire la lista solo per scoprire se manca qualcosa
@@ -245,7 +274,7 @@ Ogni ingrediente che compare più volte (anche da ricette diverse, se pianifichi
 
 ## Backup: esportazione e importazione
 
-Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **"📦 Backup e CSV"** in alto, per non affollare la pagina. In cima al menu trovi anche un promemoria discreto ("Ultimo backup: X giorni fa"), che diventa rosso dopo due settimane senza backup.
+Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **"⋯"** (sezione "Backup e dati") in alto, per non affollare la pagina. In cima al menu trovi anche un promemoria discreto ("Ultimo backup: X giorni fa"), che diventa rosso dopo due settimane senza backup.
 
 - **Esporta backup**: scarica un file `.json` con tutte le ricette (con il ricettario a cui appartengono), i ricettari stessi con le loro copertine, la pianificazione settimanale, le fasce pasto personalizzate e i promemoria di ingredienti mancanti dalla Dispensa. Fallo periodicamente, o prima di cancellare i dati del browser
 - **Importa backup**: seleziona un file `.json` esportato in precedenza per ricaricare i dati. Le ricette e i prodotti Dispensa nuovi (identificativo non già presente) vengono sempre aggiunti; se il backup contiene anche voci già presenti (stesso identificativo — capita importando un backup più recente esportato da un altro dispositivo), ti viene chiesto una volta se sostituirle con la versione dal backup oppure lasciarle come sono. Alla fine un riepilogo ti dice quante ne sono state aggiunte, aggiornate o lasciate invariate
@@ -255,7 +284,7 @@ Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **
 - Dalla vista di una ricetta, il menu **"⬇ Esporta ▾"** offre **"⬇ Esporta PDF"** per scaricarla come file (con ingredienti già scalati alle porzioni che stai visualizzando)
 - Dalla lista della spesa (settimana, giorno o singola ricetta), **"⬇ Esporta PDF"** scarica la lista come file
 - Dalla vista Pianificazione, **"⬇ Esporta PDF settimana"** scarica un file con il piano di tutti i giorni insieme alla lista della spesa aggregata
-- Per stampare o portare con te **tutto il ricettario**: menu **"📦 Backup e CSV" → "📖 Esporta ricettario in PDF…"**. Scarica un unico file con un indice iniziale (i nomi di tutte le ricette, nell'ordine in cui le hai ordinate nell'elenco) seguito da ogni ricetta su una pagina nuova, alle sue porzioni base, con ingredienti, passaggi, valori nutrizionali e note come nell'esportazione di una singola ricetta. Le ricette **archiviate** restano escluse, come nel resto del sito
+- Per stampare o portare con te **tutto il ricettario**: menu **"⋯" → "📖 Esporta ricettario in PDF…"**. Scarica un unico file con un indice iniziale (i nomi di tutte le ricette, nell'ordine in cui le hai ordinate nell'elenco) seguito da ogni ricetta su una pagina nuova, alle sue porzioni base, con ingredienti, passaggi, valori nutrizionali e note come nell'esportazione di una singola ricetta. Le ricette **archiviate** restano escluse, come nel resto del sito
 - Nella stessa finestra puoi scegliere **quali ricette includere**: cerca per nome, spunta singole ricette o intere categorie, oppure apri **"🔍 Filtra per cottura, tag o allergeni"** per restringere l'elenco anche per metodo di cottura, tag dietetici, allergeni esclusi e **ricettario** (filtri combinabili). "Seleziona tutte (visibili)" seleziona solo ciò che risulta dai filtri correnti, senza perdere una selezione fatta in precedenza con un filtro diverso
 - Se esporti ricette di **più ricettari insieme**, sotto il titolo di ogni ricetta (e accanto al suo nome nell'indice) compare da quale ricettario viene — superfluo, e quindi omesso, quando filtri su un solo volume alla volta
 - Il PDF è generato interamente dal ricettario stesso (nessun servizio esterno): supporta più pagine e le lettere accentate italiane; eventuali emoji o simboli non standard nel testo vengono sostituiti con "?"
@@ -286,7 +315,7 @@ Se c'è una ricetta che non prepari più spesso ma non vuoi perdere (una version
 - non compare più nell'elenco principale del Ricettario, nella ricerca o nei filtri
 - non viene più proposta da "Cosa posso cucinare?"
 
-Per ritrovarla, premi **"📦 Mostra archiviate"** nella barra dei filtri: l'elenco mostra solo le ricette archiviate, con un avviso dedicato nella loro scheda. Da lì puoi riaprirla e premere **"📂 Disarchivia"** per farla tornare visibile come prima, oppure eliminarla definitivamente se non serve più. Premi di nuovo "📂 Mostra attive" per tornare all'elenco normale.
+Per ritrovarla, apri **"Filtri"** e premi **"Mostra archiviate"**: l'elenco mostra solo le ricette archiviate, con un avviso dedicato nella loro scheda. Da lì puoi riaprirla e premere **"📂 Disarchivia"** per farla tornare visibile come prima, oppure eliminarla definitivamente se non serve più. Premi di nuovo "📂 Mostra attive" per tornare all'elenco normale.
 
 ## Dispensa
 
@@ -325,6 +354,10 @@ Questo riconoscimento resta comunque limitato alle unità elencate sopra (più q
 
 Il sito ha un'unica impostazione grafica, "Cucina Naturale Contemporanea": sfondo avorio caldo, verde salvia come colore dell'app, terracotta per piccoli dettagli, font DM Sans per l'interfaccia e Lora per i titoli. La barra laterale raggruppa le sezioni (Organizza, Banche dati CREA, Gestione); su telefono diventa una barra a schede in basso (Oggi, Ricette, Piano, Dispensa, Spesa) più il menu ☰. C'è un interruttore un interruttore **"🌙 Tema scuro"** in fondo alla barra laterale (nel cassetto ☰ su telefono) per passare dallo sfondo chiaro a uno scuro, mantenendo la stessa impostazione. La scelta si applica subito a tutto il sito e resta salvata per le prossime visite.
 
+## Uso da tastiera
+
+Tutta l'app si usa anche con la tastiera: **Tab** / **Maiusc+Tab** per spostarsi (l'elemento attivo ha un contorno verde), **Invio** o **Spazio** per attivare schede e pulsanti, **Esc** per chiudere la finestra aperta. Dentro una finestra il Tab non esce finché non la chiudi.
+
 ## Salvataggio dei dati
 
 Tutto è salvato nel `localStorage` del browser che stai usando:
@@ -334,6 +367,42 @@ Tutto è salvato nel `localStorage` del browser che stai usando:
 - Se cancelli i dati di navigazione del browser (cache, cookie, dati dei siti), tutto viene perso
 - Lo spazio disponibile non è illimitato (di solito qualche MB): le foto delle ricette vengono ridimensionate e compresse automaticamente per occuparne meno. Se nonostante questo lo spazio dovesse esaurirsi, un avviso ti informa che il salvataggio non è andato a buon fine, invece di fallire senza dirtelo — a quel punto conviene esportare subito un backup e liberare un po' di spazio (es. riducendo il numero di foto)
 
+## La Dispensa si scala quando cucini
+Con **«Ho preparato questa oggi»** (o al «Fine ✓» della modalità cucina) l'app mostra cosa toglierebbe dalla Dispensa per le porzioni scelte. Scegli **Segna e scala dalla Dispensa**, **Solo segna come preparata** oppure **Annulla**. Dopo lo scalo hai 12 secondi per toccare «Annulla». Si scalano solo i prodotti riconosciuti con certezza e con unità compatibili; gli altri vengono elencati ma non modificati.
+
+## Note legali e crediti
+In **Come funziona**, in fondo (o dal link nel menu laterale), trovi privacy, avvertenze su nutrienti e allergeni, fonti e licenze dei dati usati.
+
+## Statistiche
+Dal menu **Statistiche** vedi come usi il ricettario: quante ricette hai, le più cucinate, le meglio votate, quelle ferme da due mesi o più («Da riscoprire»), quelle mai preparate e la ripartizione per categoria. Toccando un nome si apre la ricetta. Il conteggio delle preparazioni cresce quando usi «Ho preparato questa oggi» o chiudi la modalità cucina con «Fine».
+
+## Timer multipli e voce in cucina
+In modalità cucina i timer sono in alto e restano attivi cambiando passaggio: **Avvia timer** usa il tempo del passaggio, **⏱ + Timer** ne crea di liberi. Quando finiscono suona un allarme (e vibra) finché non tocchi **Ferma**; **+1′** aggiunge un minuto. **🔊 Leggi** legge il passaggio ad alta voce. **🎤 Voce** attiva i comandi: «avanti», «indietro», «ripeti», «ingredienti», «timer 10 minuti», «stop» (richiede il permesso del microfono e internet; non funziona su tutti i browser).
+
+## Misure pratiche
+Quando cambi le porzioni, le quantità si arrotondano a valori comodi da pesare (437.5 g → ~440 g, 1500 ml → 1.5 l, le uova a numeri interi). Il segno **~** indica un valore arrotondato. Il pulsante **≈ Misure pratiche** sopra gli ingredienti lo spegne per vedere i valori esatti. Liste della spesa e Dispensa usano sempre i valori esatti.
+
+## Cambio dispositivo
+Menu ⋯ → **📲 Cambio dispositivo**. Sul vecchio dispositivo, scheda «Da questo dispositivo»: crea il file di trasferimento (sul telefono lo invii a te stesso con la condivisione) e, se usi il sito, condividi l'indirizzo. Sul nuovo, apri lo stesso indirizzo, poi «Cambio dispositivo» → «Su questo dispositivo» → scegli il file. Le ricette si aggiungono a quelle presenti e puoi annullare subito l'importazione. Il file contiene anche le foto.
+
+## Annullare un'importazione
+Dopo l'importazione di un backup compare per 20 secondi «Annulla»: ripristina i dati come erano prima. Dopo aver ricaricato la pagina non è più possibile: se ti serve, esporta un backup prima di importare.
+
+## Cestino e Annulla
+Quando elimini una ricetta (o più ricette, o un ricettario con le sue ricette) compare per qualche secondo «Annulla». In ogni caso la ricetta resta 30 giorni nel **Cestino** (menu ⋯ → 🗑 Cestino), dove puoi **Ripristinarla** (con la sua foto) o eliminarla per sempre. Il cestino sta nel browser di questo dispositivo e non è nei backup.
+
+## Ritrovare il file dati (cartella «Il Mio Ricettario»)
+Consiglio: crea una cartella «Il Mio Ricettario» sul telefono, sulla scheda SD o su un cloud e salva sempre lì il file dati e i backup: il selettore si riapre nell'ultima cartella usata. Se all'apertura compare «Il file … ha bisogno di conferma» e **Riconnetti** non lo trova, tocca **Scegli di nuovo il file** e indica il file nella cartella. Il sito non può leggere il percorso di una cartella da solo: è sempre il browser a chiedere di scegliere il file. Quando scegli un file esistente, il browser chiede il permesso di **modificarlo**: accettalo (se compare «a ogni visita», scegli quella) altrimenti «Riconnetti» tornerà a ogni apertura. Aprendo il ricettario dall'indirizzo del sito (GitHub Pages) invece che come file del telefono, il collegamento resta molto più affidabile.
+
+## Foto con la fotocamera
+Sul telefono, nel modulo della ricetta, **📷 Scatta una foto** apre la fotocamera; dopo lo scatto puoi ritagliare e ruotare. Per usare una foto già presente scegli il file con il campo sopra. Il browser può chiedere il permesso di usare la fotocamera la prima volta.
+
+## Voti e raccolte
+Nella scheda di una ricetta puoi dare da 1 a 5 stelle (tocca di nuovo la stessa stella per toglierla). Con **📂 Raccolte** inserisci la ricetta in elenchi personali con un nome, come «Cene veloci» o «Natale»: una ricetta può stare in più raccolte. Dal pannello **Filtri** filtri per voto o per raccolta, e dall'ordinamento scegli «Voto più alto». Le raccolte sono diverse dai ricettari (i «libri») e dai tag: sono pensate per scelte tue, trasversali.
+
+## Foto e spazio del browser
+Le foto delle ricette sono conservate a parte (IndexedDB), così puoi averne centinaia senza esaurire lo spazio. Al primo avvio dopo l'aggiornamento le foto già presenti vengono spostate da sole. Esporta comunque un backup ogni tanto: contiene anche le foto.
+
 ## Salvataggio su un file a tua scelta (facoltativo)
 
 Oltre alla memoria del browser, puoi collegare un file sul tuo dispositivo dove ricette, dispensa, pianificazione e lista della spesa si salvano automaticamente — utile se vuoi tenerli in una cartella sincronizzata con Google Drive, Dropbox o simili, o semplicemente preferisci vederli come un file vero e proprio invece che nascosti nel browser. **Disponibile solo su Chrome, Edge e browser basati su Chromium** (non su Firefox o Safari, per un limite di quei browser).
@@ -342,12 +411,31 @@ Oltre alla memoria del browser, puoi collegare un file sul tuo dispositivo dove 
 - Una volta collegato, ogni modifica si salva automaticamente anche lì, in aggiunta alla memoria del browser (che resta sempre aggiornata come rete di sicurezza: se il file diventasse irraggiungibile, non perdi nulla)
 - Alla riapertura del sito, il browser chiede di **riconfermare l'accesso al file**: comparirà un avviso in alto alla pagina con tre scelte — **"Riconnetti"** (concedi di nuovo l'accesso), **"Non ora"** (nascondi l'avviso per questa volta, il file resta collegato) e **"Non chiedere più"** (scollega il file e smetti di ricevere l'avviso; i dati restano comunque nel browser).
   Questa richiesta è una misura di sicurezza dei browser stessi, non qualcosa che dipende dal sito: i browser concedono l'accesso a un file solo finché la scheda resta aperta, quindi la riconferma va data a ogni nuova sessione. Se ti dà fastidio, "Non chiedere più" è la scelta giusta: continuerai a usare il sito normalmente, salvando nella memoria del browser, e potrai esportare un backup quando vuoi
-- Puoi cambiare file o tornare al solo browser in qualsiasi momento da **"📦 Backup e CSV" → "🗂️ Collega/Cambia file di salvataggio"** o **"🔌 Scollega"**
+- Puoi cambiare file o tornare al solo browser in qualsiasi momento da **"⋯" → "🗂️ Collega/Cambia file di salvataggio"** o **"🔌 Scollega"**
 
 ## Dove vengono salvati e caricati i file
 
 - **Caricare un file** (Importa backup, Importa CSV): si apre sempre la finestra di scelta file del tuo dispositivo, dove puoi navigare in qualsiasi cartella o servizio collegato (es. Google Drive, iCloud Drive) per scegliere il file da importare
 - **Salvare un file** (backup, CSV, PDF): su Chrome o Edge da computer, si apre una finestra "Salva con nome" dove scegli tu la cartella e il nome del file. **Su cellulare (Android o iPhone/iPad)** si apre invece il **foglio di condivisione nativo** del telefono, con tutte le app installate tra cui scegliere — inclusa "Salva su Drive" se hai l'app Google Drive, oppure Dropbox, Files, WhatsApp, email, ecc.; tra le opzioni del foglio c'è anche "Salva sul dispositivo"/"File", quindi puoi comunque tenerlo solo in locale se preferisci. Su Firefox in generale, questo non è ancora possibile per limiti del browser stesso: il file viene scaricato automaticamente nella cartella "Download" predefinita del dispositivo, da cui potrai comunque spostarlo o condividerlo in un secondo momento
+
+## Ripetere la settimana e lista della spesa per date
+In fondo a Pianificazione: **Ripeti su altre settimane…** copia la settimana mostrata sulle prossime (da 1 a 12; puoi saltare quelle già piene). **🛒 Lista per date…** crea la lista della spesa per un intervallo di giorni a tua scelta, anche a cavallo di due settimane.
+
+## Ingredienti in modalità cucina
+Durante la modalità cucina, **🧺 Ingredienti** (in alto a sinistra) apre l'elenco con le quantità per le porzioni scelte: tocca un ingrediente per spuntarlo quando l'hai preparato. Sotto ogni passaggio vedi anche gli ingredienti citati in quel passaggio.
+
+## Condividere la lista della spesa
+In "La mia lista della spesa" e nella lista della settimana il pulsante **Condividi testo** manda la lista (per reparto, senza gli articoli già spuntati) a WhatsApp, note o messaggi; sul computer la copia negli appunti.
+
+## Promemoria di backup
+Ogni 7 giorni (se hai ricette) compare un avviso: "Fai il backup" salva il file (su telefono lo condividi su Drive, WhatsApp, e-mail); "Domani" lo rimanda; "Non ricordarmelo" lo spegne. Si riattiva da ⋯ → Backup e dati → Promemoria settimanale.
+
+## Usare il ricettario dal telefono (consigliato)
+1. Pubblica la cartella su GitHub Pages e apri l'indirizzo `https://TUONOME.github.io/NOMEREPO/` con Chrome.
+2. Se la copia vecchia (file aperto dal telefono) contiene ricette: aprila, menu ⋯ → Backup e dati → **Esporta backup**.
+3. Nella copia dal sito: menu ⋯ → **Importa** → scegli il file di backup.
+4. Dal menu di Chrome scegli **Installa app / Aggiungi a schermata Home**. Da quel momento funziona anche offline.
+Nota: i dati di ogni indirizzo sono separati; l'aggiornamento dei file su GitHub richiede Ctrl+F5 (o riapertura dell'app).
 
 ## Domande frequenti
 

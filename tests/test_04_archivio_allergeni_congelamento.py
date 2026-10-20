@@ -27,6 +27,9 @@ async def run(page):
     step_row = page.locator(".step-block").last
     await step_row.locator(".step-text").fill("Comporre gli strati e infornare.")
 
+    # Le informazioni facoltative sono ripiegate: si aprono con il riquadro "Altre informazioni"
+    await page.locator("#f-more > summary").click()
+    check(await page.locator("#f-allergens-wrap").is_visible(), "Gli allergeni non compaiono aprendo 'Altre informazioni'")
     # Tag allergene: latte (checkbox dentro #f-allergens-wrap)
     latte_check = page.locator("#f-allergens-wrap input[type=checkbox]").filter(has_text="Latte")
     if await latte_check.count() == 0:
@@ -66,7 +69,7 @@ async def run(page):
     archived_note = page.locator("#view-archived-note")
     await archived_note.wait_for(state="visible", timeout=4000)
 
-    await page.click("#view-close")
+    await page.click("#view-back-btn")
     await page.locator("#view-overlay").wait_for(state="hidden", timeout=5000)
 
     # Una ricetta archiviata non deve comparire nell'elenco principale (ricerca di default)
@@ -76,10 +79,14 @@ async def run(page):
     check(visible_cards == 0, "Una ricetta archiviata compare ancora nell'elenco principale")
 
     # --- Il filtro 'Mostra archiviate' deve farla ricomparire ---
+    await page.click("#filters-open-btn")
     await page.click("#archived-filter-btn")
+    await page.click("#filters-apply-btn")
     await page.wait_for_timeout(300)
     archived_cards = page.locator("#recipe-list .card", has_text=NOME_RICETTA)
     check(await archived_cards.count() >= 1, "Il filtro 'Mostra archiviate' non mostra la ricetta archiviata")
+    await page.click("#filters-open-btn")
     await page.click("#archived-filter-btn")  # disattiva il filtro
+    await page.click("#filters-apply-btn")
 
     check(not page.collected_errors, f"Errori console inattesi: {page.collected_errors}")

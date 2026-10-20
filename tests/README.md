@@ -57,6 +57,8 @@ ne aggiungesse una).
 | `test_03_planning_units_shopping.py` | Flusso pianificazione → lista della spesa: conversione unità di misura (kg↔g) fra dispensa e ricetta, raggruppamento per reparto, persistenza delle spunte |
 | `test_04_archivio_allergeni_congelamento.py` | Tag allergeni nella scheda ricetta, suggerimento "si congela bene" + raddoppio porzioni, archiviazione/recupero di una ricetta |
 | `test_05_mobile_nav_cucina_conferme.py` | Apertura/chiusura del menu ☰ su viewport mobile, modalità cucina guidata (avanti/indietro fra i passaggi), modale di conferma annullato (Annulla non elimina nulla) |
+| `test_06_ricettari_volumi_pdf_piano.py` | Note nella griglia, scheda come pagina (tasto indietro), riordino dei volumi, etichetta del volume nel selettore della Pianificazione, nome del file PDF con il ricettario |
+| `test_07_lista_spesa_libera.py` | Lista della spesa indipendente: ingredienti a mano, ricetta con porzioni, somma g+kg, unione con la settimana e annulla, spunta → Dispensa, persistenza |
 
 `helpers.py` contiene le funzioni condivise (apertura pagina pulita,
 chiusura dell'overlay di scelta salvataggio, reset dello stato,

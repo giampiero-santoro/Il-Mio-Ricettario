@@ -2,6 +2,295 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.26.1] — Pulizia legale e privacy
+
+### Cambiato
+- **Caratteri inclusi nell'app** (DM Sans e Lora, cartella `fonts/`): non si chiama più Google Fonts, quindi l'indirizzo IP dei visitatori non viene inviato a Google. Vale anche per la guida.
+- **Lettore di codici a barre incluso nell'app** (html5-qrcode 2.3.8 con versione fissata, cartella `js/vendor/`): non si scarica più da unpkg.
+- Il service worker mette in cache anche font e lettore, che funzionano offline.
+
+### Aggiunto
+- **Note legali, privacy e crediti** (menu «Come funziona» e link nel menu laterale): cosa resta sul dispositivo, cosa esce (Open Food Facts, Open-Meteo), avvertenza su nutrienti e allergeni, fonti e licenze (CREA, Open Food Facts ODbL/CC BY-SA, Open-Meteo CC BY 4.0, OFL, Apache 2.0, MIT).
+
+### Test
+- Nuovo `test_25`: nessuna richiesta a Google/unpkg all'avvio, font locali caricati, pagina note legali. Suite: 25/25.
+
+## [5.26.0] — Statistiche
+
+### Aggiunto
+- Nuova sezione **Statistiche** nel menu: tessere con numero di ricette, preferite, preparazioni totali, voto medio, tempo medio e ricette pronte in 30 minuti.
+- Classifiche **Le più cucinate** e **Le meglio votate**; **Da riscoprire** (ferme da 2 mesi o più); **Mai preparate**; grafico a barre **Per categoria**. Toccando una ricetta si apre la sua scheda.
+- Tutto è calcolato al momento dai dati che hai già: nessun dato nuovo salvato. Le ricette archiviate non vengono contate. Il conteggio delle preparazioni parte da «Ho preparato questa oggi» o dal «Fine» della modalità cucina.
+
+### Test
+- Nuovo `test_24_statistiche`. Suite: 24/24.
+
+## [5.25.0] — Cucina: timer multipli e voce
+
+### Aggiunto
+- **Timer multipli**: in modalità cucina puoi avere più timer insieme (pasta, forno, riposo). Restano attivi anche passando al passaggio successivo, hanno **+1′** e **✕**, e sono in alto sullo schermo. **⏱ + Timer** ne crea uno libero (minuti e nome, oppure 5′/10′/15′).
+- **Allarme vero**: alla fine suona un segnale ripetuto (e vibra sul telefono) finché non tocchi **Ferma**. Prima il segnale era praticamente muto.
+- **🔊 Leggi**: il telefono legge ad alta voce il passaggio con tempi e temperature.
+- **🎤 Voce**: comandi vocali a mani libere — «avanti», «indietro», «ripeti», «ingredienti», «timer 10 minuti», «stop». Serve Chrome (o simili), il permesso del microfono e la connessione a internet; durante la lettura il microfono si mette in pausa.
+
+### Test
+- Nuovo `test_23` (riconoscimento vocale simulato). Suite: 23/23.
+
+## [5.24.0] — Misure pratiche
+
+### Aggiunto
+- Cambiando le porzioni di una ricetta, le quantità vengono arrotondate a **misure comode da pesare**: 437.5 g di farina → ~440 g, 1500 ml di latte → 1.5 l, 5,25 uova → ~5. Le uova vanno a numeri interi, gli altri pezzi a mezzi; da 1000 g/ml in su si passa a kg/l.
+- Il segno **~** indica che il valore è arrotondato. Il pulsante **≈ Misure pratiche** (sopra gli ingredienti) lo accende e lo spegne: spento mostra i valori esatti. La scelta resta salvata.
+- Vale nella scheda ricetta e nel pannello ingredienti della modalità cucina. Alle porzioni originali le quantità restano esattamente quelle scritte; liste della spesa e Dispensa continuano a usare i valori esatti.
+
+### Test
+- Nuovo `test_22`. Suite: 22/22.
+
+## [5.23.0] — La Dispensa si scala da sola
+
+### Aggiunto
+- **«Ho preparato questa oggi»** (scheda ricetta) e il **«Fine ✓» della modalità cucina** mostrano ora una finestra con l'anteprima di cosa verrebbe tolto dalla Dispensa, per le porzioni scelte (es. «Farina: −500 g, restano 1,5 kg»). Tre scelte: **Segna e scala dalla Dispensa**, **Solo segna come preparata**, **Annulla**.
+- Dopo lo scalo compare **Annulla** per 12 secondi: ripristina le quantità in Dispensa e il conteggio «preparata».
+- Prudenza: si scalano solo i prodotti riconosciuti con certezza e con unità convertibili (g↔kg, ml↔l…); quelli ambigui o senza quantità sono elencati ma non toccati.
+
+### Test
+- Nuovo `test_21`. Suite: 21/21.
+
+## [5.22.0] — Cambio dispositivo guidato
+
+### Aggiunto
+- Menu ⋯ → **📲 Cambio dispositivo**: procedura guidata in due schede.
+  - **Da questo dispositivo**: riepilogo di cosa verrà trasferito (ricette, foto, dispensa, settimane, raccolte), pulsante per creare il file di trasferimento (sul telefono si apre la condivisione) e pulsante per condividere l'indirizzo del sito.
+  - **Su questo dispositivo**: pulsante per scegliere il file e istruzioni finali (installazione dell'app). Le ricette si aggiungono a quelle già presenti e l'importazione si può annullare.
+
+### Test
+- Nuovo `test_20`. Suite: 20/20.
+
+## [5.21.0] — Annulla importazione
+
+### Aggiunto
+- Dopo aver importato un backup compare per 20 secondi **«Importazione completata · Annulla»**: tocca Annulla per tornare esattamente a come erano ricette, ricettari, raccolte, dispensa, liste e pianificazione prima dell'importazione. L'annulla vale finché non ricarichi la pagina.
+
+### Test
+- Nuovo `test_19`. Suite: 19/19.
+
+## [5.20.0] — Cestino e «Annulla»
+
+### Aggiunto
+- **Cestino**: le ricette eliminate (singolarmente, da «Seleziona ed elimina» o insieme a un ricettario) non spariscono più: restano 30 giorni nel Cestino (menu ⋯ → 🗑 Cestino), con foto, e si possono **ripristinare** o eliminare per sempre. Un contatore accanto alla voce dice quante ce ne sono.
+- **Annulla**: dopo un'eliminazione compare per qualche secondo il messaggio «… eliminata · Annulla», che rimette la ricetta e le sue voci nel piano della settimana.
+- Il cestino è nel browser del dispositivo e non è incluso nei backup.
+
+### Test
+- Nuovo `test_18`. Suite: 18/18.
+
+## [5.19.1] — Corretto: «Riconnetti» ricompariva sempre
+
+### Corretto
+- Scegliendo un file dati esistente («Apri un file dati che ho già» o «Scegli di nuovo il file») il browser concedeva solo il permesso di **lettura**: dopo il ricaricamento la pagina chiedeva di nuovo «Riconnetti» a ogni apertura, e le modifiche non venivano scritte nel file. Ora l'app chiede subito anche il permesso di **scrittura**: accettalo quando il browser lo propone (se compare «a ogni visita», scegli quella).
+
+### Test
+- Nuovo `test_17`. Suite: 17/17.
+
+## [5.19.0] — Ritrovare il file dati
+
+### Aggiunto
+- Il banner di riconnessione ha ora **Scegli di nuovo il file**: se il browser non trova più il file dati (spostato, rinominato, collegamento perso) lo indichi a mano e l'app lo ricollega.
+- I selettori di file (creare il file dati, aprirlo, salvare un backup) ricordano l'ultima cartella usata: se salvi sempre nella stessa cartella, la ritroverai già aperta.
+- La finestra «Dove vuoi salvare i tuoi dati?» e la guida consigliano di creare una cartella «Il Mio Ricettario» (memoria del telefono, scheda SD o cloud).
+
+### Test
+- Nuovo `test_16`. Suite: 16/16.
+
+## [5.18.0] — Foto con la fotocamera
+
+### Aggiunto
+- Nel modulo di una ricetta, su telefono e tablet compare **📷 Scatta una foto**: apre direttamente la fotocamera posteriore. La foto passa dal ritaglio/rotazione come le altre e viene ridimensionata e salvata (nello spazio delle foto, vedi 5.16.0). Su computer il pulsante non compare: resta la scelta del file.
+
+### Test
+- Nuovo `test_15` (telefono simulato). Suite: 15/15.
+
+## [5.17.0] — Voti e raccolte
+
+### Aggiunto
+- **Voto a stelle** (1–5) nella scheda ricetta: tocca una stella, tocca di nuovo la stessa per togliere il voto. Il voto compare come ★ sulle card.
+- Ordinamento **Voto più alto** e filtro **Voto** (3 o più, 4 o più, 5, senza voto) nel pannello Filtri.
+- **Raccolte**: elenchi personali con un nome (es. «Cene veloci», «Natale»). Dalla scheda ricetta, **📂 Raccolte** permette di inserire la ricetta in una o più raccolte e di crearne di nuove; si eliminano da lì (le ricette restano). Nel pannello Filtri c'è il filtro **Raccolta**.
+- Voti e raccolte sono inclusi in backup, importazione e file di salvataggio collegato.
+
+### Test
+- Nuovo `test_14`. Suite: 14/14.
+
+## [5.16.0] — Tante ricette e tante foto
+
+### Migliorato
+- **Foto in uno spazio più grande**: il browser concede circa 5 MB al salvataggio normale, e bastavano poche decine di foto per riempirlo (e poi le modifiche non venivano più salvate). Ora le foto vengono conservate in IndexedDB, che ha centinaia di MB. La migrazione è automatica alla prima apertura: nessuna azione richiesta.
+- Il backup, il file di salvataggio collegato e l'importazione continuano a contenere le foto come prima. Se il browser non permette IndexedDB, tutto funziona come prima (foto nel salvataggio normale).
+- Misure con 2000 ricette: avvio ~0,5 s, ricerca ~20 ms (elenco già a blocchi di 48 card): nessuna modifica necessaria.
+
+### Test
+- Nuovo `test_13` (migrazione e riapertura). Suite: 13/13.
+
+## [5.15.0] — Piano: ripeti la settimana e lista per date
+
+### Aggiunto
+- **Ripeti su altre settimane…** (in fondo alla pagina Pianificazione): copia la settimana mostrata, con le sue note, su 1–12 settimane successive. Di default salta quelle che hanno già delle ricette; anteprima prima di confermare.
+- **🛒 Lista per date…**: lista della spesa per un intervallo a scelta (es. da oggi a domenica prossima), anche a cavallo di due settimane, con le quantità sommate.
+
+### Test
+- Nuovo `test_12`. Suite: 12/12.
+
+## [5.14.0] — Ingredienti in modalità cucina
+
+### Aggiunto
+- Nella modalità cucina il pulsante **🧺 Ingredienti** apre un pannello con tutti gli ingredienti, già calcolati per le porzioni scelte, da spuntare man mano che li prepari.
+- Sotto il testo di ogni passaggio compaiono, con le quantità, gli ingredienti citati in quel passaggio (es. «Mescola la farina…» mostra *Farina 200 g*).
+
+### Corretto
+- Il pacchetto 5.13.0 conteneva per errore `sw.js` e `MANIFEST.md` vuoti (l'uso offline non funzionava): ripristinati.
+
+### Test
+- Nuovo `test_11`. Suite: 11/11.
+
+## [5.13.0] — Condividi la lista della spesa
+
+### Aggiunto
+- Pulsante **📤 Condividi testo** nella tua lista della spesa e nella lista della settimana. Sul telefono apre la condivisione (WhatsApp, note, messaggi…); sul computer copia il testo negli appunti.
+- Il testo è diviso per reparto, con una casella ☐ per ogni articolo; quelli già spuntati non vengono inclusi.
+
+### Test
+- Nuovo `test_10`. Suite: 10/10.
+
+## [5.12.0] — Promemoria settimanale di backup
+
+### Aggiunto
+- Un avviso in alto compare quando l'ultimo backup ha 7 o più giorni (o non ne hai mai fatto uno) e hai almeno una ricetta. Pulsanti: **Fai il backup** (su telefono si apre il foglio di condivisione: Drive, WhatsApp, e-mail…), **Domani** (rimanda di un giorno), **Non ricordarmelo**.
+- Nel menu ⋯ → Backup e dati un interruttore **Promemoria settimanale** per riattivarlo o spegnerlo.
+
+### Test
+- Nuovo `test_09`. Suite: 9/9.
+
+## [5.11.0] — Sito stabile, installabile e offline (PWA)
+
+### Aggiunto
+- **Uso offline**: nuovo `sw.js` (service worker). Dopo la prima apertura da indirizzo web (es. GitHub Pages) il ricettario funziona anche senza connessione; le versioni nuove si aggiornano da sole quando c'è rete.
+- **Installa app**: dove il browser lo permette compare un invito a installare il ricettario sul telefono/computer.
+- **Avviso copia locale**: se il sito è aperto come file (es. `content://` o `file://` sul telefono) compare un avviso con "Esporta backup", perché in quel caso il browser può non conservare i dati.
+- Richiesta di archiviazione persistente al browser, per ridurre il rischio di cancellazione dei dati.
+
+### Test
+- Nuovo `test_08` (service worker, cache, banner). Suite: 8/8.
+
+## [5.10.0] — «Le mie ricette»: barra compatta
+
+### Cambiato
+- La parte alta della pagina è stata riordinata, su telefono e su computer: **ricerca + pulsante "Filtri" + menu "⋯"** su una riga, poi le categorie, la scheda "Cosa posso cucinare?" in versione più compatta e, sopra l'elenco, il numero di ricette e l'ordinamento.
+- **Filtri**: ricettario, tempo, solo preferite, archiviate, cottura, tag, allergeni ed esclusioni sono ora in un unico pannello (dal basso su telefono). Un numero accanto al pulsante dice quanti filtri sono attivi, **Azzera** li toglie tutti e il pulsante in fondo mostra quante ricette si vedranno.
+- **Menu "⋯"**: raccoglie Importa (da testo, da file, da ricette CREA), Backup e dati (backup, file di salvataggio, CSV, PDF del ricettario), Seleziona ed elimina e Gestisci ricettari.
+- Su telefono: "Aggiungi ricetta" è un pulsante tondo in basso, il titolo doppio sparisce e le categorie scorrono di lato su una sola riga.
+- Guida illustrata e screenshot aggiornati.
+
+### Test
+- `test_06` verifica il contatore dei filtri, Azzera e il menu ⋯; `test_04` e `test_06` usano i nuovi comandi. Suite: 7/7.
+
+## [5.9.1] — Guida più facile da trovare
+
+### Cambiato
+- In **Oggi** il riquadro "Hai un dubbio? Apri la guida illustrata" è ora in alto, subito sotto il saluto (prima era in fondo alla pagina).
+- In alto a destra il pulsante è ora **"❔ Guida"**, con la scritta, ben visibile in ogni pagina; su telefono l'icona **?** nella barra in alto è evidenziata.
+- Nuova voce **"Guida illustrata"** in fondo al menu laterale (Gestione).
+- La guida spiega i tre punti da cui si apre e come tornare al ricettario; screenshot aggiornati.
+
+## [5.9.0] — Lista della spesa indipendente
+
+### Aggiunto
+- **Nuova pagina "Lista della spesa"** (voce del menu, scheda "Spesa" su telefono, tessera in "Oggi"): una lista tutta tua, che **non dipende dalla pianificazione**. Funziona anche se non hai pianificato nulla.
+- **Ingredienti a mano**: scrivi nome, quantità e unità e premi Aggiungi. Lo stesso ingrediente con unità equivalenti (g/kg, ml/l…) si somma in una sola riga.
+- **Ingredienti di una ricetta**: "Aggiungi gli ingredienti di una ricetta" (scegli ricetta e porzioni, puoi aggiungerne più di una di seguito) oppure, dalla scheda di una ricetta, **"Aggiungi alla spesa"** con le porzioni che stai vedendo. Ogni riga ricorda da dove viene ("da Pasta al pomodoro, Settimana").
+- **Unisci con la lista della settimana**: somma alla tua lista gli ingredienti delle ricette pianificate (con riepilogo e conferma prima). La lista della settimana non cambia e **"Annulla ultima unione"** ripristina la tua lista.
+- Righe raggruppate per reparto, con spunta, modifica (nome, quantità, unità) ed elimina; "Spuntati in Dispensa" li sposta in Dispensa, "Togli gli spuntati", "Svuota lista" e **Esporta PDF**.
+- La lista è salvata nel browser e inclusa in backup e file di salvataggio collegato.
+
+### Cambiato
+- La voce "Lista della spesa" del menu apre ora la nuova pagina. La lista generata dalla settimana resta disponibile dal pulsante "Lista della settimana" (in questa pagina e nella Pianificazione) e funziona come prima.
+
+### Test
+- Nuovo `test_07_lista_spesa_libera`. Suite: 7/7.
+- La **Guida illustrata** ha un capitolo 9 riscritto su questa nuova lista.
+
+## [5.8.0] — Guida illustrata integrata
+
+### Aggiunto
+- **Guida illustrata** (`guida.html`): 13 capitoli passo dopo passo con screenshot (computer e telefono), pronta anche da stampare o salvare in PDF.
+- In **Oggi** compare una scheda "Guida illustrata" sotto l'accesso rapido.
+- Un'**icona "?"** sempre accessibile: nella barra in alto su computer/tablet e nella barra del telefono, da qualsiasi pagina. Dalla guida, "← Torna al ricettario" riporta all'app.
+- Nel file unico la guida è incorporata e si apre in una nuova scheda.
+
+### Nota
+- Gli screenshot mostrano ricette di esempio; se l'aspetto dell'app cambia molto, la guida va rigenerata.
+
+## [5.7.0] — Scheda ricetta come pagina
+
+### Cambiato
+- Su schermo largo e su tablet la scheda di una ricetta non è più una finestra scura sopra l'elenco: occupa l'area principale accanto alla barra laterale, come una pagina vera, con il pulsante "← Le mie ricette" in alto.
+- Il tasto **indietro** del browser (e il gesto/tasto indietro del telefono) chiude la scheda e torna all'elenco, invece di uscire dal sito.
+- Scegliendo una voce della barra laterale con la scheda aperta si passa subito alla nuova pagina.
+- Su telefono la scheda era già a tutto schermo: resta uguale, con in più il tasto indietro.
+- Esc e tutte le funzioni della scheda (Modifica, Modalità cucina, Pianifica, Esporta…) funzionano come prima.
+
+## [5.6.0] — Note nella griglia della pianificazione
+
+### Aggiunto
+- Nella vista **Settimana** ogni casella ha ora un pulsante ✎ per scrivere (e poi modificare o cancellare) la nota di quel giorno e pasto direttamente nella griglia, senza passare alla vista "Giorno". Le note sono le stesse delle due viste e restano nei backup.
+
+## [5.5.0] — Volumi: ordine, PDF e selettore del piano
+
+### Aggiunto
+- **Riordino dei volumi**: in "Gestisci ricettari" le frecce ↑ ↓ spostano un ricettario prima o dopo gli altri; l'ordine vale per la libreria di "Oggi" e per i menu.
+- **Pianificazione**: nella finestra di scelta della ricetta, con più ricettari ogni voce mostra il volume di provenienza e la ricerca funziona anche per nome del volume.
+- **PDF**: il nome del file e il titolo includono il ricettario (`ricettario_ricetta.pdf`; per le esportazioni multiple, se tutte le ricette sono di un solo volume).
+
+### Test
+- Nuovo `test_06_ricettari_volumi_pdf_piano` (riordino, etichetta nel selettore, nome del PDF). Suite: 6/6.
+
+## [5.4.1] — Rifiniture delle finestre su smartphone
+
+### Corretto
+- Nel modulo ricetta, la barra con "Annulla / Salva" su telefono sporgeva di qualche pixel dal bordo destro dello schermo.
+- Nel modulo "Nuovo prodotto" della Dispensa, su telefono Categoria/Quantità e Unità/Avvisa sotto sono ora affiancati a due a due: il modulo è molto più corto da scorrere.
+- Verificato su 390 px che nessuna delle 18 finestre dell'app esce dallo schermo né genera scorrimento orizzontale.
+
+## [5.4.0] — Categorie nei Preferiti
+
+### Aggiunto
+- Le pillole delle categorie mostrano ora **quante ricette contengono** con i filtri attuali: in "Preferiti" si vede subito in quali categorie ci sono ricette preferite (le categorie vuote sono attenuate). Il conteggio tiene conto anche di ricerca e altri filtri.
+- Messaggi più chiari: "Non hai ancora ricette preferite…" se non ce ne sono, oppure "Nessuna ricetta preferita in questa categoria" scegliendo una categoria vuota. In "Preferiti" il sottotitolo della pagina lo dice esplicitamente.
+
+## [5.3.0] — Accessibilità
+
+### Aggiunto
+- **Tastiera nelle finestre**: **Esc** chiude la finestra in primo piano (se un modulo ha modifiche non salvate chiede prima conferma), **Tab** resta dentro la finestra aperta senza "scappare" sulla pagina sottostante, e alla chiusura il focus torna all'elemento che l'aveva aperta. Le finestre sono ora dichiarate come "dialog" per gli screen reader, con il titolo come etichetta.
+
+### Corretto
+- Contrasto dei colori: il testo secondario su fondo verde chiaro e il testo terracotta su fondo terracotta chiaro erano appena sotto la soglia AA (4,3:1); sono stati leggermente scuriti (ora ≥ 4,7:1). Tutte le coppie testo/sfondo principali, in tema chiaro e scuro, risultano ora ≥ 4,5:1.
+- Verificato che ogni elemento raggiungibile con Tab mostra un indicatore di focus visibile.
+
+## [5.2.0] — Modulo ricetta riorganizzato
+
+### Cambiato
+- Il modulo "Nuova ricetta / Modifica ricetta" è diviso in sezioni chiare: **Informazioni** (nome, categoria, ricettario, porzioni, tempo), **Foto**, **Ingredienti**, **Passaggi** e **Note personali**.
+- Tag dietetici, allergeni, "si congela bene", tipo di pentola e valori nutrizionali, tutti facoltativi, sono raccolti nel riquadro ripiegabile **"Altre informazioni"**: resta chiuso per le ricette nuove e si apre da solo se la ricetta ha già qualcuno di questi dati.
+- I pulsanti **Annulla** e **Salva ricetta** restano sempre visibili in fondo, anche scorrendo un modulo lungo; su telefono i campi vanno in colonna singola. Il pulsante di scelta foto ha lo stile del resto dell'app.
+- Nessuna modifica a campi, salvataggio o funzioni.
+
+## [5.1.0] — Lista della spesa: modifica e rimozione delle singole voci
+
+### Aggiunto
+- Ogni voce della lista della spesa ha ora due icone: ✏️ per **cambiare la quantità** (campo con Salva/Annulla) e 🗑 per **toglierla dalla lista**. La quantità modificata resta anche chiudendo e riaprendo la lista, e viene usata se la voce viene poi spuntata e aggiunta alla Dispensa.
+- Le voci tolte non vanno perse: in fondo compare "N voci tolte dalla lista" con **"Rimetti le voci in lista"**. Per i promemoria "dalla Dispensa" la rimozione chiede conferma ed è definitiva.
+- In cima alla lista un riepilogo distingue **"da comprare"** (terracotta) e **"nel carrello"** (verde); le voci spuntate restano evidenziate e barrate.
+- "Svuota lista" azzera anche voci tolte e quantità modificate.
+
 ## [5.0.0] — Nuova grafica "Cucina Naturale Contemporanea"
 
 ### Cambiato

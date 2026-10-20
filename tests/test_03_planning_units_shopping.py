@@ -106,4 +106,27 @@ async def run(page):
     check(await checkbox2.is_checked(), "Lo stato della spunta della lista della spesa non è persistito riaprendo la lista")
     await page.click("#shopping-close")
 
+    # --- Modifica e rimozione di una singola voce, con ripristino ---
+    await day_shopping_btn.click()
+    await page.locator("#shopping-overlay").wait_for(state="visible", timeout=5000)
+    rows = page.locator("#shopping-list-items li:has(.shopping-remove-btn)")
+    n_prima = await rows.count()
+    check(n_prima >= 1, "La lista della spesa non ha voci con i pulsanti modifica/rimuovi")
+    check(await page.locator("#shopping-summary").is_visible(), "Manca il riepilogo da comprare / nel carrello")
+    riga = rows.first
+    await riga.locator(".shopping-edit-btn").click()
+    await riga.locator(".shopping-edit-form input").fill("7")
+    await riga.locator(".shopping-edit-form button[type=submit]").click()
+    check("7" in (await riga.locator(".amt").inner_text()), "La quantità modificata non compare nella voce")
+    await page.click("#shopping-close")
+    await day_shopping_btn.click()
+    await page.locator("#shopping-overlay").wait_for(state="visible", timeout=5000)
+    check("7" in (await page.locator("#shopping-list-items li:has(.shopping-remove-btn)").first.locator(".amt").inner_text()),
+          "La quantità modificata non è persistita")
+    await page.locator("#shopping-list-items li:has(.shopping-remove-btn)").first.locator(".shopping-remove-btn").click()
+    check(await rows.count() == n_prima - 1, "La voce non è stata tolta dalla lista")
+    await page.locator(".shopping-hidden-note button").click()
+    check(await page.locator("#shopping-list-items li:has(.shopping-remove-btn)").count() == n_prima, "Le voci tolte non sono state rimesse in lista")
+    await page.click("#shopping-close")
+
     check(not page.collected_errors, f"Errori console inattesi: {page.collected_errors}")
