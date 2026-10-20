@@ -42,7 +42,7 @@ const OffIntegration = (() => {
   /**
    * Mappa (euristica, per parole chiave) le categorie OFF — che arrivano
    * come tag tipo "en:breakfast-cereals" o testo libero in più lingue —
-   * verso le 19 categorie CREA già usate in Dispensa. Come per le altre
+   * verso le categorie di Dispensa. Come per le altre
    * euristiche di categoria del sito: un default suggerito, mai
    * vincolante, sempre modificabile dall'utente dopo.
    */
@@ -51,28 +51,27 @@ const OffIntegration = (() => {
       Array.isArray(categoriesTagsOrText) ? categoriesTagsOrText.join(' ') : (categoriesTagsOrText || '')
     );
     const regole = [
-      [/dessert|dolc|biscott|cake|pasticceria|cioccolat|chocolate|nutella|jam|marmalade|marmellat|honey|miele|gelato|ice.?cream|sorbet|wafer|cracker/, 'Dolci'],
-      [/beer|birra|wine|vino|alcohol|alcolic|liquor|spirit/, 'Bevande alcoliche'],
-      // Nota: CREA non ha una categoria "bevande" generica (solo quelle
-      // alcoliche) — succhi, bibite, acqua, caffè e tè restano volutamente
-      // su "Prodotti vari" (il default) invece di un'etichetta indovinata.
-      [/fish|pesce|tuna|tonno|salmon|salmone|seafood|gambero|shrimp|calamar|polpo|octopus|cozz|mussel/, 'Prodotti della pesca'],
+      [/dessert|dolc|biscott|cake|pasticceria|cioccolat|chocolate|nutella|jam|marmalade|marmellat|honey|miele|gelato|ice.?cream|sorbet|wafer|cracker/, 'Snack e dolciumi'],
+      [/beer|birra|wine|vino|alcohol|alcolic|liquor|spirit/, 'Bevande'],
+      // Succhi, bibite, acqua, caffè e tè restano volutamente su "Altro"
+      // (il default) invece di un'etichetta indovinata.
+      [/fish|pesce|tuna|tonno|salmon|salmone|seafood|gambero|shrimp|calamar|polpo|octopus|cozz|mussel/, 'Altro'],
       [/egg|uov/, 'Uova'],
-      [/cheese|formagg|latticin|mozzarella|ricotta|parmigian|grana/, 'Formaggi e latticini'],
-      [/milk|latte|yogurt|yoghurt|kefir/, 'Latte e yogurt'],
-      [/meat|carne|beef|manzo|pork|maiale|chicken|pollo|tacchino|turkey|salame|salumi|prosciutto|wurstel|sausage|bacon|pancetta|coniglio|rabbit/, 'Carni trasformate e conservate'],
+      [/cheese|formagg|latticin|mozzarella|ricotta|parmigian|grana/, 'Latticini e pronti'],
+      [/milk|latte|yogurt|yoghurt|kefir/, 'Latticini e pronti'],
+      [/meat|carne|beef|manzo|pork|maiale|chicken|pollo|tacchino|turkey|salame|salumi|prosciutto|wurstel|sausage|bacon|pancetta|coniglio|rabbit/, 'Salumi'],
       [/legum|bean|fagiol|lentil|lenticchi|cecio|ceci|chickpea|piselli|pea\b|hummus/, 'Legumi'],
-      [/almond|mandorl|walnut|hazelnut|nocciol|pistacchio|pistachio|cashew|anacard|\bnut\b|\bnuts\b|\bnoc\b|seed|seme|semi\b/, 'Frutta secca a guscio e semi oleaginosi'],
-      [/\boil\b|\boli[ov]\b|olive oil|olio|grass|butter|burro|margarina|margarine/, 'Oli e grassi'],
+      [/almond|mandorl|walnut|hazelnut|nocciol|pistacchio|pistachio|cashew|anacard|\bnut\b|\bnuts\b|\bnoc\b|seed|seme|semi\b/, 'Snack e dolciumi'],
+      [/\boil\b|\boli[ov]\b|olive oil|olio|grass|butter|burro|margarina|margarine/, 'Oli, aceti e grassi'],
       [/fruit|frutt|mela|apple|banana|arancia|orange|pera\b|pear\b|uva\b|grape/, 'Frutta'],
-      [/vegetable|verdur|ortagg|pomodoro|tomato|zucchin|carota|carrot|insalata|lettuce|spinaci|spinach/, 'Verdure e ortaggi'],
-      [/cereal|pasta|rice|riso|bread|pane|flour|farina|couscous|orzo|farro|quinoa/, 'Cereali e derivati'],
-      [/fast-food|fastfood|burger|pizza|kebab/, 'Fast-food a base di carne'],
+      [/vegetable|verdur|ortagg|pomodoro|tomato|zucchin|carota|carrot|insalata|lettuce|spinaci|spinach/, 'Verdura'],
+      [/cereal|pasta|rice|riso|bread|pane|flour|farina|couscous|orzo|farro|quinoa/, 'Pasta, riso e cereali'],
+      [/fast-food|fastfood|burger|pizza|kebab/, 'Altro'],
     ];
     for (const [re, categoria] of regole) {
       if (re.test(testo)) return categoria;
     }
-    return 'Prodotti vari';
+    return 'Altro';
   }
 
   /**
@@ -138,7 +137,7 @@ const OffIntegration = (() => {
 /**
  * Collega un <input> di testo alla ricerca Open Food Facts con un menu a
  * tendina di risultati (nome, marca, miniatura), riusando lo stesso stile
- * dell'autocomplete CREA già presente nel sito. Debounce di 350ms per non
+ * dell'autocompletamento del sito. Debounce di 350ms per non
  * interrogare l'API a ogni singolo tasto premuto.
  *
  * @param {HTMLInputElement} inputEl
@@ -147,12 +146,12 @@ const OffIntegration = (() => {
  */
 function attachOffAutocomplete(inputEl, onSelect, onError) {
   const contenitore = document.createElement('div');
-  contenitore.className = 'crea-autocomplete-wrapper';
+  contenitore.className = 'ricerca-ac-wrapper';
   inputEl.parentNode.insertBefore(contenitore, inputEl);
   contenitore.appendChild(inputEl);
 
   const dropdown = document.createElement('ul');
-  dropdown.className = 'crea-autocomplete-dropdown';
+  dropdown.className = 'ricerca-ac-dropdown';
   dropdown.hidden = true;
   contenitore.appendChild(dropdown);
 
@@ -169,13 +168,13 @@ function attachOffAutocomplete(inputEl, onSelect, onError) {
     if (!risultati.length) { chiudi(); return; }
     for (const prodotto of risultati) {
       const voce = document.createElement('li');
-      voce.className = 'crea-autocomplete-item';
+      voce.className = 'ricerca-ac-item';
       const miniatura = prodotto.immagine
         ? `<img src="${prodotto.immagine}" alt="" style="width:28px;height:28px;object-fit:contain;border-radius:4px;margin-right:8px;">`
         : '';
       voce.innerHTML = `
-        <span style="display:flex;align-items:center;">${miniatura}<span class="crea-autocomplete-nome">${prodotto.nome}</span></span>
-        <span class="crea-autocomplete-dettagli">${prodotto.marca || ''}</span>
+        <span style="display:flex;align-items:center;">${miniatura}<span class="ricerca-ac-nome">${prodotto.nome}</span></span>
+        <span class="ricerca-ac-dettagli">${prodotto.marca || ''}</span>
       `;
       voce.addEventListener('mousedown', (e) => {
         e.preventDefault();

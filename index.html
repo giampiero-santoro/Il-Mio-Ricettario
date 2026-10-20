@@ -85,9 +85,6 @@
     <button class="view-nav-btn" id="nav-dispensa-btn" title="Dispensa" aria-label="Dispensa"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-box"/></svg></span><span class="nav-label">Dispensa</span></button>
     <button class="view-nav-btn" id="nav-stats-btn" title="Statistiche" aria-label="Statistiche"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg></span><span class="nav-label">Statistiche</span></button>
     <button class="view-nav-btn" id="nav-shopping-btn" title="Lista della spesa" aria-label="Lista della spesa"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg></span><span class="nav-label">Lista della spesa</span></button>
-    <div class="nav-group-label">Banche dati CREA</div>
-    <button class="view-nav-btn" id="nav-crea-alimenti-btn" title="Valori alimenti CREA" aria-label="Valori alimenti CREA"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-leaf"/></svg></span><span class="nav-label">Valori alimenti CREA</span></button>
-    <button class="view-nav-btn" id="nav-crea-menu-btn" title="Ricette CREA" aria-label="Ricette CREA"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-file"/></svg></span><span class="nav-label">Ricette CREA</span></button>
     <div class="nav-group-label">Gestione</div>
     <button class="view-nav-btn" id="nav-import-btn" title="Importa ricette" aria-label="Importa ricette"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg></span><span class="nav-label">Importa ricette</span></button>
     <button class="view-nav-btn" id="nav-backup-btn" title="Backup ed esportazione" aria-label="Backup ed esportazione"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg></span><span class="nav-label">Backup ed esportazione</span></button>
@@ -196,7 +193,6 @@
         <div class="menu-info menu-section">Importa ricette</div>
           <button id="paste-import-btn">📋 Da testo</button>
           <button id="import-recipe-file-btn">📄 Da file (.json)</button>
-          <button id="crea-ricette-open-btn">🇮🇹 Da ricette CREA</button>
           <input type="file" id="import-recipe-file-input" accept=".json,application/json" style="display:none;">
         <div class="menu-divider"></div>
         <div class="menu-info menu-section">Backup e dati</div>
@@ -436,65 +432,6 @@
 
   </div>
 
-  <!-- ============ CREA ALIMENTI (consultazione banca dati) ============ -->
-  <div id="crea-alimenti-view" style="display:none;">
-
-    <div class="page-head">
-      <div>
-        <h2>Valori alimenti CREA</h2>
-        <p>La banca dati ufficiale italiana dei valori nutrizionali.</p>
-      </div>
-    </div>
-
-    <div class="toolbar">
-      <div class="toolbar-group" style="flex:1;">
-        <label class="search-field" for="crea-alimenti-search" style="flex:1 1 280px;max-width:480px;width:auto;">
-          <svg class="ico ico-sm" aria-hidden="true"><use href="#i-search"/></svg>
-          <input type="text" id="crea-alimenti-search" placeholder="Cerca un alimento (es. farro, parmigiano, pomodoro)…" aria-label="Cerca un alimento">
-        </label>
-        <select id="crea-alimenti-category-filter" aria-label="Categoria">
-          <option value="">Tutte le categorie</option>
-        </select>
-      </div>
-    </div>
-
-    <div style="font-size:var(--fs-sm);color:var(--text-2);margin:0 0 12px;" id="crea-alimenti-hint">
-      900 alimenti della banca dati ufficiale CREA. Digita per cercare o scegli una categoria per iniziare a sfogliare.
-    </div>
-
-    <div id="crea-alimenti-list"></div>
-
-  </div>
-
-  <!-- ============ CREA MENÙ (ricette ufficiali CREA) ============ -->
-  <div id="crea-menu-view" style="display:none;">
-
-    <div class="page-head">
-      <div>
-        <h2>Ricette CREA</h2>
-        <p>Le ricette ufficiali del Centro di ricerca Alimenti e Nutrizione.</p>
-      </div>
-    </div>
-
-    <div class="toolbar">
-      <div class="toolbar-group" style="flex:1;">
-        <label class="search-field" for="crea-menu-search" style="flex:1 1 280px;max-width:480px;width:auto;">
-          <svg class="ico ico-sm" aria-hidden="true"><use href="#i-search"/></svg>
-          <input type="text" id="crea-menu-search" placeholder="Cerca una ricetta CREA…" aria-label="Cerca una ricetta CREA">
-        </label>
-        <select id="crea-menu-category-filter" aria-label="Categoria">
-          <option value="">Tutte le categorie</option>
-          <option>Primi</option><option>Secondi</option><option>Zuppe & Vellutate</option>
-          <option>Impasti & Pane</option><option>Salse & Sughi</option><option>Dolci</option>
-          <option>Infusi & Tisane</option><option>Altro</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="crea-menu-list"></div>
-
-  </div>
-
   <!-- ============ COME FUNZIONA (pagina introduttiva) ============ -->
   <div id="info-view" style="display:none;">
 
@@ -519,21 +456,7 @@
         <li><b>📖 Ricettario</b> — tutte le tue ricette, con ricerca, filtri e "Cosa posso cucinare?" in base a quello che hai in Dispensa</li>
         <li><b>📅 Pianificazione</b> — cosa cucinare giorno per giorno, pasto per pasto</li>
         <li><b>🥫 Dispensa</b> — i prodotti che hai in casa, con quantità, scadenze e valori nutrizionali</li>
-        <li><b>🌾 Valori Alimenti dal sito CREA</b> e <b>🇮🇹 Ricette dal sito CREA</b> — la banca dati ufficiale italiana, spiegata qui sotto</li>
       </ul>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-icon">🌾</span>
-        <div>
-          <h3>Cos'è il CREA</h3>
-          <div class="panel-sub">La banca dati ufficiale italiana dei valori nutrizionali</div>
-        </div>
-      </div>
-      <p>Il <b>CREA</b> (Consiglio per la ricerca in agricoltura e l'analisi dell'economia agraria) è un ente pubblico di ricerca italiano. Il suo Centro di ricerca Alimenti e Nutrizione cura da decenni le <b>Tabelle di composizione degli alimenti</b>, il riferimento ufficiale in Italia per sapere quante calorie, proteine, grassi, carboidrati e altri nutrienti contiene un alimento ogni 100 grammi.</p>
-      <p>In questo sito la banca dati CREA alimenta tre cose: la ricerca rapida "🔎 Cerca su CREA" quando aggiungi un ingrediente o un prodotto in Dispensa, la scheda nutrizionale completa (oltre 120 valori per alimento, non solo i principali), e le 56 ricette ufficiali CREA importabili così come sono nella sezione "🇮🇹 Ricette dal sito CREA". Non è un servizio in tempo reale: i dati sono stati scaricati una volta e inclusi nel sito, così funzionano anche offline.</p>
-      <p style="margin-bottom:0;">Fonte: <a href="https://www.alimentinutrizione.it" rel="noopener">alimentinutrizione.it</a> — il portale ufficiale del CREA dedicato all'alimentazione.</p>
     </div>
 
     <div class="panel">
@@ -544,7 +467,7 @@
           <div class="panel-sub">Usato per la scansione del codice a barre in Dispensa</div>
         </div>
       </div>
-      <p><b>Open Food Facts</b> è una banca dati collaborativa e indipendente di prodotti alimentari in vendita nei supermercati di tutto il mondo, costruita e aggiornata da volontari — un po' come Wikipedia, ma per le etichette dei prodotti. Non è un ente ufficiale (a differenza del CREA): le informazioni arrivano da chi fotografa e carica le confezioni, quindi possono essere incomplete, mancanti per un prodotto specifico o occasionalmente imprecise.</p>
+      <p><b>Open Food Facts</b> è una banca dati collaborativa e indipendente di prodotti alimentari in vendita nei supermercati di tutto il mondo, costruita e aggiornata da volontari — un po' come Wikipedia, ma per le etichette dei prodotti. Non è un ente ufficiale: le informazioni arrivano da chi fotografa e carica le confezioni, quindi possono essere incomplete, mancanti per un prodotto specifico o occasionalmente imprecise.</p>
       <p>Quando aggiungi un nuovo prodotto in Dispensa, puoi scansionarne il codice a barre (o cercarlo per nome): se il prodotto è presente nel database, nome, marca, categoria e valori nutrizionali vengono compilati automaticamente, con l'eventuale Nutri-Score. Vale sempre la pena controllare che i dati trovati siano corretti e completarli a mano dove manca qualcosa.</p>
       <p style="margin-bottom:0;">Fonte: <a href="https://world.openfoodfacts.org" rel="noopener">world.openfoodfacts.org</a>.</p>
     </div>
@@ -557,14 +480,12 @@
           <div class="panel-sub">Da dove arrivano i dati e cosa esce dal tuo dispositivo</div>
         </div>
       </div>
-      <p><b>Privacy.</b> Ricette, Dispensa, piani, foto e impostazioni restano sul tuo dispositivo: non c'è nessun account, nessuna statistica di utilizzo e nessun cookie di tracciamento. Fuori dal dispositivo escono solo queste richieste, e solo quando le usi: la ricerca o la scansione di un prodotto (Open Food Facts riceve il codice a barre o il nome cercato) e il meteo di «Oggi» (Open-Meteo riceve il nome della città o le coordinate che scegli). Come per ogni sito web, il server che ospita l'app (GitHub Pages) vede l'indirizzo IP di chi la apre. Caratteri e lettore di codici a barre sono inclusi nell'app e non vengono scaricati da altri siti.</p>
-      <p><b>Valori nutrizionali e allergeni.</b> Sono indicativi: derivano da banche dati generali o dai dati che inserisci tu e possono non corrispondere al prodotto che hai in casa. Controlla sempre l'etichetta, soprattutto in caso di allergie o intolleranze. Non sostituiscono il parere di un medico o di un dietista.</p>
+      <p><b>Privacy.</b> Ricette, Dispensa, piani, foto e impostazioni restano sul tuo dispositivo: non c'è nessun account, nessuna statistica di utilizzo e nessun cookie di tracciamento. Fuori dal dispositivo esce solo una richiesta, e solo quando la usi: la ricerca o la scansione di un prodotto (Open Food Facts riceve il codice a barre o il nome cercato). Come per ogni sito web, il server che ospita l'app (GitHub Pages) vede l'indirizzo IP di chi la apre. Caratteri e lettore di codici a barre sono inclusi nell'app e non vengono scaricati da altri siti.</p>
+      <p><b>Valori nutrizionali e allergeni.</b> Sono indicativi: derivano da Open Food Facts o dai dati che inserisci tu e possono non corrispondere al prodotto che hai in casa. Controlla sempre l'etichetta, soprattutto in caso di allergie o intolleranze. Non sostituiscono il parere di un medico o di un dietista.</p>
       <p><b>Le tue ricette.</b> Le ricette che aggiungi o importi restano tue e private. Se le copi da libri, siti o altre persone, rispetta i diritti dei rispettivi autori e non pubblicarle senza permesso.</p>
       <p><b>Fonti e licenze.</b></p>
       <ul style="margin:0 0 8px;padding-left:20px;line-height:1.55;">
-        <li><b>CREA</b> — Tabelle di composizione degli alimenti e ricette: © CREA, fonte <a href="https://www.alimentinutrizione.it" rel="noopener">alimentinutrizione.it</a>. I diritti restano al CREA.</li>
         <li><b>Open Food Facts</b> — dati sotto licenza ODbL, immagini sotto CC BY-SA, © i collaboratori di Open Food Facts, <a href="https://world.openfoodfacts.org" rel="noopener">world.openfoodfacts.org</a>.</li>
-        <li><b>Open-Meteo</b> — dati meteo sotto licenza CC BY 4.0, <a href="https://open-meteo.com" rel="noopener">open-meteo.com</a>.</li>
         <li><b>DM Sans</b> e <b>Lora</b> — caratteri sotto SIL Open Font License 1.1 (testi in <code>fonts/</code>).</li>
         <li><b>html5-qrcode</b> 2.3.8 — licenza Apache 2.0 (testo in <code>js/vendor/</code>).</li>
         <li>Il codice di questa app è distribuito con licenza MIT (file LICENSE).</li>
@@ -707,7 +628,7 @@
         <div class="mini">Sale (g)<input type="number" id="f-nutri-salt" min="0" step="0.01"></div>
       </div>
       <div style="font-size:11px;color:var(--ink-soft);font-style:italic;margin-top:6px;">
-        Facoltativi: inseriscili se li conosci già (es. da un'etichetta o un'altra fonte), riferiti a una singola porzione. Non vengono calcolati automaticamente dagli ingredienti: restano un'informazione a parte da quella ufficiale CREA, quando presente.
+        Facoltativi: inseriscili se li conosci già (es. da un'etichetta o un'altra fonte), riferiti a una singola porzione. Non vengono calcolati automaticamente dagli ingredienti: restano un'informazione a parte, che inserisci tu.
       </div>
     </div>
       </div>
@@ -795,10 +716,6 @@
     <div class="field">
       <div class="ingredients-actions" style="justify-content:flex-start;">
         <button type="button" class="btn-ghost btn-small" id="dispensa-nutrition-toggle-btn">🍎 Valori nutrizionali</button>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
-        <input type="text" id="d-crea-search" placeholder="🔎 Cerca su CREA (es. mele, yogurt bianco…)" autocomplete="off" style="flex:1;">
-        <button type="button" class="crea-scheda-btn" id="d-crea-scheda-btn" title="Scheda nutrizionale completa CREA">ℹ️</button>
       </div>
       <div class="ingredient-nutrition" id="dispensa-nutrition-fields" style="display:none;margin-top:8px;">
         <div class="mini">Kcal<input type="number" id="d-kcal" min="0"></div>
@@ -912,35 +829,6 @@
   </div>
 </div>
 
-<!-- ============ SCHEDA NUTRIZIONALE CREA COMPLETA ============ -->
-<div class="overlay" id="crea-scheda-overlay">
-  <div class="modal">
-    <button class="close-x" id="crea-scheda-close" aria-label="Chiudi">×</button>
-    <div id="crea-scheda-content">Caricamento…</div>
-  </div>
-</div>
-
-<!-- ============ IMPORTA RICETTE UFFICIALI CREA ============ -->
-<div class="overlay" id="crea-ricette-overlay">
-  <div class="modal">
-    <button class="close-x" id="crea-ricette-close" aria-label="Chiudi">×</button>
-    <h2>Importa ricette CREA</h2>
-    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">
-      56 ricette ufficiali del Centro di ricerca Alimenti e Nutrizione (CREA), pronte da aggiungere
-      così come sono. Categoria e porzioni sono assegnate in automatico: puoi correggerle dopo l'importazione,
-      come per qualsiasi altra ricetta.
-    </div>
-    <div class="field">
-      <input type="text" id="crea-ricette-search" placeholder="Cerca per nome…">
-    </div>
-    <div class="recipe-picker-list" id="crea-ricette-list"></div>
-    <div class="modal-actions">
-      <span id="crea-ricette-selezionate-count" style="font-size:13px;color:var(--ink-soft);align-self:center;">Nessuna selezionata</span>
-      <button type="button" class="btn-gold" id="crea-ricette-import-btn">+ Importa selezionate</button>
-    </div>
-  </div>
-</div>
-
 <!-- ============ ESPORTA RICETTARIO IN PDF ============ -->
 <div class="overlay" id="export-pdf-overlay">
   <div class="modal">
@@ -1047,14 +935,6 @@
       <input type="text" id="ricettario-add-name" placeholder="Nome del nuovo ricettario, es. Ricette della nonna" style="flex:1;min-width:180px;">
       <button type="button" class="btn-gold btn-small" id="ricettario-add-confirm-btn">+ Aggiungi</button>
     </div>
-  </div>
-</div>
-
-<!-- ============ DETTAGLIO RICETTA CREA (vista "CREA Menù") ============ -->
-<div class="overlay" id="crea-menu-dettaglio-overlay">
-  <div class="modal">
-    <button class="close-x" id="crea-menu-dettaglio-close" aria-label="Chiudi">×</button>
-    <div id="crea-menu-dettaglio-content">Caricamento…</div>
   </div>
 </div>
 
@@ -1484,9 +1364,6 @@
   <option value="foglia"></option>
 </datalist>
 
-<!-- Banca dati nutrizionale CREA: deve caricarsi PRIMA dello script principale,
-     perché quest'ultimo usa l'oggetto CreaDB e la funzione attachCreaAutocomplete. -->
-<script src="js/crea-nutrition.js"></script>
 <script src="js/off-integration.js"></script>
 <script src="js/app.js"></script>
 </body>

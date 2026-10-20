@@ -13,35 +13,33 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 7. [Impostazioni robot per i passaggi (facoltative)](#impostazioni-robot-per-i-passaggi-facoltative)
 8. [Impostazioni pentola a pressione (facoltative)](#impostazioni-pentola-a-pressione-facoltative)
 9. [Valori nutrizionali della ricetta](#valori-nutrizionali-della-ricetta)
-10. [🌾 Valori Alimenti dal sito CREA](#valori-alimenti-dal-sito-crea)
-11. [🇮🇹 Ricette dal sito CREA](#ricette-dal-sito-crea)
-12. [Tag dietetici e allergeni](#tag-dietetici-e-allergeni)
-13. [Visualizzare e scalare le porzioni](#visualizzare-e-scalare-le-porzioni)
-14. [Ricerca, filtri ed esclusione ingredienti](#ricerca-filtri-ed-esclusione-ingredienti)
-15. [Cosa posso cucinare?](#cosa-posso-cucinare)
-16. [Preferite, cronologia e contatore preparazioni](#preferite-cronologia-e-contatore-preparazioni)
-17. [Modalità cucina guidata e timer](#modalità-cucina-guidata-e-timer)
-18. [Pianificazione settimanale](#pianificazione-settimanale)
-19. [Lista della spesa](#lista-della-spesa)
-20. [Backup: esportazione e importazione](#backup-esportazione-e-importazione)
-21. [Esportazione PDF](#esportazione-pdf)
-22. [Esportare e importare CSV](#esportare-e-importare-csv)
-23. [Modificare, eliminare e archiviare](#modificare-eliminare-e-archiviare)
-24. [Dispensa](#dispensa)
-25. [Unità di misura](#unità-di-misura)
-26. [Tema grafico](#tema-grafico)
-27. [Salvataggio dei dati](#salvataggio-dei-dati)
-28. [Salvataggio su un file a tua scelta (facoltativo)](#salvataggio-su-un-file-a-tua-scelta-facoltativo)
-29. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
-30. [Domande frequenti](#domande-frequenti)
+10. [Tag dietetici e allergeni](#tag-dietetici-e-allergeni)
+11. [Visualizzare e scalare le porzioni](#visualizzare-e-scalare-le-porzioni)
+12. [Ricerca, filtri ed esclusione ingredienti](#ricerca-filtri-ed-esclusione-ingredienti)
+13. [Cosa posso cucinare?](#cosa-posso-cucinare)
+14. [Preferite, cronologia e contatore preparazioni](#preferite-cronologia-e-contatore-preparazioni)
+15. [Modalità cucina guidata e timer](#modalità-cucina-guidata-e-timer)
+16. [Pianificazione settimanale](#pianificazione-settimanale)
+17. [Lista della spesa](#lista-della-spesa)
+18. [Backup: esportazione e importazione](#backup-esportazione-e-importazione)
+19. [Esportazione PDF](#esportazione-pdf)
+20. [Esportare e importare CSV](#esportare-e-importare-csv)
+21. [Modificare, eliminare e archiviare](#modificare-eliminare-e-archiviare)
+22. [Dispensa](#dispensa)
+23. [Unità di misura](#unità-di-misura)
+24. [Tema grafico](#tema-grafico)
+25. [Salvataggio dei dati](#salvataggio-dei-dati)
+26. [Salvataggio su un file a tua scelta (facoltativo)](#salvataggio-su-un-file-a-tua-scelta-facoltativo)
+27. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
+28. [Domande frequenti](#domande-frequenti)
 
 ## 📖 Guida illustrata
 
-La **Guida illustrata** (`guida.html`) spiega tutte le funzioni con screenshot. Si apre dal pulsante **"Guida"** in alto a destra (su telefono, l'icona **?** nella barra in alto), dalla voce **"Guida illustrata"** del menu laterale o dal riquadro in cima a **Oggi**. Ha un pulsante "← Torna al ricettario" e si può stampare o salvare in PDF dal browser.
+La **Guida illustrata** (`guida.html`) spiega tutte le funzioni con screenshot. Si apre dal pulsante **"Guida"** in alto a destra (su telefono, l'icona **?** nella barra in alto), dalla voce **"Guida illustrata"** del menu laterale. Ha un pulsante "← Torna al ricettario" e si può stampare o salvare in PDF dal browser.
 
 ## ℹ️ Come funziona
 
-Il pulsante **"ℹ️ Come funziona"** nella barra laterale apre una pagina introduttiva pensata per chi apre il sito per la prima volta (o vuole un promemoria): spiega in breve come sono organizzate le varie viste, cos'è il **CREA** e da dove viene la banca dati nutrizionale ufficiale usata nel sito, e cos'è **Open Food Facts**, la banca dati collaborativa usata per la scansione del codice a barre in Dispensa. È solo testo informativo, non richiede alcuna configurazione.
+Il pulsante **"ℹ️ Come funziona"** nella barra laterale apre una pagina introduttiva pensata per chi apre il sito per la prima volta (o vuole un promemoria): spiega in breve come sono organizzate le varie viste, cos'è **Open Food Facts**, la banca dati collaborativa usata per la scansione del codice a barre in Dispensa. È solo testo informativo, non richiede alcuna configurazione.
 
 ## Avvio
 
@@ -127,30 +125,11 @@ Le ricette mostrano automaticamente un'etichetta del metodo di cottura, nella li
 
 Il ricettario **non calcola** i valori nutrizionali di una ricetta sommando quelli dei singoli ingredienti crudi: la cottura altera acqua, grassi e altri valori in modo imprevedibile (la pasta assorbe acqua, un fritto assorbe olio...), quindi una somma "a crudo" darebbe un numero preciso ma sbagliato.
 
-Ci sono invece due modi in cui i valori nutrizionali possono comparire nella scheda di una ricetta, anche insieme:
+I valori nutrizionali compaiono nella scheda di una ricetta solo se li inserisci tu:
 
-- **Inseriti da te**: nel modulo di modifica, premi **"🍎 Valori nutrizionali (per porzione)"** per scrivere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale — facoltativi, utili quando li conosci già da un'altra fonte (un'etichetta, un sito). Sono sempre riferiti a **una singola porzione**
-- **Ufficiali CREA**: solo per le ricette importate da **"🇮🇹 Ricette dal sito CREA"** (vedi la sezione dedicata più avanti in questa guida) — quelli misurati ufficialmente dal CREA sul piatto finito, per 100 g, mostrati così come sono e chiaramente attribuiti alla fonte
+- Nel modulo di modifica, premi **"🍎 Valori nutrizionali (per porzione)"** per scrivere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale — facoltativi, utili quando li conosci già da un'altra fonte (un'etichetta, un sito). Sono sempre riferiti a **una singola porzione**
 
 Una ricetta scritta a mano senza questi valori semplicemente non mostra quella sezione — non viene inventato nulla.
-
-## 🌾 Valori Alimenti dal sito CREA
-
-Una vista dedicata (nella barra laterale) per consultare liberamente i 900 alimenti della banca dati ufficiale CREA — indipendentemente da qualunque ricetta.
-
-- **Cerca per nome** (es. "farro", "parmigiano", "pomodoro") o **filtra per una delle 19 categorie ufficiali CREA** (Cereali e derivati, Formaggi e latticini, Frutta...); l'elenco resta vuoto finché non fai una delle due cose, per non mostrarti 900 righe tutte insieme
-- I risultati si fermano ai primi 200 per volta: se ce ne sono altri, un avviso in fondo te lo segnala — affina la ricerca per restringerli
-- Clicca su un alimento per aprirne la **scheda completa**: tutte le proprietà misurate da CREA per quell'alimento (macronutrienti, zuccheri singoli, minerali, vitamine, acidi grassi, aminoacidi, altri composti), non solo Kcal/Proteine/Grassi/Carboidrati/Fibre/Zuccheri/Sale — la stessa scheda che si apre premendo "ℹ️" quando colleghi un ingrediente o un prodotto Dispensa a CREA
-
-## 🇮🇹 Ricette dal sito CREA
-
-Una vista dedicata per sfogliare, una per una, le 56 ricette ufficiali del Centro di ricerca Alimenti e Nutrizione (Pizza Napoletana STG, Ragù alla bolognese, Falafel, Hummus, Cannoli siciliani...).
-
-- **Cerca per nome** o **filtra per categoria** (quella dell'app: Primi, Secondi, Dolci...) — assegnata in automatico da un'euristica sul nome, la stessa usata quando importi dal menu "Importa ricetta"
-- Clicca su una ricetta per aprirne il **dettaglio**: ingredienti con le quantità originali della fonte, preparazione per intero, e i valori nutrizionali ufficiali CREA del piatto finito (per 100 g)
-- Da lì, **"+ Importa nel Ricettario"** la aggiunge alla tua raccolta con un clic — esattamente come dal picker multiplo di "📋 Importa ricetta ▾ → 🇮🇹 Da ricette CREA", inclusa la stessa protezione contro i doppioni (se una ricetta con lo stesso nome è già tua, l'importazione viene saltata)
-
-Sono entrambe vetrine di **sola consultazione** della fonte ufficiale, separate dal tuo Ricettario e dalla tua Dispensa: per personalizzare una ricetta o un alimento (note, foto, modifiche) importalo prima nel Ricettario o in Dispensa, e modificalo lì.
 
 ## Tag dietetici e allergeni
 
@@ -324,7 +303,7 @@ La Dispensa è una sezione separata dal ricettario, per tenere traccia di quello
 1. Premi **"+ Nuovo prodotto"**
 2. Scrivi il nome e scegli una categoria tra quelle disponibili: dai freschi (Frutta, Verdura, Uova, Salumi, Latticini e pronti) ai Surgelati, fino alla dispensa vera e propria (Pasta/riso e cereali, Legumi, Farine/zucchero e lieviti, Conserve e scatolame, Spezie e condimenti, Oli/aceti e grassi, Bevande, Snack e dolciumi), oppure Altro per tutto il resto
 3. Quantità, unità, **"Avvisa sotto"** (la soglia minima), data di scadenza e note sono tutte facoltative. Se indichi una soglia, il prodotto viene segnalato come "In esaurimento" quando la quantità la raggiunge o scende sotto di essa
-4. Se vuoi, premi **"🍎 Valori nutrizionali"** per aggiungere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale, riferiti a **100 g di prodotto** (non alla quantità che hai in dispensa in quel momento) — coerente con l'etichetta nutrizionale che trovi sulla confezione. Puoi scriverli a mano, usare **"🔎 Cerca su CREA"** per un alimento generico dalla banca dati ufficiale CREA (con scheda **"ℹ️"** di approfondimento), oppure — per un prodotto confezionato specifico — usare **"📷 Scansiona codice a barre"** o **"🔎 Cerca su Open Food Facts"**: nome, categoria e valori nutrizionali si compilano da soli dalla banca dati collaborativa Open Food Facts, insieme a marca, immagine e Nutri-Score quando disponibili. Se il prodotto non si trova, resta comunque possibile compilare tutto a mano
+4. Se vuoi, premi **"🍎 Valori nutrizionali"** per aggiungere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale, riferiti a **100 g di prodotto** (non alla quantità che hai in dispensa in quel momento) — coerente con l'etichetta nutrizionale che trovi sulla confezione. Puoi scriverli a mano, per un prodotto confezionato specifico usare **"📷 Scansiona codice a barre"** o **"🔎 Cerca su Open Food Facts"**: nome, categoria e valori nutrizionali si compilano da soli dalla banca dati collaborativa Open Food Facts, insieme a marca, immagine e Nutri-Score quando disponibili. Se il prodotto non si trova, resta comunque possibile compilare tutto a mano
 5. Premi **"Salva prodotto"**
 
 L'elenco è una tabella ordinata (ingrediente, quantità, unità, categoria) con le icone ✏️ per modificare e 🗑 per eliminare su ogni riga; un pallino colorato indica lo stato (verde normale, arancione in esaurimento, rosso scaduto). I prodotti si ordinano da soli mettendo prima quelli in esaurimento e poi quelli con la scadenza più vicina: le scadenze già passate sono evidenziate in rosso, quelle entro 3 giorni in arancione. Il filtro **"⚠ In esaurimento"** mostra solo le quantità che hanno raggiunto la soglia impostata. Se hai inserito i valori nutrizionali, compaiono tutti (Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri, Sale) nella card, sempre per 100 g di prodotto. Cerca per nome o filtra per categoria con i controlli in alto. Clicca su un prodotto per modificarlo o eliminarlo.
@@ -352,7 +331,7 @@ Questo riconoscimento resta comunque limitato alle unità elencate sopra (più q
 
 ## Tema grafico
 
-Il sito ha un'unica impostazione grafica, "Cucina Naturale Contemporanea": sfondo avorio caldo, verde salvia come colore dell'app, terracotta per piccoli dettagli, font DM Sans per l'interfaccia e Lora per i titoli. La barra laterale raggruppa le sezioni (Organizza, Banche dati CREA, Gestione); su telefono diventa una barra a schede in basso (Oggi, Ricette, Piano, Dispensa, Spesa) più il menu ☰. C'è un interruttore un interruttore **"🌙 Tema scuro"** in fondo alla barra laterale (nel cassetto ☰ su telefono) per passare dallo sfondo chiaro a uno scuro, mantenendo la stessa impostazione. La scelta si applica subito a tutto il sito e resta salvata per le prossime visite.
+Il sito ha un'unica impostazione grafica, "Cucina Naturale Contemporanea": sfondo avorio caldo, verde salvia come colore dell'app, terracotta per piccoli dettagli, font DM Sans per l'interfaccia e Lora per i titoli. La barra laterale raggruppa le sezioni (Organizza, Gestione); su telefono diventa una barra a schede in basso (Oggi, Ricette, Piano, Dispensa, Spesa) più il menu ☰. C'è un interruttore un interruttore **"🌙 Tema scuro"** in fondo alla barra laterale (nel cassetto ☰ su telefono) per passare dallo sfondo chiaro a uno scuro, mantenendo la stessa impostazione. La scelta si applica subito a tutto il sito e resta salvata per le prossime visite.
 
 ## Uso da tastiera
 
@@ -369,6 +348,9 @@ Tutto è salvato nel `localStorage` del browser che stai usando:
 
 ## La Dispensa si scala quando cucini
 Con **«Ho preparato questa oggi»** (o al «Fine ✓» della modalità cucina) l'app mostra cosa toglierebbe dalla Dispensa per le porzioni scelte. Scegli **Segna e scala dalla Dispensa**, **Solo segna come preparata** oppure **Annulla**. Dopo lo scalo hai 12 secondi per toccare «Annulla». Si scalano solo i prodotti riconosciuti con certezza e con unità compatibili; gli altri vengono elencati ma non modificati.
+
+## Aspetto e tema scuro
+L'app usa una palette verde acqua con riquadri menta e pesca. Dal menu laterale l'interruttore **Tema scuro** passa alla versione scura, con gli stessi colori su fondo blu-verde scuro.
 
 ## Note legali e crediti
 In **Come funziona**, in fondo (o dal link nel menu laterale), trovi privacy, avvertenze su nutrienti e allergeni, fonti e licenze dei dati usati.

@@ -85,10 +85,15 @@ async def run(page):
     # Guida illustrata: icona nella barra, scheda in "Oggi", pagina raggiungibile
     await page.click("#nav-today-btn")
     check(await page.locator("#topbar-guide-link[href='guida.html']").count() == 1, "Manca l'icona della guida nella barra")
-    check(await page.locator("#today-content a.guide-card[href='guida.html']").count() == 1, "Manca la scheda Guida in Oggi")
+    check(await page.locator("#today-content a.guide-card").count() == 0, "La scheda Guida non deve comparire in Oggi")
+    check(await page.locator("#nav-guide-link[href='guida.html']").count() == 1, "Manca il link alla guida nel menu laterale")
+    ordine = await page.evaluate("""()=>{const c=document.getElementById('today-content');const w=c.querySelector('.today-grid');const m=c.querySelector('.today-layout');return !!(w&&m&&(w.compareDocumentPosition(m)&Node.DOCUMENT_POSITION_FOLLOWING));}""")
+    check(await page.locator('#today-content .quick-grid').count() == 0, 'Accesso rapido non deve comparire in Oggi')
+    check(await page.locator('#today-quick-pantry-btn').count() == 1, 'Manca il riquadro Le mie ricette in Oggi')
+    check(ordine, "Ricette, scadenze e spesa devono stare sopra I pasti di oggi")
     await page.goto(page.url.rsplit("/", 1)[0] + "/guida.html")
     n = await page.locator("section h2").count()
-    check(n >= 17, f"La guida ha {n} capitoli, attesi almeno 17")
+    check(n >= 16, f"La guida ha {n} capitoli, attesi almeno 16")
     imgs = await page.evaluate("document.images.length")
     check(imgs >= 30, f"Immagini nella guida: {imgs}")
 

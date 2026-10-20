@@ -15,8 +15,6 @@
   const SHOPPING_HIDDEN_KEY = 'mc_ricettario_spesa_rimosse_v1';
   const SHOPPING_QTY_KEY = 'mc_ricettario_spesa_quantita_v1';
   const SPESA_LISTA_KEY = 'mc_ricettario_spesa_lista_v1';
-  const WEATHER_LOCATION_KEY = 'mc_ricettario_meteo_localita_v1';
-  const WEATHER_CACHE_KEY = 'mc_ricettario_meteo_cache_v1';
   const RICETTARI_KEY = 'mc_ricettario_libri_v1';
   const RACCOLTE_KEY = 'mc_ricettario_raccolte_v1';
   // Il ricettario che esiste già di fabbrica: id stabile così tutte le ricette create prima
@@ -38,24 +36,6 @@
     'Spezie e condimenti': '🧂', 'Oli, aceti e grassi': '🫒', 'Bevande': '🥤',
     'Snack e dolciumi': '🍬', 'Altro': '🍽️'
   };
-  // Mappa (euristica) dalle 19 categorie del dataset CREA alle 15 categorie
-  // di Dispensa: solo un default suggerito, resta modificabile come qualsiasi
-  // altro campo del prodotto. Le categorie CREA senza un corrispondente
-  // sensato in Dispensa (Alimenti Etnici, Frattaglie, Prodotti della pesca,
-  // Fast-food a base di carne, Ricette Italiane) restano volutamente fuori
-  // da questa mappa: cadono su "Altro" invece di un abbinamento forzato.
-  const CREA_TO_PANTRY_CATEGORY = {
-    'Frutta': 'Frutta', 'Verdure e ortaggi': 'Verdura', 'Uova': 'Uova',
-    'Carni fresche': 'Salumi', 'Carni trasformate e conservate': 'Salumi',
-    'Formaggi e latticini': 'Latticini e pronti', 'Latte e yogurt': 'Latticini e pronti',
-    'Cereali e derivati': 'Pasta, riso e cereali',
-    'Legumi': 'Legumi', 'Frutta secca a guscio e semi oleaginosi': 'Snack e dolciumi',
-    'Oli e grassi': 'Oli, aceti e grassi', 'Dolci': 'Snack e dolciumi',
-    'Bevande alcoliche': 'Bevande', 'Prodotti vari': 'Altro',
-  };
-  function mappaCategoriaCreaDispensa(categoriaCrea) {
-    return CREA_TO_PANTRY_CATEGORY[categoriaCrea] || 'Altro';
-  }
   // Ordine di percorrenza "da supermercato" usato per raggruppare la lista della spesa per reparto
   // (stesse 15 categorie della Dispensa, così la lista spesa e la Dispensa restano coerenti).
   const REPARTO_ORDINE = [
@@ -1056,28 +1036,8 @@
     if(changed) saveWeek();
   }
 
-  function seedData(){
-    return [{
-      id: cryptoId(), name: 'Carbonara risottata', category: 'Primi', servings: 3, time: 15,
-      favorite:false, photo:'', lastMade:null, tags:[], allergens:['Glutine','Uova','Latte'], archived:false, freezable:false, timesMade:0, cookerType:'',
-      ingredients: [
-        {name:'Spaghetti', qty:300, unit:'g'}, {name:'Guanciale', qty:120, unit:'g'},
-        {name:'Uova (tuorli)', qty:3, unit:''}, {name:'Pecorino grattugiato', qty:60, unit:'g'},
-        {name:'Acqua', qty:600, unit:'g'}, {name:'Pepe nero', qty:1, unit:'pizzico'}
-      ],
-      steps: [
-        {text:'Rosolare il guanciale a cubetti.', vel:2, temp:100, time:5, mode:'Normale'},
-        {text:'Aggiungere pasta e acqua, cuocere mescolando dolcemente.', vel:1, temp:100, time:9, mode:'Reverse'},
-        {text:'Fuori dal fuoco, mantecare con tuorli e pecorino mescolati.', vel:1, temp:0, time:1, mode:'Reverse'}
-      ],
-      stepsManual: [
-        {text:'In una padella, rosola il guanciale a cubetti fino a renderlo croccante.'},
-        {text:'Lessa gli spaghetti in acqua salata, scolali al dente conservando l\'acqua di cottura.'},
-        {text:'Fuori dal fuoco, versa la pasta nella padella col guanciale e manteca velocemente con i tuorli e il pecorino già mescolati, aggiungendo poca acqua di cottura per legare.'}
-      ],
-      notes: 'Ricetta base — regola il sale con moderazione, il guanciale e il pecorino ne danno già molto.'
-    }];
-  }
+  // Nessuna ricetta di esempio inclusa: l'elenco parte vuoto e le ricette le aggiungi tu.
+  function seedData(){ return []; }
   function cryptoId(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
 
   function migrateRecipe(r){
@@ -2253,17 +2213,8 @@
   const ingredientsEditor = document.getElementById('ingredients-editor');
   const stepsEditor = document.getElementById('steps-editor');
 
-  // Carica la banca dati nutrizionale CREA una sola volta all'avvio (file statico
-  // in data/, ~200 KB). Se il fetch fallisce (es. file non ancora caricato sul
-  // repository) l'app resta comunque utilizzabile: la ricerca CREA sarà solo
-  // silenziosamente non disponibile finché il problema non viene risolto.
-  if (typeof CreaDB !== 'undefined') {
-    CreaDB.init('data/crea-alimenti.json', 'data/crea-meta.json')
-      .catch(err => console.error('Banca dati CREA non disponibile:', err));
-  }
-
   // Stima i grammi effettivi di un ingrediente dalla sua quantità+unità, per
-  // poter scalare correttamente i valori CREA (definiti per 100 g). Riconosce
+  // poter scalare correttamente i valori nutrizionali (definiti per 100 g). Riconosce
   // solo grammi e chilogrammi: per altre unità (ml, cucchiai, pezzi…) non è
   // possibile una conversione automatica affidabile.
   function stimaGrammiIngrediente(qty, unit) {
@@ -2275,134 +2226,9 @@
     return null;
   }
 
-  // ---------- Scheda nutrizionale CREA completa (tutte le ~129 proprietà) ----------
-  const creaSchedaOverlay = document.getElementById('crea-scheda-overlay');
-  const creaSchedaContent = document.getElementById('crea-scheda-content');
-  document.getElementById('crea-scheda-close').addEventListener('click', () => creaSchedaOverlay.classList.remove('active'));
-
-  function apriSchedaCrea(codice) {
-    creaSchedaOverlay.classList.add('active');
-    creaSchedaContent.innerHTML = 'Caricamento…';
-    if (typeof CreaDB === 'undefined') { creaSchedaContent.innerHTML = 'Banca dati CREA non disponibile.'; return; }
-    CreaDB.initCompleto().then(() => {
-      const record = CreaDB.getCompletoByCode(codice);
-      creaSchedaContent.innerHTML = record ? CreaDB.renderSchedaCompletaHTML(record) : 'Scheda non trovata per questo alimento.';
-    }).catch(err => {
-      creaSchedaContent.innerHTML = 'Impossibile caricare la scheda completa: verifica che data/crea-alimenti-completo.json e data/crea-nutrienti-schema.json siano stati caricati sul sito.';
-      console.error(err);
-    });
-  }
-
-  // ---------- Importa ricette ufficiali CREA ----------
-  const creaRicetteOverlay = document.getElementById('crea-ricette-overlay');
-  const creaRicetteList = document.getElementById('crea-ricette-list');
-  const creaRicetteSearch = document.getElementById('crea-ricette-search');
-  const creaRicetteImportBtn = document.getElementById('crea-ricette-import-btn');
-  const creaRicetteSelezionateCount = document.getElementById('crea-ricette-selezionate-count');
-  let creaRicetteSelezionate = new Set();
-
-  function renderCreaRicetteList(filtro) {
-    const q = normalize(filtro || '');
-    const elenco = CreaRicette.all().filter(r => !q || normalize(r.nome).includes(q));
-    creaRicetteList.innerHTML = elenco.length ? elenco.map(r => `
-      <label class="crea-ricetta-picker-item">
-        <input type="checkbox" class="crea-ricetta-check" value="${escapeAttr(r.id)}" ${creaRicetteSelezionate.has(r.id) ? 'checked' : ''}>
-        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.categoria_suggerita] || '#8A8F86'}"></span>
-        <span class="name">${escapeHtml(r.nome)}</span>
-        <span class="meta">${escapeHtml(r.categoria_suggerita)}</span>
-      </label>
-    `).join('') : '<div class="recipe-picker-empty">Nessuna ricetta trovata.</div>';
-
-    creaRicetteList.querySelectorAll('.crea-ricetta-check').forEach(cb => {
-      cb.addEventListener('change', () => {
-        if (cb.checked) creaRicetteSelezionate.add(cb.value); else creaRicetteSelezionate.delete(cb.value);
-        aggiornaContatoreCreaRicette();
-      });
-    });
-  }
-
-  function aggiornaContatoreCreaRicette() {
-    const n = creaRicetteSelezionate.size;
-    creaRicetteSelezionateCount.textContent = n === 0 ? 'Nessuna selezionata' : `${n} selezionata${n === 1 ? '' : 'e'}`;
-  }
-
-  document.getElementById('crea-ricette-open-btn').addEventListener('click', () => {
-    creaRicetteOverlay.classList.add('active');
-    creaRicetteList.innerHTML = 'Caricamento…';
-    if (typeof CreaRicette === 'undefined') { creaRicetteList.innerHTML = 'Ricette CREA non disponibili.'; return; }
-    CreaRicette.init().then(() => renderCreaRicetteList(creaRicetteSearch.value)).catch(err => {
-      creaRicetteList.innerHTML = 'Impossibile caricare le ricette CREA: verifica che data/crea-ricette.json sia stato caricato sul sito.';
-      console.error(err);
-    });
-  });
-  document.getElementById('crea-ricette-close').addEventListener('click', () => creaRicetteOverlay.classList.remove('active'));
-  creaRicetteSearch.addEventListener('input', () => renderCreaRicetteList(creaRicetteSearch.value));
-
-  // Condivisa tra il picker "Importa ricette CREA" e il dettaglio di una
-  // singola ricetta nella vista "CREA Menù": importa gli id passati,
-  // saltando quelli già presenti nel Ricettario con lo stesso nome.
-  function importaRicetteCreaPerId(ids){
-    let importate = 0, saltate = 0;
-    ids.forEach(id => {
-      const ricettaCrea = CreaRicette.getById(id);
-      if (!ricettaCrea) return;
-      const nomeNormalizzato = normalize(ricettaCrea.nome);
-      const giaEsistente = recipes.some(r => normalize(r.name) === nomeNormalizzato);
-      if (giaEsistente) { saltate++; return; }
-      recipes.push(CreaRicette.convertiInRicettaApp(ricettaCrea, cryptoId));
-      importate++;
-    });
-    saveRecipes(); renderList(); renderPlanningDays();
-    return { importate, saltate };
-  }
-
-  creaRicetteImportBtn.addEventListener('click', () => {
-    if (creaRicetteSelezionate.size === 0) { alert('Seleziona almeno una ricetta da importare.'); return; }
-    const { importate, saltate } = importaRicetteCreaPerId(Array.from(creaRicetteSelezionate));
-    creaRicetteSelezionate.clear();
-    aggiornaContatoreCreaRicette();
-    creaRicetteOverlay.classList.remove('active');
-    alert(`Importate ${importate} ricette.` + (saltate ? ` ${saltate} già presenti con lo stesso nome sono state saltate.` : ''));
-  });
-
-  // ---------- Ricerca CREA nel form "Nuovo prodotto" Dispensa ----------
-  // A differenza degli ingredienti di una ricetta, qui i valori nutrizionali
-  // sono un dato di riferimento del PRODOTTO (per 100 g), indipendente da
-  // quanto ne hai in dispensa in questo momento: niente più scaling sulla
-  // quantità, si prendono i valori CREA così come sono.
-  const dCreaSearchInput = document.getElementById('d-crea-search');
-  const dCreaSchedaBtn = document.getElementById('d-crea-scheda-btn');
-  if (typeof attachCreaAutocomplete === 'function') {
-    attachCreaAutocomplete(dCreaSearchInput, (alimento) => {
-      if (typeof CreaDB === 'undefined' || !CreaDB.isReady()) return;
-      dispensaCreaCodiceCorrente = alimento.codice;
-      dCreaSchedaBtn.classList.add('visibile');
-      const nomeInput = document.getElementById('d-name');
-      if (!nomeInput.value.trim()) nomeInput.value = alimento.nome;
-      document.getElementById('d-category').value = mappaCategoriaCreaDispensa(alimento.categoria || '');
-      document.getElementById('d-kcal').value = alimento.kcal ?? '';
-      document.getElementById('d-protein').value = alimento.proteine ?? '';
-      document.getElementById('d-fat').value = alimento.grassi ?? '';
-      document.getElementById('d-carbs').value = alimento.carboidrati ?? '';
-      document.getElementById('d-fiber').value = alimento.fibre ?? '';
-      document.getElementById('d-sugar').value = alimento.zuccheri ?? '';
-      document.getElementById('d-salt').value = alimento.sale ?? '';
-      document.getElementById('dispensa-nutrition-fields').style.display = 'flex';
-      document.getElementById('dispensa-nutrition-toggle-btn').classList.add('active');
-      formDirty = true;
-    });
-  }
-  dCreaSchedaBtn.addEventListener('click', () => {
-    if (dispensaCreaCodiceCorrente && typeof apriSchedaCrea === 'function') {
-      apriSchedaCrea(dispensaCreaCodiceCorrente);
-    }
-  });
-
   // ---------- Open Food Facts: ricerca testo + barcode per il form Dispensa ----------
-  // Stessa filosofia della ricerca CREA: un modo IN PIÙ per compilare la
-  // stessa scheda prodotto già esistente. I valori nutrizionali di OFF sono
-  // già per 100 g, come quelli CREA: si usano così come sono, senza scalare
-  // su nessuna quantità.
+  // Un modo per compilare la scheda prodotto. I valori nutrizionali di OFF sono
+  // già per 100 g: si usano così come sono, senza scalare su nessuna quantità.
   let dispensaOffBarcodeCorrente = '';
   let dispensaOffImmagineCorrente = '';
   let dispensaOffNutriscoreCorrente = '';
@@ -2423,7 +2249,7 @@
     const nomeInput = document.getElementById('d-name');
     if (!nomeInput.value.trim()) nomeInput.value = prodotto.nome || '';
     if (prodotto.categoria) {
-      document.getElementById('d-category').value = mappaCategoriaCreaDispensa(prodotto.categoria);
+      document.getElementById('d-category').value = prodotto.categoria;
     }
 
     const qtyInput = document.getElementById('d-qty');
@@ -2565,177 +2391,6 @@
     offScannerOverlay.classList.remove('active');
     fermaScanner();
   });
-
-  // ---------- Vista "CREA Alimenti" (consultazione banca dati, tutti i 900) ----------
-  const CREA_ALIMENTI_CATEGORIE = [
-    'Alimenti Etnici', 'Bevande alcoliche', 'Carni fresche', 'Carni trasformate e conservate',
-    'Cereali e derivati', 'Dolci', 'Fast-food a base di carne', 'Formaggi e latticini', 'Frattaglie',
-    'Frutta', 'Frutta secca a guscio e semi oleaginosi', 'Latte e yogurt', 'Legumi', 'Oli e grassi',
-    'Prodotti della pesca', 'Prodotti vari', 'Ricette Italiane', 'Uova', 'Verdure e ortaggi',
-  ];
-  const creaAlimentiSearch = document.getElementById('crea-alimenti-search');
-  const creaAlimentiCategoryFilter = document.getElementById('crea-alimenti-category-filter');
-  const creaAlimentiList = document.getElementById('crea-alimenti-list');
-  const creaAlimentiHint = document.getElementById('crea-alimenti-hint');
-  const CREA_ALIMENTI_LIMITE = 200;
-  let creaAlimentiCategorieCaricate = false;
-
-  function popolaFiltroCategorieCreaAlimenti(){
-    if (creaAlimentiCategorieCaricate) return;
-    CREA_ALIMENTI_CATEGORIE.forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat; opt.textContent = cat;
-      creaAlimentiCategoryFilter.appendChild(opt);
-    });
-    creaAlimentiCategorieCaricate = true;
-  }
-
-  function renderCreaAlimentiList(){
-    const q = normalize(creaAlimentiSearch.value || '');
-    const categoria = creaAlimentiCategoryFilter.value;
-    if (!q && !categoria){
-      creaAlimentiList.innerHTML = '';
-      creaAlimentiHint.style.display = '';
-      return;
-    }
-    creaAlimentiHint.style.display = 'none';
-    let match = CreaDB.tutti().filter(a =>
-      (!q || a.chiave_ricerca.includes(q)) && (!categoria || a.categoria === categoria)
-    );
-    const totaleTrovati = match.length;
-    match = match.slice(0, CREA_ALIMENTI_LIMITE);
-
-    if (match.length === 0){
-      creaAlimentiList.innerHTML = '<div class="crea-elenco-vuoto">Nessun alimento trovato.</div>';
-      return;
-    }
-    creaAlimentiList.innerHTML = match.map(a => `
-      <div class="crea-elenco-riga" data-codice="${escapeAttr(a.codice)}">
-        <span class="nome">${escapeHtml(a.nome)}</span>
-        <span class="meta">${escapeHtml(a.categoria)} · ${a.kcal ?? '–'} kcal/100g</span>
-      </div>
-    `).join('') + (totaleTrovati > CREA_ALIMENTI_LIMITE
-      ? `<div class="crea-elenco-troncato">Mostrati i primi ${CREA_ALIMENTI_LIMITE} di ${totaleTrovati} risultati — affina la ricerca per vedere gli altri.</div>`
-      : '');
-
-    creaAlimentiList.querySelectorAll('.crea-elenco-riga').forEach(riga => {
-      riga.addEventListener('click', () => apriSchedaCrea(riga.dataset.codice));
-    });
-  }
-
-  function apriVistaCreaAlimenti(){
-    popolaFiltroCategorieCreaAlimenti();
-    if (typeof CreaDB === 'undefined') { creaAlimentiList.innerHTML = 'Banca dati CREA non disponibile.'; return; }
-    if (CreaDB.isReady()) { renderCreaAlimentiList(); return; }
-    creaAlimentiList.innerHTML = 'Caricamento…';
-    CreaDB.init().then(renderCreaAlimentiList).catch(err => {
-      creaAlimentiList.innerHTML = 'Impossibile caricare la banca dati CREA: verifica che data/crea-alimenti.json sia stato caricato sul sito.';
-      console.error(err);
-    });
-  }
-  creaAlimentiSearch.addEventListener('input', renderCreaAlimentiList);
-  creaAlimentiCategoryFilter.addEventListener('change', renderCreaAlimentiList);
-
-  // ---------- Vista "CREA Menù" (le 56 ricette ufficiali, sfogliabili) ----------
-  const creaMenuSearch = document.getElementById('crea-menu-search');
-  const creaMenuCategoryFilter = document.getElementById('crea-menu-category-filter');
-  const creaMenuList = document.getElementById('crea-menu-list');
-
-  function renderCreaMenuListView(){
-    const q = normalize(creaMenuSearch.value || '');
-    const categoria = creaMenuCategoryFilter.value;
-    const match = CreaRicette.all().filter(r =>
-      (!q || normalize(r.nome).includes(q)) && (!categoria || r.categoria_suggerita === categoria)
-    );
-    creaMenuList.innerHTML = match.length ? match.map(r => `
-      <div class="crea-elenco-riga" data-id="${escapeAttr(r.id)}">
-        <span class="cat-dot" style="background:${CATEGORY_COLORS[r.categoria_suggerita] || '#8A8F86'}"></span>
-        <span class="nome">${escapeHtml(r.nome)}</span>
-        <span class="meta">${escapeHtml(r.categoria_suggerita)}</span>
-      </div>
-    `).join('') : '<div class="crea-elenco-vuoto">Nessuna ricetta trovata.</div>';
-
-    creaMenuList.querySelectorAll('.crea-elenco-riga').forEach(riga => {
-      riga.addEventListener('click', () => apriDettaglioCreaMenu(riga.dataset.id));
-    });
-  }
-
-  function apriVistaCreaMenu(){
-    if (typeof CreaRicette === 'undefined') { creaMenuList.innerHTML = 'Ricette CREA non disponibili.'; return; }
-    if (CreaRicette.isReady()) { renderCreaMenuListView(); return; }
-    creaMenuList.innerHTML = 'Caricamento…';
-    CreaRicette.init().then(renderCreaMenuListView).catch(err => {
-      creaMenuList.innerHTML = 'Impossibile caricare le ricette CREA: verifica che data/crea-ricette.json sia stato caricato sul sito.';
-      console.error(err);
-    });
-  }
-  creaMenuSearch.addEventListener('input', renderCreaMenuListView);
-  creaMenuCategoryFilter.addEventListener('change', renderCreaMenuListView);
-
-  // ---------- Dettaglio di una ricetta nella vista "CREA Menù" ----------
-  const creaMenuDettaglioOverlay = document.getElementById('crea-menu-dettaglio-overlay');
-  const creaMenuDettaglioContent = document.getElementById('crea-menu-dettaglio-content');
-  document.getElementById('crea-menu-dettaglio-close').addEventListener('click', () => creaMenuDettaglioOverlay.classList.remove('active'));
-
-  function apriDettaglioCreaMenu(id){
-    const r = CreaRicette.getById(id);
-    if (!r) return;
-    const ingredientiHtml = r.ingredienti.map(i =>
-      `<li>${escapeHtml(i.quantita_originale)} — ${escapeHtml(i.nome)}</li>`
-    ).join('');
-    const v = r.valori_nutrizionali_100g_piatto;
-    const nutrizioneHtml = v ? `
-      <table class="crea-scheda-tabella">
-        <tr><td>Kcal</td><td>${v.kcal ?? '–'}</td></tr>
-        <tr><td>Proteine</td><td>${v.proteine ?? '–'} g</td></tr>
-        <tr><td>Grassi</td><td>${v.grassi ?? '–'} g</td></tr>
-        <tr><td>Carboidrati</td><td>${v.carboidrati ?? '–'} g</td></tr>
-        <tr><td>Fibre</td><td>${v.fibre ?? '–'} g</td></tr>
-        <tr><td>Zuccheri</td><td>${v.zuccheri ?? '–'} g</td></tr>
-        <tr><td>Sale</td><td>${v.sale ?? '–'} g</td></tr>
-      </table>` : '<em>Valori non disponibili per questo piatto.</em>';
-
-    creaMenuDettaglioContent.innerHTML = `
-      <div class="crea-menu-dettaglio">
-        <span class="cat-tag" style="background:${CATEGORY_COLORS[r.categoria_suggerita] || '#8A8F86'};">${escapeHtml(r.categoria_suggerita)}</span>
-        <h2>${escapeHtml(r.nome)}</h2>
-        <div class="crea-menu-meta">${[
-          r.porzioni_testo ? escapeHtml(r.porzioni_testo) : '',
-          r.tempo_cottura ? 'Cottura: ' + escapeHtml(r.tempo_cottura) : '',
-          r.tipo_cottura ? escapeHtml(r.tipo_cottura) : '',
-        ].filter(Boolean).join(' · ')}</div>
-
-        <h4>Ingredienti</h4>
-        <ul>${ingredientiHtml}</ul>
-
-        <h4>Preparazione</h4>
-        <div class="crea-menu-prep">${escapeHtml(r.preparazione)}</div>
-
-        <h4>Valori nutrizionali ufficiali CREA (per 100 g del piatto finito)</h4>
-        ${nutrizioneHtml}
-
-        <div class="crea-scheda-fonte">
-          Fonte: <strong>CREA</strong> — Centro di ricerca Alimenti e Nutrizione, via
-          <a href="https://www.alimentinutrizione.it" target="_blank" rel="noopener">alimentinutrizione.it</a>.
-        </div>
-
-        <div class="modal-actions">
-          <span></span>
-          <button type="button" class="btn-gold" id="crea-menu-dettaglio-importa-btn">+ Importa nel Ricettario</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('crea-menu-dettaglio-importa-btn').addEventListener('click', () => {
-      const { importate } = importaRicetteCreaPerId([id]);
-      if (importate) {
-        alert(`"${r.nome}" importata nel Ricettario.`);
-        creaMenuDettaglioOverlay.classList.remove('active');
-      } else {
-        alert(`"${r.nome}" è già presente nel Ricettario con lo stesso nome: non importata di nuovo.`);
-      }
-    });
-    creaMenuDettaglioOverlay.classList.add('active');
-  }
 
   const deleteBtn = document.getElementById('delete-recipe-btn');
   const fTagsWrap = document.getElementById('f-tags-wrap');
@@ -3177,10 +2832,10 @@
     const allergens = Array.from(fAllergensWrap.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.value);
     const freezable = document.getElementById('f-freezable').checked;
 
-    let existingExtra = {favorite:false, lastMade:null, timesMade:0, nutrizioneCrea:null, archived:false};
+    let existingExtra = {favorite:false, lastMade:null, timesMade:0, archived:false};
     if(editingId){
       const prev = recipes.find(r=>r.id===editingId);
-      if(prev){ existingExtra = {favorite:prev.favorite, lastMade:prev.lastMade, timesMade:prev.timesMade, nutrizioneCrea:prev.nutrizioneCrea||null, archived:!!prev.archived}; }
+      if(prev){ existingExtra = {favorite:prev.favorite, lastMade:prev.lastMade, timesMade:prev.timesMade||null, archived:!!prev.archived}; }
     }
 
     const nutrizioneUtente = leggiNutrizioneUtenteForm();
@@ -3192,7 +2847,7 @@
       cookerType: fCookerType.value,
       ingredients: finalIngredients, steps, tags, allergens, freezable, notes: fNotes.value.trim(),
       photo: currentPhotoData, favorite: existingExtra.favorite, lastMade: existingExtra.lastMade, timesMade: existingExtra.timesMade,
-      nutrizioneCrea: existingExtra.nutrizioneCrea, nutrizioneUtente, archived: existingExtra.archived
+      nutrizioneUtente, archived: existingExtra.archived
     };
 
     if(editingId){
@@ -3547,8 +3202,8 @@
   // I valori nutrizionali per ricetta NON si calcolano sommando i singoli
   // ingredienti crudi: la cottura altera in modo non prevedibile acqua, grassi
   // e altri valori (es. la pasta assorbe acqua, un fritto assorbe olio). I dati
-  // mostrati sono quindi solo quelli inseriti dall'utente per porzione o quelli
-  // misurati da CREA sul piatto finito per 100 g; non sono calcolati da noi.
+  // mostrati sono quindi solo quelli inseriti dall'utente per porzione; non
+  // sono calcolati da noi.
   const NUTRITION_FIELDS = [
     {key:'kcal', label:'Kcal', unit:''},
     {key:'proteine', label:'Proteine', unit:'g'},
@@ -3558,13 +3213,6 @@
     {key:'zuccheri', label:'Zuccheri', unit:'g'},
     {key:'sale', label:'Sale', unit:'g'}
   ];
-  /** Ritorna i valori ufficiali CREA del piatto (per 100 g), solo se la
-   * ricetta è stata importata da CREA Menù; altrimenti null (niente da
-   * mostrare — non si inventa un totale sommando gli ingredienti crudi). */
-  function getNutrizioneCrea(r){
-    return (r && r.nutrizioneCrea) || null;
-  }
-
   function renderView(r){
     viewCategory.textContent = r.category;
     viewCategory.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8A8F86');
@@ -3619,7 +3267,6 @@
     });
 
     const viewNutrition = document.getElementById('view-nutrition');
-    const nutrizioneCrea = getNutrizioneCrea(r);
     const nutrizioneUtente = r.nutrizioneUtente || null;
     let nutritionHtml = '';
     if(nutrizioneUtente){
@@ -3631,21 +3278,6 @@
           <h4>Valori nutrizionali (per porzione)</h4>
           <div class="nutrition-grid">${rows}</div>
           <div class="nutrition-note" style="opacity:.7;margin-top:6px;">Inseriti da te: verifica sempre la fonte da cui provengono.</div>
-        </div>
-      `;
-    }
-    if(nutrizioneCrea){
-      const rows = NUTRITION_FIELDS
-        .filter(f => nutrizioneCrea[f.key] !== null && nutrizioneCrea[f.key] !== undefined)
-        .map(f => `<div>${f.label}: <b>${roundNice(nutrizioneCrea[f.key])}</b>${f.unit}</div>`).join('');
-      nutritionHtml += `
-        <div class="nutrition-summary">
-          <h4>Valori nutrizionali (per 100 g del piatto)</h4>
-          <div class="nutrition-grid">${rows}</div>
-          <div class="nutrition-note" style="opacity:.7;margin-top:6px;">
-            Valori ufficiali <a href="https://www.alimentinutrizione.it" target="_blank" rel="noopener" style="color:var(--accent-ink);">CREA</a>
-            misurati sul piatto finito (non calcolati sugli ingredienti crudi, che la cottura altera).
-          </div>
         </div>
       `;
     }
@@ -3922,13 +3554,6 @@
         .filter(f => nutrizioneUtente[f.key] !== null && nutrizioneUtente[f.key] !== undefined)
         .map(f => `${f.label}: ${roundNice(nutrizioneUtente[f.key])}${f.unit}`);
       sections.push({ heading: 'Valori nutrizionali (per porzione)', lines: nutritionLines });
-    }
-    const nutrizioneCrea = getNutrizioneCrea(r);
-    if(nutrizioneCrea){
-      const nutritionLines = NUTRITION_FIELDS
-        .filter(f => nutrizioneCrea[f.key] !== null && nutrizioneCrea[f.key] !== undefined)
-        .map(f => `${f.label}: ${roundNice(nutrizioneCrea[f.key])}${f.unit}`);
-      sections.push({ heading: 'Valori nutrizionali ufficiali CREA (per 100 g del piatto)', lines: nutritionLines });
     }
     sections.push({
       heading: 'Preparazione',
@@ -5719,263 +5344,6 @@
     return DAYS[jsDay === 0 ? 6 : jsDay - 1];
   }
 
-  // ---------- Meteo (vista "Oggi") ----------
-  // Fonte dati: Open-Meteo (open-meteo.com), un servizio gratuito che non richiede
-  // chiave API e che aggrega le previsioni dei servizi meteorologici nazionali
-  // ufficiali (per l'Italia, in buona parte dati del DWD/ECMWF e di ICON — lo stesso
-  // tipo di modelli usati dai siti meteo "seri"), quindi affidabile e senza account.
-  // Nessun dato dell'utente viene inviato: solo latitudine/longitudine della
-  // località scelta.
-  const WMO_WEATHER_MAP = {
-    0: { icon: '☀️', label: 'Cielo sereno' },
-    1: { icon: '🌤️', label: 'Prevalentemente sereno' },
-    2: { icon: '⛅', label: 'Parzialmente nuvoloso' },
-    3: { icon: '☁️', label: 'Coperto' },
-    45: { icon: '🌫️', label: 'Nebbia' },
-    48: { icon: '🌫️', label: 'Nebbia con brina' },
-    51: { icon: '🌦️', label: 'Pioggerella leggera' },
-    53: { icon: '🌦️', label: 'Pioggerella moderata' },
-    55: { icon: '🌧️', label: 'Pioggerella intensa' },
-    56: { icon: '🌧️', label: 'Pioggerella gelata leggera' },
-    57: { icon: '🌧️', label: 'Pioggerella gelata intensa' },
-    61: { icon: '🌦️', label: 'Pioggia debole' },
-    63: { icon: '🌧️', label: 'Pioggia moderata' },
-    65: { icon: '🌧️', label: 'Pioggia forte' },
-    66: { icon: '🌧️', label: 'Pioggia gelata debole' },
-    67: { icon: '🌧️', label: 'Pioggia gelata forte' },
-    71: { icon: '🌨️', label: 'Neve debole' },
-    73: { icon: '🌨️', label: 'Neve moderata' },
-    75: { icon: '❄️', label: 'Neve forte' },
-    77: { icon: '❄️', label: 'Granelli di neve' },
-    80: { icon: '🌦️', label: 'Rovesci di pioggia deboli' },
-    81: { icon: '🌧️', label: 'Rovesci di pioggia moderati' },
-    82: { icon: '⛈️', label: 'Rovesci di pioggia violenti' },
-    85: { icon: '🌨️', label: 'Rovesci di neve deboli' },
-    86: { icon: '❄️', label: 'Rovesci di neve forti' },
-    95: { icon: '⛈️', label: 'Temporale' },
-    96: { icon: '⛈️', label: 'Temporale con grandine debole' },
-    99: { icon: '⛈️', label: 'Temporale con grandine forte' },
-  };
-  function meteoDaCodice(code){
-    return WMO_WEATHER_MAP[code] || { icon: '🌡️', label: 'Condizioni non disponibili' };
-  }
-
-  function loadWeatherLocation(){
-    try{
-      const raw = localStorage.getItem(WEATHER_LOCATION_KEY);
-      return raw ? JSON.parse(raw) : null;
-    }catch(err){ return null; }
-  }
-  function saveWeatherLocation(loc){
-    safeStorageSet(WEATHER_LOCATION_KEY, JSON.stringify(loc));
-  }
-  function clearWeatherLocation(){
-    try{ localStorage.removeItem(WEATHER_LOCATION_KEY); }catch(err){}
-    try{ localStorage.removeItem(WEATHER_CACHE_KEY); }catch(err){}
-  }
-  function loadWeatherCache(){
-    try{
-      const raw = localStorage.getItem(WEATHER_CACHE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    }catch(err){ return null; }
-  }
-  function saveWeatherCache(cache){
-    safeStorageSet(WEATHER_CACHE_KEY, JSON.stringify(cache));
-  }
-
-  const WEATHER_CACHE_MINUTI = 30;
-
-  // Interroga il geocoder di Open-Meteo per trasformare un nome di città nelle
-  // coordinate necessarie alla richiesta meteo. Nessuna chiave richiesta.
-  async function cercaLocalitaMeteo(nome){
-    const q = (nome || '').trim();
-    if(q.length < 2) return [];
-    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=it&format=json`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error(`Geocoding non raggiungibile (${res.status})`);
-    const data = await res.json();
-    return (data.results || []).map(r => ({
-      nome: r.name,
-      admin1: r.admin1 || '',
-      paese: r.country || '',
-      lat: r.latitude,
-      lon: r.longitude,
-    }));
-  }
-
-  async function scaricaMeteo(lat, lon){
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-      `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
-      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
-      `&timezone=auto&forecast_days=1`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error(`Servizio meteo non raggiungibile (${res.status})`);
-    const data = await res.json();
-    return {
-      temp: data.current?.temperature_2m,
-      umidita: data.current?.relative_humidity_2m,
-      vento: data.current?.wind_speed_10m,
-      codice: data.current?.weather_code,
-      max: data.daily?.temperature_2m_max?.[0],
-      min: data.daily?.temperature_2m_min?.[0],
-      pioggiaProb: data.daily?.precipitation_probability_max?.[0],
-      aggiornatoIl: Date.now(),
-    };
-  }
-
-  function weatherCardHtml({ stato, localita, dati, errore }){
-    if(stato === 'senza-localita'){
-      return `
-        <h3><span class="today-icon">⛅</span> Meteo</h3>
-        <p class="today-empty">Imposta una località per vedere le previsioni di oggi.</p>
-        <div class="today-weather-setup">
-          <button type="button" class="btn-ghost btn-small" id="weather-geo-btn">📍 Usa la mia posizione</button>
-          <div class="today-weather-search">
-            <input type="text" id="weather-city-input" placeholder="…oppure cerca una città">
-            <button type="button" class="btn-ghost btn-small" id="weather-city-search-btn">Cerca</button>
-          </div>
-          <div id="weather-city-results" class="today-weather-results"></div>
-        </div>
-        <p class="nutrition-note">Dati forniti da Open-Meteo, gratuito e senza registrazione.</p>
-      `;
-    }
-    if(stato === 'caricamento'){
-      return `
-        <h3><span class="today-icon">⛅</span> Meteo</h3>
-        <p class="today-empty">Caricamento previsioni${localita ? ` per ${escapeHtml(localita.nome)}` : ''}…</p>
-      `;
-    }
-    if(stato === 'errore'){
-      return `
-        <h3><span class="today-icon">⛅</span> Meteo</h3>
-        <p class="today-empty">${escapeHtml(errore || 'Meteo non disponibile al momento.')}</p>
-        <div class="today-actions">
-          <button type="button" class="btn-ghost btn-small" id="weather-retry-btn">🔄 Riprova</button>
-          <button type="button" class="btn-ghost btn-small" id="weather-change-btn">📍 Cambia località</button>
-        </div>
-      `;
-    }
-    // stato === 'ok'
-    const m = meteoDaCodice(dati.codice);
-    const ora = new Date(dati.aggiornatoIl).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
-    const localitaLabel = [localita.nome, localita.admin1].filter(Boolean).join(', ');
-    return `
-      <h3><span class="today-icon">${m.icon}</span> Meteo a ${escapeHtml(localitaLabel)}</h3>
-      <div class="today-weather-main">
-        <span class="today-weather-temp">${Math.round(dati.temp)}°</span>
-        <div class="today-weather-desc">
-          <div>${m.label}</div>
-          <div class="today-meal">Min ${Math.round(dati.min)}° · Max ${Math.round(dati.max)}°</div>
-        </div>
-      </div>
-      <div class="today-meal">💧 Umidità ${Math.round(dati.umidita)}% · 🌬 Vento ${Math.round(dati.vento)} km/h${dati.pioggiaProb !== undefined && dati.pioggiaProb !== null ? ` · ☔ ${Math.round(dati.pioggiaProb)}% probabilità pioggia` : ''}</div>
-      <div class="today-actions">
-        <button type="button" class="btn-ghost btn-small" id="weather-retry-btn">🔄 Aggiornato alle ${ora}</button>
-        <button type="button" class="btn-ghost btn-small" id="weather-change-btn">📍 Cambia località</button>
-      </div>
-      <p class="nutrition-note">Dati: Open-Meteo.</p>
-    `;
-  }
-
-  function renderWeatherResults(container, risultati, onScegli){
-    if(!risultati.length){
-      container.innerHTML = '<p class="today-empty">Nessuna località trovata. Prova con un altro nome.</p>';
-      return;
-    }
-    container.innerHTML = risultati.map((r, idx) => `
-      <button type="button" class="recipe-picker-item today-weather-result-item" data-idx="${idx}">
-        <span class="name">${escapeHtml(r.nome)}</span>
-        <span class="meta">${escapeHtml([r.admin1, r.paese].filter(Boolean).join(', '))}</span>
-      </button>
-    `).join('');
-    container.querySelectorAll('.today-weather-result-item').forEach(btn=>{
-      btn.addEventListener('click', ()=> onScegli(risultati[parseInt(btn.dataset.idx, 10)]));
-    });
-  }
-
-  async function caricaEMostraMeteo(cardEl, localita, forzaRicarica){
-    cardEl.innerHTML = weatherCardHtml({ stato: 'caricamento', localita });
-    const cache = !forzaRicarica && loadWeatherCache();
-    const cacheValida = cache && cache.lat === localita.lat && cache.lon === localita.lon
-      && (Date.now() - cache.dati.aggiornatoIl) < WEATHER_CACHE_MINUTI * 60 * 1000;
-    try{
-      const dati = cacheValida ? cache.dati : await scaricaMeteo(localita.lat, localita.lon);
-      if(!cacheValida) saveWeatherCache({ lat: localita.lat, lon: localita.lon, dati });
-      cardEl.innerHTML = weatherCardHtml({ stato: 'ok', localita, dati });
-      collegaAzioniWeatherCard(cardEl, localita);
-    }catch(err){
-      cardEl.innerHTML = weatherCardHtml({ stato: 'errore', localita, errore: 'Meteo non disponibile al momento: verifica la connessione e riprova.' });
-      collegaAzioniWeatherCard(cardEl, localita);
-    }
-  }
-
-  function collegaAzioniWeatherCard(cardEl, localita){
-    const retryBtn = cardEl.querySelector('#weather-retry-btn');
-    if(retryBtn) retryBtn.addEventListener('click', ()=> caricaEMostraMeteo(cardEl, localita, true));
-    const changeBtn = cardEl.querySelector('#weather-change-btn');
-    if(changeBtn) changeBtn.addEventListener('click', ()=>{
-      clearWeatherLocation();
-      cardEl.innerHTML = weatherCardHtml({ stato: 'senza-localita' });
-      collegaSetupWeatherCard(cardEl);
-    });
-  }
-
-  function collegaSetupWeatherCard(cardEl){
-    const geoBtn = cardEl.querySelector('#weather-geo-btn');
-    const cityInput = cardEl.querySelector('#weather-city-input');
-    const searchBtn = cardEl.querySelector('#weather-city-search-btn');
-    const resultsEl = cardEl.querySelector('#weather-city-results');
-
-    function sceltaLocalita(loc){
-      saveWeatherLocation(loc);
-      caricaEMostraMeteo(cardEl, loc, true);
-    }
-
-    if(geoBtn) geoBtn.addEventListener('click', ()=>{
-      if(!navigator.geolocation){
-        resultsEl.innerHTML = '<p class="today-empty">Geolocalizzazione non supportata da questo browser: usa la ricerca per città.</p>';
-        return;
-      }
-      geoBtn.disabled = true;
-      geoBtn.textContent = 'Individuazione in corso…';
-      navigator.geolocation.getCurrentPosition(
-        pos => sceltaLocalita({ nome: 'La tua posizione', admin1: '', lat: pos.coords.latitude, lon: pos.coords.longitude }),
-        () => {
-          geoBtn.disabled = false;
-          geoBtn.textContent = '📍 Usa la mia posizione';
-          resultsEl.innerHTML = '<p class="today-empty">Posizione non disponibile (permesso negato o non supportata): usa la ricerca per città qui sotto.</p>';
-        },
-        { timeout: 10000 }
-      );
-    });
-
-    async function esegueRicercaCitta(){
-      const q = cityInput.value;
-      if(q.trim().length < 2) return;
-      resultsEl.innerHTML = '<p class="today-empty">Ricerca in corso…</p>';
-      try{
-        const risultati = await cercaLocalitaMeteo(q);
-        renderWeatherResults(resultsEl, risultati, sceltaLocalita);
-      }catch(err){
-        resultsEl.innerHTML = '<p class="today-empty">Ricerca non riuscita: verifica la connessione e riprova.</p>';
-      }
-    }
-    if(searchBtn) searchBtn.addEventListener('click', esegueRicercaCitta);
-    if(cityInput) cityInput.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); esegueRicercaCitta(); } });
-  }
-
-  function initWeatherCard(){
-    const cardEl = document.getElementById('today-weather-card');
-    if(!cardEl) return;
-    const localita = loadWeatherLocation();
-    if(localita){
-      caricaEMostraMeteo(cardEl, localita, false);
-    }else{
-      cardEl.innerHTML = weatherCardHtml({ stato: 'senza-localita' });
-      collegaSetupWeatherCard(cardEl);
-    }
-  }
-
   function renderToday(){
     aggiornaTopbarAlerts();
     const content = document.getElementById('today-content');
@@ -6068,17 +5436,39 @@
       ? `<div class="mini-grid">${favs.map(r=>`<button type="button" class="mini-recipe" data-open-recipe="${escapeAttr(r.id)}" style="${CATEGORY_COLORS[r.category] ? `--cat-color:${CATEGORY_COLORS[r.category]};` : ''}">${photoBlock(r, 'mr-photo')}<span class="mr-body"><span class="mr-title">${escapeHtml(r.name)}</span><span class="mr-sub">${escapeHtml(r.category || '')}</span></span></button>`).join('')}</div>`
       : `<p class="today-empty">Tocca il cuore su una ricetta per ritrovarla qui.</p>`;
 
+    // Riquadro statistiche accanto al titolo (stessi calcoli della pagina Statistiche)
+    const S = calcolaStatistiche();
+    const miniTile = (n, lbl)=> `<div class="today-stat"><b>${n}</b><span>${lbl}</span></div>`;
+    const statsCardHtml = S.n ? `
+        <section class="today-stats-card" aria-labelledby="today-stats-h">
+          <div class="block-head"><h3 id="today-stats-h">Le tue statistiche</h3><button type="button" class="link-btn" id="today-stats-btn">Vedi tutte →</button></div>
+          <div class="today-stats-grid">
+            ${miniTile(S.n, 'ricette')}
+            ${miniTile(S.totPreparazioni, 'preparazioni')}
+            ${miniTile(S.nConVoto ? S.votoMedio.toFixed(1).replace('.',',') + ' ★' : '–', 'voto medio')}
+            ${miniTile(S.preferite, 'preferite')}
+          </div>
+          <p class="today-stats-top">${S.piuCucinate.length ? `Più cucinata: <b>${escapeHtml(S.piuCucinate[0].name)}</b> (${S.piuCucinate[0].timesMade} volt${S.piuCucinate[0].timesMade===1?'a':'e'})` : 'Segna una ricetta come preparata per vedere la più cucinata.'}</p>
+        </section>` : `
+        <section class="today-stats-card" aria-labelledby="today-stats-h">
+          <div class="block-head"><h3 id="today-stats-h">Le tue statistiche</h3></div>
+          <p class="today-empty">Aggiungi qualche ricetta per vedere le statistiche.</p>
+        </section>`;
+
     content.innerHTML = `
+      <div class="today-hero-row">
       <div class="page-head">
         <div><h2>Oggi</h2><p>${escapeHtml(dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1))}</p>
           <p class="today-hello"><strong>${saluto}!</strong> Cosa si cucina oggi?</p></div>
         <button type="button" class="btn-gold" id="today-plan-btn">${icon('calendar','ico-sm')} Organizza la settimana</button>
       </div>
-      <a class="guide-card" href="guida.html" data-guida>
-        <span class="qi">${icon('help')}</span>
-        <span class="guide-card-text"><b>Hai un dubbio? Apri la guida illustrata</b><small>Tutte le funzioni spiegate passo dopo passo, con le immagini.</small></span>
-        <span class="guide-card-go">Apri la guida ${icon('right','ico-sm')}</span>
-      </a>
+        ${statsCardHtml}
+      </div>
+      <div class="today-grid">
+        <section class="today-card"><h3>Le mie ricette</h3><p class="today-empty">${recipes.filter(r=>!r.archived).length ? `${recipes.filter(r=>!r.archived).length} ricett${recipes.filter(r=>!r.archived).length===1?'a':'e'} nel tuo ricettario.` : 'Non hai ancora ricette: aggiungi la prima.'}</p><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-quick-pantry-btn">Sfoglia le ricette</button></div></section>
+        <section class="today-card"><h3>Da consumare prima</h3><ul class="today-list">${expiryHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-expiry-btn">Apri Dispensa</button>${expiring.length ? `<button type="button" class="btn-ghost btn-small" id="today-expiry-recipes-btn">Trova ricette</button>` : ''}</div></section>
+        <section class="today-card"><h3>Lista della spesa</h3><p class="today-empty">${escapeHtml(shoppingText)}</p><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-shopping-btn">Apri lista</button><button type="button" class="btn-ghost btn-small" id="today-recipes-btn">Cerca ricette</button></div></section>
+      </div>
       <div class="today-layout">
         <section class="today-block" aria-labelledby="today-meals-h">
           <div class="block-head"><h3 id="today-meals-h">I pasti di oggi</h3></div>
@@ -6089,30 +5479,18 @@
           <ul class="week-list">${weekRowsHtml}</ul>
         </section>
       </div>
-      <section class="today-block" aria-labelledby="today-quick-h">
-        <div class="block-head"><h3 id="today-quick-h">Accesso rapido</h3></div>
-        <div class="quick-grid">
-          <button type="button" class="quick-tile" id="today-quick-pantry-btn"><span class="qi">${icon('book')}</span><span><b>Le mie ricette</b><small>Sfoglia e cerca tra le ricette</small></span></button>
-          <button type="button" class="quick-tile" id="today-quick-dispensa-btn"><span class="qi">${icon('box')}</span><span><b>La mia dispensa</b><small>Controlla scorte e scadenze</small></span></button>
-          <button type="button" class="quick-tile" id="today-quick-shopping-btn"><span class="qi">${icon('cart')}</span><span><b>Lista della spesa</b><small>La tua lista, anche senza pianificare</small></span></button>
-          <button type="button" class="quick-tile" id="today-quick-planning-btn"><span class="qi">${icon('calendar')}</span><span><b>Pianificazione</b><small>Organizza i pasti della settimana</small></span></button>
-        </div>
-      </section>
       <section class="today-block" aria-labelledby="today-fav-h">
         <div class="block-head"><h3 id="today-fav-h">Le tue ricette preferite</h3>${favs.length ? '<button type="button" class="link-btn" id="today-fav-all-btn">Vedi tutte →</button>' : ''}</div>
         ${favsHtml}
       </section>
-      <div class="today-grid">
-        <section class="today-card today-weather-card" id="today-weather-card" aria-label="Meteo"></section>
-        <section class="today-card"><h3>Da consumare prima</h3><ul class="today-list">${expiryHtml}</ul><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-expiry-btn">Apri Dispensa</button>${expiring.length ? `<button type="button" class="btn-ghost btn-small" id="today-expiry-recipes-btn">Trova ricette</button>` : ''}</div></section>
-        <section class="today-card"><h3>Lista della spesa</h3><p class="today-empty">${escapeHtml(shoppingText)}</p><div class="today-actions"><button type="button" class="btn-ghost btn-small" id="today-shopping-btn">Apri lista</button><button type="button" class="btn-ghost btn-small" id="today-recipes-btn">Cerca ricette</button></div></section>
-      </div>
       <section class="today-block today-library" aria-labelledby="today-lib-h">
         <div class="block-head"><h3 id="today-lib-h">La tua libreria</h3><button type="button" class="btn-ghost btn-small" id="today-library-manage-btn">Gestisci ricettari</button></div>
         <div class="library-shelf">${libraryHtml}</div>
       </section>`;
     document.getElementById('today-plan-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-meals-btn').addEventListener('click', ()=>switchView('planning'));
+    const todayStatsBtn = document.getElementById('today-stats-btn');
+    if(todayStatsBtn) todayStatsBtn.addEventListener('click', ()=>switchView('stats'));
     const emptyPlanBtn = document.getElementById('today-empty-plan-btn');
     if(emptyPlanBtn) emptyPlanBtn.addEventListener('click', ()=>switchView('planning'));
     const favAllBtn = document.getElementById('today-fav-all-btn');
@@ -6128,9 +5506,6 @@
     document.getElementById('today-recipes-btn').addEventListener('click', ()=>switchView('recipes'));
     document.getElementById('today-shopping-btn').addEventListener('click', ()=>document.getElementById('generate-shopping-btn').click());
     document.getElementById('today-quick-pantry-btn').addEventListener('click', ()=>{ favoritesOnly = false; switchView('recipes'); });
-    document.getElementById('today-quick-dispensa-btn').addEventListener('click', ()=>switchView('dispensa'));
-    document.getElementById('today-quick-shopping-btn').addEventListener('click', ()=> switchView('spesa'));
-    document.getElementById('today-quick-planning-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-library-manage-btn').addEventListener('click', ()=> openRicettariManage());
     content.querySelectorAll('.library-book').forEach(btn=>{
       btn.addEventListener('click', ()=>{
@@ -6140,14 +5515,12 @@
         renderList();
       });
     });
-    initWeatherCard();
   }
 
   // Etichetta breve mostrata nella barra ☰ su schermo piccolo, per vista corrente.
   const NAV_LABELS = {
     today: 'Oggi', recipes: 'Le mie ricette', planning: 'Pianificazione',
-    spesa: 'Lista della spesa', dispensa: 'Dispensa', 'crea-alimenti': 'Valori alimenti CREA',
-    'crea-menu': 'Ricette CREA', info: 'Come funziona', stats: 'Statistiche'
+    spesa: 'Lista della spesa', dispensa: 'Dispensa', info: 'Come funziona', stats: 'Statistiche'
   };
   let currentView = 'today';
   // Evidenzia la voce attiva nella barra laterale e nella barra a schede dello smartphone.
@@ -6162,8 +5535,6 @@
       'nav-dispensa-btn': v === 'dispensa',
       'nav-shopping-btn': v === 'spesa',
       'nav-stats-btn': v === 'stats',
-      'nav-crea-alimenti-btn': v === 'crea-alimenti',
-      'nav-crea-menu-btn': v === 'crea-menu',
       'nav-info-btn': v === 'info',
       'tab-today': v === 'today',
       'tab-recipes': v === 'recipes',
@@ -6189,8 +5560,6 @@
     document.getElementById('dispensa-view').style.display = view === 'dispensa' ? '' : 'none';
     document.getElementById('spesa-view').style.display = view === 'spesa' ? '' : 'none';
     document.getElementById('stats-view').style.display = view === 'stats' ? '' : 'none';
-    document.getElementById('crea-alimenti-view').style.display = view === 'crea-alimenti' ? '' : 'none';
-    document.getElementById('crea-menu-view').style.display = view === 'crea-menu' ? '' : 'none';
     document.getElementById('info-view').style.display = view === 'info' ? '' : 'none';
     updateNavActive();
     if(view === 'today') renderToday();
@@ -6199,8 +5568,6 @@
     if(view === 'dispensa') renderDispensaList();
     if(view === 'spesa') renderSpesaLista();
     if(view === 'stats') renderStatistiche();
-    if(view === 'crea-alimenti') apriVistaCreaAlimenti();
-    if(view === 'crea-menu') apriVistaCreaMenu();
     const navCurrentLabel = document.getElementById('nav-current-label');
     if(navCurrentLabel) navCurrentLabel.textContent = NAV_LABELS[view] || '';
     closeMobileNav();
@@ -6295,8 +5662,6 @@
   document.getElementById('tab-shopping').addEventListener('click', ()=> switchView('spesa'));
   document.getElementById('nav-planning-btn').addEventListener('click', ()=> switchView('planning'));
   document.getElementById('nav-dispensa-btn').addEventListener('click', ()=> switchView('dispensa'));
-  document.getElementById('nav-crea-alimenti-btn').addEventListener('click', ()=> switchView('crea-alimenti'));
-  document.getElementById('nav-crea-menu-btn').addEventListener('click', ()=> switchView('crea-menu'));
   document.getElementById('nav-info-btn').addEventListener('click', ()=> switchView('info'));
   document.getElementById('legal-link').addEventListener('click', e=>{
     e.preventDefault(); switchView('info');
@@ -7099,7 +6464,6 @@
     });
   }
 
-  let dispensaCreaCodiceCorrente = '';
   function openDispensaEdit(item){
     editingDispensaId = item ? item.id : null;
     document.getElementById('dispensa-edit-title').textContent = item ? 'Modifica prodotto' : 'Nuovo prodotto';
@@ -7121,9 +6485,6 @@
     const hasDispensaNutrition = !!(item && (item.kcal || item.protein || item.fat || item.carbs || item.fiber || item.sugar || item.salt));
     document.getElementById('dispensa-nutrition-fields').style.display = hasDispensaNutrition ? 'flex' : 'none';
     document.getElementById('dispensa-nutrition-toggle-btn').classList.toggle('active', hasDispensaNutrition);
-    dispensaCreaCodiceCorrente = (item && item.creaCodice) || '';
-    document.getElementById('d-crea-search').value = '';
-    document.getElementById('d-crea-scheda-btn').classList.toggle('visibile', !!dispensaCreaCodiceCorrente);
 
     dispensaOffBarcodeCorrente = (item && item.offBarcode) || '';
     dispensaOffImmagineCorrente = (item && item.offImmagine) || '';
@@ -7218,7 +6579,6 @@
       fiber: document.getElementById('d-fiber').value,
       sugar: document.getElementById('d-sugar').value,
       salt: document.getElementById('d-salt').value,
-      creaCodice: dispensaCreaCodiceCorrente,
       offBarcode: dispensaOffBarcodeCorrente,
       offImmagine: dispensaOffImmagineCorrente,
       offNutriscore: dispensaOffNutriscoreCorrente

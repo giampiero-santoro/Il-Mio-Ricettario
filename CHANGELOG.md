@@ -2,6 +2,62 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.31.0] — Statistiche in Oggi
+
+### Aggiunto
+- In **Oggi**, accanto al banner del titolo, il riquadro **Le tue statistiche**: numero di ricette, preparazioni, voto medio, preferite e la ricetta più cucinata. «Vedi tutte →» apre la pagina Statistiche. Su telefono il riquadro va sotto il titolo.
+
+### Test
+- `test_24` controlla numeri, posizione accanto al titolo e collegamento alla pagina Statistiche. Suite: 25/25.
+
+## [5.30.0] — Oggi più essenziale
+
+### Cambiato
+- In **Oggi** il riquadro **Meteo** è sostituito da **Le mie ricette** (numero di ricette e pulsante «Sfoglia le ricette»).
+- Tolto **Accesso rapido** (Le mie ricette, Dispensa, Lista della spesa, Pianificazione): si raggiungono dal menu laterale e dalla barra in basso.
+
+### Rimosso
+- Il **meteo**: non viene più contattato Open-Meteo e l'app non chiede più la posizione. Aggiornate di conseguenza le note legali su privacy e crediti: ora l'unico servizio esterno è Open Food Facts.
+
+### Test
+- `test_06` controlla il riquadro Le mie ricette e l'assenza di Accesso rapido; `test_25` non cerca più Open-Meteo nelle note. Suite: 25/25.
+
+## [5.29.0] — Oggi: Meteo, scadenze e spesa in alto
+
+### Cambiato
+- In **Oggi** i riquadri **Meteo**, **Da consumare prima** e **Lista della spesa** stanno ora subito sotto il titolo, sopra **I pasti di oggi**. Colori menta e pesca anche nel tema scuro.
+- Tolta da Oggi la scheda **Guida illustrata**: la guida resta nel pulsante «Guida» in alto, nell'icona ? su telefono e nella voce del menu laterale.
+
+### Test
+- `test_06` controlla che la scheda guida non compaia più in Oggi, che il link nel menu esista e che i tre riquadri stiano sopra i pasti. Suite: 25/25.
+
+## [5.28.0] — Nuovo tema «Verde acqua»
+
+### Cambiato
+- **Nuova palette**: verde acqua, sfondo azzurro chiarissimo, riquadri menta e pesca, angoli più morbidi e ombre più leggere. Il verde dei pulsanti è scelto per restare ben leggibile (contrasto 4,8:1 col bianco).
+- **Oggi**: il titolo diventa un banner verde acqua con il pulsante «Organizza la settimana» in bianco; i riquadri «I pasti di oggi» e «Accesso rapido» alternano pesca e menta.
+- **Tema scuro** ridisegnato con la stessa palette (verde acqua su fondo blu-verde scuro).
+- Promemoria del backup in pesca, link «Note legali e crediti» nei colori del tema.
+- Statistiche: tessere menta/pesca e righe delle classifiche allineate (prima il numero di volte o le stelle potevano andare a capo).
+
+### Test
+- Nessuna funzione cambiata. Suite: 25/25.
+
+## [5.27.0] — Rimossi i dati e le ricette incluse
+
+### Rimosso
+- **Banca dati nutrizionale integrata**: tolti i file dati (`data/`), lo script di ricerca, le viste dedicate e i relativi pulsanti, la ricerca negli ingredienti e in Dispensa e il relativo stile.
+- **Ricette incluse nell'app**: sia la raccolta di ricette di terzi sia la ricetta di esempio. Al primo avvio l'elenco è vuoto.
+- Ogni riferimento a quella fonte è stato tolto da menu, testi, guida illustrata, guida (GUIDA.md), README, MANIFEST e LICENSE.
+
+### Invariato
+- Le **tue ricette, la Dispensa e i dati salvati** non cambiano: restano nel tuo browser o nel file di backup.
+- Dispensa: scansione del codice a barre e ricerca prodotti con Open Food Facts, e valori nutrizionali inseribili a mano.
+- Le 15 categorie della Dispensa restano le stesse.
+
+### Test
+- `test_25` ora controlla anche che nella pagina non compaia più la fonte rimossa, che non venga richiesto nessun file dati e che l'elenco ricette parta vuoto. `test_06` ora si aspetta 16 capitoli nella guida. Suite: 25/25.
+
 ## [5.26.1] — Pulizia legale e privacy
 
 ### Cambiato
@@ -10,7 +66,7 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 - Il service worker mette in cache anche font e lettore, che funzionano offline.
 
 ### Aggiunto
-- **Note legali, privacy e crediti** (menu «Come funziona» e link nel menu laterale): cosa resta sul dispositivo, cosa esce (Open Food Facts, Open-Meteo), avvertenza su nutrienti e allergeni, fonti e licenze (CREA, Open Food Facts ODbL/CC BY-SA, Open-Meteo CC BY 4.0, OFL, Apache 2.0, MIT).
+- **Note legali, privacy e crediti** (menu «Come funziona» e link nel menu laterale): cosa resta sul dispositivo, cosa esce (Open Food Facts, Open-Meteo), avvertenza su nutrienti e allergeni, fonti e licenze (Open Food Facts ODbL/CC BY-SA, Open-Meteo CC BY 4.0, OFL, Apache 2.0, MIT).
 
 ### Test
 - Nuovo `test_25`: nessuna richiesta a Google/unpkg all'avvio, font locali caricati, pagina note legali. Suite: 25/25.
@@ -186,7 +242,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ### Cambiato
 - La parte alta della pagina è stata riordinata, su telefono e su computer: **ricerca + pulsante "Filtri" + menu "⋯"** su una riga, poi le categorie, la scheda "Cosa posso cucinare?" in versione più compatta e, sopra l'elenco, il numero di ricette e l'ordinamento.
 - **Filtri**: ricettario, tempo, solo preferite, archiviate, cottura, tag, allergeni ed esclusioni sono ora in un unico pannello (dal basso su telefono). Un numero accanto al pulsante dice quanti filtri sono attivi, **Azzera** li toglie tutti e il pulsante in fondo mostra quante ricette si vedranno.
-- **Menu "⋯"**: raccoglie Importa (da testo, da file, da ricette CREA), Backup e dati (backup, file di salvataggio, CSV, PDF del ricettario), Seleziona ed elimina e Gestisci ricettari.
 - Su telefono: "Aggiungi ricetta" è un pulsante tondo in basso, il titolo doppio sparisce e le categorie scorrono di lato su una sola riga.
 - Guida illustrata e screenshot aggiornati.
 
@@ -295,7 +350,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
 ### Cambiato
 - **Tutta l'interfaccia è stata ridisegnata**: sfondo avorio caldo, verde salvia come colore identificativo, terracotta solo per piccoli dettagli e azioni secondarie; font DM Sans (interfaccia) e Lora (titoli e ricette). Schede con angoli morbidi, ombre leggere, icone semplici a linea.
-- **Barra laterale ordinata per gruppi** (Oggi/Ricette/Preferiti · Organizza · Banche dati CREA · Gestione), con voce attiva su fondo verde chiaro e indicatore salvia; barra superiore discreta con ricerca, "aggiungi ricetta" e avvisi. Su tablet resta a sole icone; su telefono compare una **barra a schede in basso** (Oggi, Ricette, Piano, Dispensa, Spesa) oltre al menu ☰.
 - **Oggi**: data, saluto discreto (in base all'ora, senza nomi inventati), "I pasti di oggi" con foto, "La mia settimana", "Accesso rapido" e "Le tue ricette preferite"; meteo, "Da consumare prima", lista della spesa e libreria dei ricettari restano più in basso.
 - **Le mie ricette**: titolo, ricerca, categorie a pillole, ordinamento e griglia di schede con foto, categoria, tempo, porzioni e cuore (solo i dati presenti).
 - **Dettaglio ricetta**: titolo in Lora, ingredienti in tabella con scala porzioni, procedimento a passi numerati, "Informazioni aggiuntive" e azioni sempre a portata.
@@ -308,7 +362,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 - L'icona di ricerca della barra superiore si sovrapponeva al testo.
 
 ### Invariato
-- Nessuna modifica al salvataggio dei dati (localStorage, file facoltativo), né alle funzioni esistenti (CREA, Open Food Facts, PDF, CSV, backup, ricettari, tema scuro facoltativo).
 
 ## [4.4.0] — Più ricettari, come volumi di una libreria
 
@@ -365,7 +418,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
 ### Cambiato
 - Le card della Dispensa ora usano la stessa griglia a riquadri delle card Ricettario (prima erano un elenco a tutta larghezza): stessa illustrazione segnaposto colorata per categoria (o la foto del prodotto se trovata su Open Food Facts), stessa etichetta categoria, stesso stile del titolo.
-- Per mantenere le card compatte e quadrate come quelle delle ricette, i dettagli più corposi (valori nutrizionali per 100 g, scheda ufficiale CREA, note) non compaiono più direttamente sulla card ma restano a un click di distanza, aprendo la scheda del prodotto come sempre.
 - La card continua a mostrare a colpo d'occhio quantità, eventuale avviso "in esaurimento" e scadenza.
 
 ## [4.2.0] — Friggitrice ad aria come nuovo metodo di cottura
@@ -410,10 +462,9 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ### Cambiato
 - Lo sfondo della pagina ora ha una leggerissima trama a quadretti (stile tovaglia da cucina), al posto della grana a puntini di prima. È tinta con lo stesso colore delle parti evidenziate del sito, quindi si adatta da sola sia al tema chiaro sia a quello scuro.
 
-## [4.1.3] — Passaggi separati per le ricette importate da CREA
+## [4.1.3] — Passaggi separati per le ricette importate
 
 ### Corretto
-- Importando una ricetta da CREA (sia dalla lista "CREA Menù" sia dal pulsante "Importa nel Ricettario" nel dettaglio di una ricetta CREA), il procedimento arrivava come un unico passaggio enorme con tutto il testo attaccato. Ora viene suddiviso automaticamente in più passaggi numerati, uno per ogni frase del testo originale, così come appaiono nel sito CREA.
 
 ## [4.1.2] — Il contenuto ora riempie tutta la pagina
 
@@ -423,7 +474,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ## [4.1.1] — Ricerca senza distinzione di accenti
 
 ### Corretto
-- La ricerca di ricette e prodotti Dispensa (compresi i tre selettori usati in Pianificazione: cerca ricetta, cerca prodotto, "Cosa posso cucinare?" con prodotti dalla dispensa) ora ignora gli accenti, come già faceva la ricerca sugli alimenti CREA. Cercare "caffe" trova anche "Caffè", "perche" trova "perché", ecc.
 
 ## [4.1.0] — Accessibilità e barra laterale su tablet
 
@@ -491,7 +541,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ## [3.41.0] — Menu di navigazione ☰ su schermo piccolo
 
 ### Aggiunto
-- Sotto i 760px di larghezza, la fila di 7 pulsanti di navigazione (uno piuttosto lungo: "🌾 Valori Alimenti dal sito CREA") viene sostituita da un pulsante **"☰"** che apre un menu a tendina con le stesse destinazioni, impilate e con un'area di tocco più generosa, invece di restare sempre visibile occupando molto spazio verticale sullo schermo del telefono. Il pulsante mostra sempre la vista in cui ti trovi, il menu si chiude da solo dopo aver scelto una voce, toccando fuori, o con il tasto Esc
 - Verificata l'assenza di scorrimento orizzontale indesiderato su schermi stretti (360px) nelle viste principali e nel modulo ricetta
 
 ## [3.40.0] — Unità di misura uniformate
@@ -535,7 +584,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ## [3.34.0] — Pagina "Come funziona"
 
 ### Aggiunto
-- Nuova voce di menu **"ℹ️ Come funziona"**: una pagina introduttiva che spiega come è organizzato il sito, cos'è il **CREA** (l'ente pubblico dietro la banca dati nutrizionale ufficiale usata nel sito) e cos'è **Open Food Facts** (la banca dati collaborativa usata per la scansione del codice a barre in Dispensa), con i link alle fonti originali.
 
 ## [3.33.0] — Ingredienti scelti, note settimanali, spesa per reparti
 
@@ -545,7 +593,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 - Nella **Pianificazione**, ogni pasto ha ora un campo per una **nota libera** (es. "cena fuori", "avanzi", "preparare il giorno prima…), salvata automaticamente.
 - La **lista della spesa** è ora raggruppata per **reparto** (frutta, verdura, pasta e cereali, ecc. — gli stessi reparti della Dispensa), nello stesso ordine in cui si trovano di solito al supermercato.
 - Lo stato delle caselle spuntate nella lista della spesa è ora **persistente**: un ingrediente resta spuntato anche rigenerando la lista (es. dopo una modifica alla pianificazione), perché il promemoria è legato al nome dell'ingrediente e non alla singola lista generata.
-- Aggiunto il file **LICENSE** (MIT, con nota sui dati nutrizionali CREA) in precedenza mancante dall'archivio.
 
 ### Corretto
 - Un prodotto aggiunto in automatico alla Dispensa spuntando una voce della lista della spesa riceve ora un reparto indovinato dal nome (stessa logica di raggruppamento della lista spesa), invece di finire sempre genericamente in "Altro".
@@ -574,7 +621,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ## [3.29.2] — Chiarezza sui valori nutrizionali
 
 ### Corretto
-- Il modulo di modifica chiarisce ora che i valori nutrizionali della ricetta sono facoltativi, riferiti a una porzione e **non** vengono calcolati automaticamente dagli ingredienti. Restano possibili sia i dati inseriti manualmente sia quelli ufficiali CREA del piatto finito.
 - README e commenti tecnici sono stati allineati al comportamento effettivo dell'app. Rimossi inoltre i riferimenti a uno screenshot e a una licenza che non erano presenti nell'archivio.
 
 ## [3.29.1] — Filtro per tempo di preparazione
@@ -587,8 +633,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ### Modificato
 - **Nuovo menu "🎨 Aspetto"**, separato da "📦 Backup e CSV": contiene solo la scelta del tema grafico, prima mescolata tra backup e CSV
 - **"🔍 Filtri ▾" rinominato in "🔍 Cottura, tag ed esclusioni ▾"**, per capire subito cosa contiene senza doverlo aprire
-- **"🌾 CREA Alimenti" rinominato in "🌾 Valori Alimenti dal sito CREA"**
-- **"🇮🇹 CREA Menù" rinominato in "🇮🇹 Ricette dal sito CREA"**
 
 ## [3.28.0] — Eliminazione multipla e porzioni in "Cosa posso cucinare?"
 
@@ -624,7 +668,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ### Corretto
 - Un prodotto come una crema spalmabile alle nocciole poteva finire classificato come "frutta secca" invece che tra i dolci/snack, quando il suo tag Open Food Facts era "hazelnut-spreads" senza un tag esplicito per il cioccolato: la regola per la frutta secca cercava semplicemente "nut" come sotto-stringa, che compare anche dentro "hazelnut". Aggiunta una regola dedicata a creme spalmabili, marmellate, miele e gelati, controllata prima di quella per la frutta secca
 - Aggiunte più parole chiave per il riconoscimento automatico della categoria (pesce e frutti di mare, formaggi specifici, altre carni, legumi, frutta e verdura specifiche, cereali) — sempre un default suggerito, mai vincolante
-- Completata la mappatura dalle 19 categorie CREA alle 15 categorie pratiche della Dispensa: alcune categorie CREA (es. "Carni fresche") non avevano una destinazione e cadevano sempre su "Altro" anche quando esisteva un abbinamento migliore disponibile
 
 ## [3.24.0] — Temi grafici selezionabili
 
@@ -656,11 +699,9 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ## [3.22.0] — Valori nutrizionali della ricetta (per porzione) e nella pianificazione
 
 ### Aggiunto
-- **Valori nutrizionali per porzione inseribili a mano** su qualunque ricetta (Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri, Sale) — facoltativi, utili quando li conosci già da un'altra fonte. Restano un'informazione separata da quella ufficiale CREA (per 100 g del piatto), quando presente: possono comparire anche insieme
 - **Valori nutrizionali nella Pianificazione settimanale**: ogni voce pianificata (ricetta o prodotto Dispensa) mostra ora Kcal/Proteine/Grassi/Carboidrati/Fibre/Zuccheri/Sale calcolati per quella voce — per una ricetta, sulla base di "per quante persone" impostato in Pianificazione; per un prodotto Dispensa, sulla quantità indicata per quel pasto (quando espressa in grammi o kg)
 
 ### Corretto
-- Modificando una ricetta importata da "CREA Menù" (es. per aggiungere una nota), i suoi valori nutrizionali ufficiali non vengono più persi al salvataggio
 
 ## [3.21.0] — Salvataggio su un file a tua scelta
 
@@ -689,7 +730,6 @@ Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 ## [3.19.0] — Valori nutrizionali Dispensa per 100 g invece che per la quantità in giacenza
 
 ### Modificato
-- **Valori nutrizionali della Dispensa ora per 100 g di prodotto**, non più per la quantità che hai in dispensa in quel momento: coerente con l'etichetta nutrizionale stampata sulle confezioni, e non cambia più ogni volta che consumi parte del prodotto. La ricerca "🔎 Cerca su CREA" ora compila i 7 valori direttamente dalla banca dati (senza più richiedere di inserire prima la quantità in grammi/kg per poterli calcolare)
 - **La card del prodotto in Dispensa mostra tutti e 7 i valori** (Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri, Sale) invece della sola Kcal
 
 ## [3.18.0] — Frazioni da cucina per cucchiai, cucchiaini, pizzichi, pezzi...

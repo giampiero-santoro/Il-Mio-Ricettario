@@ -16,5 +16,11 @@ async def run(page):
     await page.click("#legal-link")
     await page.locator("#note-legali").wait_for(state="visible")
     t = await page.locator("#note-legali").inner_text()
-    for parola in ("Privacy", "Open Food Facts", "Open-Meteo", "CREA", "allergeni", "html5-qrcode"):
+    for parola in ("Privacy", "Open Food Facts", "allergeni", "html5-qrcode"):
         check(parola.lower() in t.lower(), f"Nelle note legali compare: {parola}")
+    corpo = await page.evaluate("document.body.innerText + document.documentElement.innerHTML")
+    check("CREA" not in corpo.replace("CREATE", ""), "Nessun riferimento a CREA nella pagina")
+    check(not any("crea-" in u for u in esterne), "Nessun file dati CREA richiesto")
+    await page.click("#nav-recipes-btn")
+    await page.wait_for_timeout(300)
+    check(await page.locator("#recipe-list .card").count() == 0, "Nessuna ricetta di esempio inclusa nell'app")

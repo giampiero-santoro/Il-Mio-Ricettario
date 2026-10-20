@@ -10,32 +10,34 @@
 :root{
   color-scheme: light;
 
-  /* --- Palette di base --- */
-  --bg:#F5F1E8;            /* sfondo principale (avorio) */
-  --surface:#FFFCF6;       /* schede e pannelli */
-  --surface-2:#FAF6EC;     /* superfici secondarie, righe alterne */
+  /* --- Palette di base (tema "Verde acqua", v5.28) --- */
+  --bg:#F4F8FD;            /* sfondo principale (azzurro chiarissimo) */
+  --surface:#FFFFFF;       /* schede e pannelli */
+  --surface-2:#F0F6FB;     /* superfici secondarie, righe alterne */
   --field-bg:#FFFFFF;      /* campi di testo */
-  --sage:#536B52;          /* verde salvia scuro: colore identificativo */
-  --accent:#536B52;        /* sfondo dei pulsanti principali */
-  --accent-hover:#43573F;
-  --accent-ink:#43573F;    /* testo verde su fondo chiaro */
+  --sage:#15806A;          /* verde acqua scuro: colore identificativo */
+  --accent:#15806A;        /* sfondo dei pulsanti principali (contrasto 4,8:1 col bianco) */
+  --accent-hover:#0F6F5B;
+  --accent-ink:#0F6F5B;    /* testo verde su fondo chiaro */
   --on-accent:#FFFFFF;
-  --sage-soft:#E5EDE1;     /* selezioni, voce attiva */
-  --terra:#C77855;         /* terracotta: solo dettagli e azioni secondarie */
-  --terra-ink:#9A4F34;     /* terracotta per testi (contrasto AA su avorio) */
-  --terra-soft:#F6E6DC;
-  --text:#292D29;
-  --text-2:#666862;        /* testo secondario (≥ 4.5:1 su avorio) */
-  --border:#E4DDD0;
-  --border-strong:#D3C9B6;
+  --sage-soft:#DDF5EE;     /* selezioni, voce attiva (menta) */
+  --teal:#2FA88A;          /* verde acqua vivo: solo decorazioni, barre, banner */
+  --mint:#D8F5EE;          /* riquadri menta */
+  --terra:#E8895F;         /* pesca/terracotta: dettagli e azioni secondarie */
+  --terra-ink:#A5532F;     /* terracotta per testi (contrasto AA su pesca) */
+  --terra-soft:#FDEEE0;    /* pesca chiaro */
+  --text:#1F2A2E;
+  --text-2:#5F6B7A;        /* testo secondario (≥ 4.5:1 su azzurro chiaro) */
+  --border:#DCE6EF;
+  --border-strong:#C3D2E0;
   --white:#FFFFFF;
   --danger:#B4493B;
 
   /* --- Forme e ombre (leggere) --- */
-  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px;
-  --shadow-card:0 1px 2px rgba(60,50,30,.05), 0 6px 18px rgba(60,50,30,.05);
-  --shadow-pop:0 12px 36px rgba(41,45,41,.18);
-  --overlay-bg:rgba(41,45,41,.42);
+  --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:24px;
+  --shadow-card:0 1px 2px rgba(30,70,100,.05), 0 8px 24px rgba(30,70,100,.06);
+  --shadow-pop:0 12px 36px rgba(20,50,70,.20);
+  --overlay-bg:rgba(20,40,50,.42);
 
   /* --- Alias storici (usati dal resto del CSS e da stili inline in JS) --- */
   --parchment:var(--bg);
@@ -44,14 +46,14 @@
   --ink-soft:var(--text-2);
   --line:var(--border);
   --gold:var(--accent);
-  --gold-bright:#6E8B6C;
+  --gold-bright:#2FA88A;
   --gold-deep:var(--accent-hover);
   --brass:var(--accent-ink);
   --wood:var(--accent-ink);
   --wood-dark:var(--bg);
-  --shadow:rgba(60,50,30,.14);
-  --shadow-2:rgba(60,50,30,.07);
-  --green:#4E7C4B;
+  --shadow:rgba(30,70,100,.14);
+  --shadow-2:rgba(30,70,100,.07);
+  --green:#2E8B6A;
   --orange:var(--terra-ink);
   --red:var(--danger);
 
@@ -73,18 +75,18 @@
    Un verde-grigio caldo, non nero: stesso schema di variabili. */
 :root[data-tema="scuro"]{
   color-scheme: dark;
-  --bg:#1D211E; --surface:#272C28; --surface-2:#2C322D; --field-bg:#202521;
-  --sage:#8DAE8B; --accent:#5E7C5C; --accent-hover:#6D8D6B; --accent-ink:#A9C8A7; --on-accent:#FFFFFF;
-  --sage-soft:#2F3B30;
-  --terra:#D98B68; --terra-ink:#E8A586; --terra-soft:#3B2D26;
-  --text:#ECEAE2; --text-2:#A9ACA3; --border:#3A413B; --border-strong:#4A524B;
+  --bg:#0F1A1E; --surface:#16252A; --surface-2:#1B2D33; --field-bg:#122024;
+  --sage:#5FD0B2; --accent:#1E8F77; --accent-hover:#25A68B; --accent-ink:#86E3CB; --on-accent:#FFFFFF;
+  --sage-soft:#17382F; --teal:#2FA88A; --mint:#17382F;
+  --terra:#F0996F; --terra-ink:#F5B08F; --terra-soft:#3A2A22;
+  --text:#E8F1F3; --text-2:#9FB2B8; --border:#27393F; --border-strong:#35505A;
   --danger:#E27C6D;
-  --shadow-card:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.22);
-  --shadow-pop:0 12px 36px rgba(0,0,0,.5);
-  --overlay-bg:rgba(8,10,8,.6);
-  --gold-bright:#86A684;
+  --shadow-card:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  --shadow-pop:0 12px 36px rgba(0,0,0,.55);
+  --overlay-bg:rgba(4,10,12,.62);
+  --gold-bright:#3DBF9F;
   --shadow:rgba(0,0,0,.45); --shadow-2:rgba(0,0,0,.3);
-  --green:#8DBE88;
+  --green:#6FD0A8;
 }
 
 *{box-sizing:border-box;}
@@ -477,53 +479,18 @@ textarea{resize:vertical;min-height:70px;line-height:1.5;}
 .ingredient-nutrition{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;padding:10px;border:1px dashed var(--border-strong);border-radius:10px;background:var(--surface-2);}
 .ingredient-nutrition .mini{display:flex;flex-direction:column;font-size:var(--fs-xxs);font-weight:600;color:var(--text-2);}
 .ingredient-nutrition .mini input{width:64px;padding:5px 6px;font-size:var(--fs-md);}
-.ingredient-nutrition .mini input.ing-crea-search{width:100%;min-width:180px;}
 
-.crea-autocomplete-wrapper{position:relative;}
-.crea-autocomplete-dropdown{
+.ricerca-ac-wrapper{position:relative;}
+.ricerca-ac-dropdown{
   position:absolute;z-index:40;top:calc(100% + 4px);left:0;right:0;margin:0;padding:4px;list-style:none;
   background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;max-height:220px;overflow-y:auto;box-shadow:var(--shadow-pop);
 }
-.crea-autocomplete-item{padding:7px 9px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:var(--fs-md);}
-.crea-autocomplete-item:hover{background:var(--sage-soft);}
-.crea-autocomplete-nome{font-weight:500;color:var(--text);}
-.crea-autocomplete-dettagli{font-size:var(--fs-xs);color:var(--text-2);white-space:nowrap;}
-.crea-scheda-btn{flex:0 0 auto;border:1px solid var(--border-strong);background:var(--surface);border-radius:10px;padding:0 12px;font-size:15px;cursor:pointer;color:var(--text);display:none;}
-.crea-scheda-btn.visibile{display:inline-block;}
+.ricerca-ac-item{padding:7px 9px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:var(--fs-md);}
+.ricerca-ac-item:hover{background:var(--sage-soft);}
+.ricerca-ac-nome{font-weight:500;color:var(--text);}
+.ricerca-ac-dettagli{font-size:var(--fs-xs);color:var(--text-2);white-space:nowrap;}
 
-.crea-scheda-completa{color:var(--text);}
-.crea-scheda-titolo{font-family:var(--font-titoli);font-size:26px;margin:0 0 2px;color:var(--text);}
-.crea-scheda-sottotitolo{font-size:var(--fs-md);color:var(--text-2);margin-bottom:14px;}
-.crea-scheda-sezione{margin-bottom:16px;}
-.crea-scheda-sezione h4{font-size:15px;font-weight:700;margin:0 0 6px;color:var(--accent-ink);border-bottom:1px solid var(--border);padding-bottom:4px;}
-.crea-scheda-tabella{width:100%;border-collapse:collapse;font-size:14px;}
-.crea-scheda-tabella tr:nth-child(odd){background:var(--surface-2);}
-.crea-scheda-tabella td{padding:4px 8px;}
-.crea-scheda-tabella td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;}
-.crea-scheda-fonte{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border-strong);font-size:var(--fs-sm);color:var(--text-2);}
-.crea-scheda-fonte a{color:var(--accent-ink);}
-.crea-ricetta-picker-item{display:flex;align-items:center;gap:10px;padding:9px 6px;border-radius:8px;cursor:pointer;}
-.crea-ricetta-picker-item:hover{background:var(--sage-soft);}
-.crea-ricetta-picker-item .name{flex:1;font-size:15px;font-weight:600;color:var(--text);}
-.crea-ricetta-picker-item .meta{font-size:var(--fs-sm);color:var(--text-2);white-space:nowrap;}
 
-/* Elenchi CREA (Valori Alimenti / Ricette) */
-#crea-alimenti-list, #crea-menu-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
-#crea-alimenti-list:empty, #crea-menu-list:empty{display:none;}
-.crea-elenco-riga{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
-.crea-elenco-riga:last-child{border-bottom:none;}
-.crea-elenco-riga:hover{background:var(--sage-soft);}
-.crea-elenco-riga .cat-dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
-.crea-elenco-riga .nome{flex:1;font-size:15px;font-weight:600;color:var(--text);}
-.crea-elenco-riga .meta{font-size:var(--fs-sm);color:var(--text-2);white-space:nowrap;}
-.crea-elenco-vuoto{padding:28px 8px;text-align:center;color:var(--text-2);}
-.crea-elenco-troncato{padding:12px 8px;text-align:center;color:var(--text-2);font-size:var(--fs-sm);}
-.crea-menu-dettaglio h2{margin:0 0 2px;}
-.crea-menu-dettaglio .crea-menu-meta{font-size:var(--fs-md);color:var(--text-2);margin-bottom:14px;}
-.crea-menu-dettaglio h4{font-size:16px;font-weight:700;color:var(--accent-ink);border-bottom:1px solid var(--border);padding-bottom:4px;margin:18px 0 8px;}
-.crea-menu-dettaglio ul{margin:0;padding-left:20px;}
-.crea-menu-dettaglio li{margin-bottom:4px;}
-.crea-menu-dettaglio .crea-menu-prep{white-space:pre-wrap;line-height:1.55;}
 
 .nutrition-summary{margin:14px 0 16px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface-2);}
 .nutrition-summary h4{margin:0 0 8px;font-size:15px;font-weight:700;color:var(--text);}
@@ -851,12 +818,6 @@ footer{text-align:center;color:var(--text-2);font-size:var(--fs-sm);margin-top:2
 .today-expiry-more{color:var(--text-2);font-size:var(--fs-sm);border-bottom:0;padding-top:3px;}
 .today-list .cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;}
 .today-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
-.today-weather-main{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
-.today-weather-temp{font-family:var(--font-titoli);font-size:38px;font-weight:600;line-height:1;}
-.today-weather-setup{display:flex;flex-direction:column;gap:8px;}
-.today-weather-search{display:flex;gap:8px;}
-.today-weather-search input{flex:1;min-width:0;}
-.today-weather-results{display:flex;flex-direction:column;}
 
 .quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
 .quick-tile{
@@ -1302,3 +1263,69 @@ details.pantry-panel .panel-sub{white-space:nowrap;overflow:hidden;text-overflow
 .stat-bar-track{background:rgba(128,128,128,.15);border-radius:6px;height:12px;overflow:hidden}
 .stat-bar-fill{display:block;height:100%;border-radius:6px}
 .stat-bar-n{text-align:right;opacity:.75}
+
+/* ===== Tema "Verde acqua" (v5.28): banner, riquadri pesca e menta ===== */
+#today-content .today-hero-row > .page-head{
+  position:relative; overflow:hidden; align-items:center; padding:26px 28px; margin-bottom:20px;
+  border-radius:var(--r-xl);
+  background:
+    radial-gradient(circle at 88% 20%, rgba(255,255,255,.16) 0 70px, transparent 71px),
+    radial-gradient(circle at 96% 88%, rgba(255,255,255,.12) 0 110px, transparent 111px),
+    linear-gradient(100deg,#15806A 0%,#1B9279 55%,#2FA88A 100%);
+  color:#fff;
+}
+#today-content .today-hero-row > .page-head h2{color:#fff;font-size:38px;font-weight:500;letter-spacing:-.015em;}
+#today-content .today-hero-row > .page-head p,#today-content .today-hero-row > .page-head .today-hello,#today-content .today-hero-row > .page-head .today-hello strong{color:#fff;}
+#today-content .today-hero-row > .page-head .btn-gold{background:#fff;color:var(--accent-ink);border-color:#fff;font-weight:700;}
+#today-content .today-hero-row > .page-head .btn-gold:hover{background:var(--mint);}
+.today-empty-card{background:var(--terra-soft);border:0;}
+.quick-tile{border:0;box-shadow:none;background:var(--mint);}
+.quick-tile:nth-child(even){background:var(--terra-soft);}
+.quick-tile:nth-child(even) .qi{background:#fff;color:var(--terra-ink);}
+.quick-tile .qi{background:#fff;}
+.quick-tile:hover{background:var(--sage-soft);box-shadow:var(--shadow-card);}
+.guide-card{background:var(--mint);border:0;}
+.sidebar-footnote a{color:var(--accent-ink);text-decoration:underline;}
+#backup-weekly-banner{border:0!important;background:var(--terra-soft)!important;border-radius:var(--r-md)!important;}
+:root[data-tema="scuro"] #today-content .today-hero-row > .page-head{background:
+    radial-gradient(circle at 88% 20%, rgba(255,255,255,.08) 0 70px, transparent 71px),
+    linear-gradient(100deg,#0F5E4E 0%,#14705D 60%,#1E8F77 100%);}
+:root[data-tema="scuro"] .quick-tile,:root[data-tema="scuro"] .guide-card{background:var(--sage-soft);}
+:root[data-tema="scuro"] .quick-tile:nth-child(even),:root[data-tema="scuro"] .today-empty-card{background:var(--terra-soft);}
+:root[data-tema="scuro"] #today-content .today-hero-row > .page-head .btn-gold{color:#0F5E4E;}
+@media (max-width:760px){#today-content .today-hero-row > .page-head{padding:20px 18px;}#today-content .today-hero-row > .page-head h2{font-size:30px;}}
+.stat-card li{display:list-item}
+.stat-card li > .stat-link{display:inline}
+.stat-card li{overflow:hidden}
+.stat-card li .stat-extra{float:right;white-space:nowrap}
+.stat-tile{border:0;box-shadow:none;background:var(--mint)}
+.stat-tile:nth-child(even){background:var(--terra-soft)}
+.stat-bar-fill{background-image:none}
+:root[data-tema="scuro"] .stat-tile{background:var(--sage-soft)}
+:root[data-tema="scuro"] .stat-tile:nth-child(even){background:var(--terra-soft)}
+.stat-card ol{list-style:none;padding:0;counter-reset:st}
+.stat-card li{display:flex;align-items:baseline;gap:8px;overflow:visible;counter-increment:st;padding:6px 0;border-bottom:1px solid var(--border)}
+.stat-card li:last-child{border-bottom:0}
+.stat-card li::before{content:counter(st);flex:0 0 18px;color:var(--text-2);font-size:.85rem}
+.stat-card li .stat-link{flex:1 1 auto;text-align:left;min-width:0}
+.stat-card li .stat-extra{float:none;margin-left:auto;white-space:nowrap;flex:0 0 auto}
+/* Oggi: riquadri Le mie ricette / Da consumare prima / Lista della spesa sopra i pasti (v5.29) */
+.today-grid .today-card{border:0;box-shadow:none;background:var(--mint)}
+.today-grid .today-card:nth-child(2){background:var(--terra-soft)}
+:root[data-tema="scuro"] .today-grid .today-card{background:var(--sage-soft)}
+:root[data-tema="scuro"] .today-grid .today-card:nth-child(2){background:var(--terra-soft)}
+
+/* Oggi: banner + riquadro statistiche affiancati (v5.31) */
+.today-hero-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px;margin-bottom:20px;align-items:stretch}
+.today-hero-row > .page-head{margin-bottom:0!important}
+.today-stats-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:18px 20px;box-shadow:var(--shadow-card);display:flex;flex-direction:column;gap:10px}
+.today-stats-card .block-head{margin:0}
+.today-stats-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.today-stat{background:var(--mint);border-radius:var(--r-md);padding:8px 10px;display:flex;flex-direction:column}
+.today-stat:nth-child(2),.today-stat:nth-child(3){background:var(--terra-soft)}
+.today-stat b{font-size:1.25rem;line-height:1.2}
+.today-stat span{font-size:var(--fs-xs);color:var(--text-2)}
+.today-stats-top{margin:0;font-size:var(--fs-sm);color:var(--text-2)}
+:root[data-tema="scuro"] .today-stat{background:var(--sage-soft)}
+:root[data-tema="scuro"] .today-stat:nth-child(2),:root[data-tema="scuro"] .today-stat:nth-child(3){background:var(--terra-soft)}
+@media (max-width:900px){.today-hero-row{grid-template-columns:1fr}}
