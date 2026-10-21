@@ -190,34 +190,13 @@
     <div class="menu-wrap">
       <button type="button" class="btn-ghost more-menu-btn" id="more-menu-btn" aria-haspopup="true" aria-label="Altre azioni: importa, backup, seleziona, ricettari" title="Altre azioni"><svg class="ico" aria-hidden="true"><use href="#i-more"/></svg></button>
       <div class="menu-dropdown" id="more-menu-dropdown">
-        <div class="menu-info menu-section">Importa ricette</div>
-          <button id="paste-import-btn">📋 Da testo</button>
-          <button id="import-recipe-file-btn">📄 Da file (.json)</button>
-          <input type="file" id="import-recipe-file-input" accept=".json,application/json" style="display:none;">
-        <div class="menu-divider"></div>
-        <div class="menu-info menu-section">Backup e dati</div>
-          <div class="menu-info" id="backup-reminder-text"></div>
-          <button id="export-btn">⬇ Esporta backup</button>
-          <button id="backup-reminder-toggle-btn" type="button">🔔 Promemoria settimanale: attivo</button>
-          <button id="import-btn">⬆ Importa backup</button>
-          <input type="file" id="import-file-input" accept="application/json" style="display:none;">
-          <div class="menu-divider"></div>
-          <div class="menu-info" id="file-storage-status-text">Salvataggio: solo in questo browser</div>
-          <button id="file-storage-link-btn">🗂️ Collega un file di salvataggio…</button>
-          <button id="file-storage-unlink-btn" style="display:none;">🔌 Scollega (torna al solo browser)</button>
-          <div class="menu-divider"></div>
-          <div class="menu-info" style="padding-bottom:2px;">Ricettario per CSV/PDF singoli:</div>
-          <select id="csv-ricettario-scope" style="margin:0 10px 6px;width:calc(100% - 20px);"></select>
-          <button id="export-csv-btn">⬇ Esporta CSV</button>
-          <button id="import-csv-btn">⬆ Importa CSV</button>
-          <input type="file" id="import-csv-file-input" accept=".csv,text/csv" style="display:none;">
-          <div class="menu-divider"></div>
-          <button id="export-all-pdf-btn">📖 Esporta ricettario in PDF…</button>
+        <div class="menu-info menu-section">Importa e backup</div>
+          <button type="button" id="more-goto-import">📥 Importa ricette…</button>
+          <button type="button" id="more-goto-backup">💾 Backup ed esportazione…</button>
         <div class="menu-divider"></div>
         <button type="button" class="menu-plain" id="select-mode-btn">Seleziona ed elimina ricette</button>
         <button type="button" class="menu-plain" id="manage-ricettari-btn">Gestisci ricettari</button>
         <button type="button" class="menu-plain" id="open-cestino-btn">🗑 Cestino</button>
-        <button type="button" class="menu-plain" id="open-trasferimento-btn">📲 Cambio dispositivo</button>
       </div>
     </div>
   </div>
@@ -298,11 +277,10 @@
     <div class="planning-header">
       <div>
         <h2>Pianificazione settimanale</h2>
-        <p class="page-sub">Organizza i tuoi pasti per tutta la settimana: più ricette per fascia, con orario facoltativo.</p>
+        <p class="page-sub">Ogni giorno parte vuoto: aggiungi tu i pasti che ti servono (anche più di quattro), con più ricette per pasto e orario facoltativo.</p>
       </div>
       <div class="page-actions">
         <button class="btn-ghost btn-small" id="planning-goto-dispensa-btn" title="Apri la Dispensa per controllare cosa hai già">Dispensa</button>
-        <button class="btn-ghost btn-small" id="add-mealtype-btn">+ Fascia pasto</button>
       </div>
     </div>
 
@@ -377,6 +355,87 @@
       <div style="flex:1;"></div>
       <button type="button" class="btn-ghost btn-small" id="share-spesa-btn" title="Condividi la lista come testo (WhatsApp, note, messaggi…)">📤 Condividi testo</button>
       <button type="button" class="btn-ghost btn-small" id="spesa-pdf-btn">⬇ Esporta PDF</button>
+    </div>
+  </div>
+
+  <div id="import-view" style="display:none;">
+    <div class="page-head"><div><h2>Importa ricette</h2><p>Porta nel ricettario ricette che hai altrove. Prima di salvare potrai sempre controllare e correggere.</p></div></div>
+    <div class="tool-grid">
+      <section class="tool-card">
+        <div class="tool-ico" aria-hidden="true">📋</div>
+        <h3>Da testo</h3>
+        <p>Incolla il testo di una ricetta (copiato da un sito, da un messaggio o da un documento): il ricettario riconosce nome, ingredienti e passaggi.</p>
+        <button type="button" class="btn-gold" id="paste-import-btn">Incolla il testo…</button>
+      </section>
+      <section class="tool-card">
+        <div class="tool-ico" aria-hidden="true">📄</div>
+        <h3>Da file ricetta (.json)</h3>
+        <p>Un file di ricette esportato da questo ricettario, per esempio da un altro dispositivo o da un familiare.</p>
+        <button type="button" class="btn-gold" id="import-recipe-file-btn">Scegli il file…</button>
+        <input type="file" id="import-recipe-file-input" accept=".json,application/json" style="display:none;">
+      </section>
+      <section class="tool-card">
+        <div class="tool-ico" aria-hidden="true">📊</div>
+        <h3>Da foglio di calcolo (.csv)</h3>
+        <p>Un file CSV (da Excel o Google Fogli) con una ricetta per riga. Le ricette senza ricettario indicato vanno in quello scelto qui sotto.</p>
+        <label class="tool-field">Aggiungi al ricettario
+          <select id="csv-import-scope"></select>
+        </label>
+        <button type="button" class="btn-gold" id="import-csv-btn">Scegli il file CSV…</button>
+        <input type="file" id="import-csv-file-input" accept=".csv,text/csv" style="display:none;">
+      </section>
+      <section class="tool-card">
+        <div class="tool-ico" aria-hidden="true">⬆️</div>
+        <h3>Da un backup completo</h3>
+        <p>Riporta ricette, Dispensa e pianificazioni da un file creato con «Esporta backup». Se cambi telefono usa invece «Cambio dispositivo».</p>
+        <button type="button" class="btn-gold" id="import-btn">Importa backup…</button>
+        <input type="file" id="import-file-input" accept="application/json" style="display:none;">
+      </section>
+    </div>
+  </div>
+
+  <div id="backup-view" style="display:none;">
+    <div class="page-head"><div><h2>Backup ed esportazione</h2><p>Metti al sicuro le tue ricette, salvale in un file che scegli tu o esportale per stamparle e condividerle.</p></div></div>
+    <div class="tool-grid">
+      <section class="tool-card">
+        <div class="tool-ico" aria-hidden="true">💾</div>
+        <h3>Backup</h3>
+        <p class="tool-status" id="backup-reminder-text"></p>
+        <p>Un file con tutto: ricette, foto, Dispensa, pianificazioni e impostazioni. Conservalo in un posto sicuro (Drive, e-mail, memoria del telefono).</p>
+        <div class="tool-actions">
+          <button type="button" class="btn-gold" id="export-btn">⬇ Esporta backup</button>
+          <button type="button" class="btn-ghost" id="backup-reminder-toggle-btn">🔔 Promemoria settimanale: attivo</button>
+        </div>
+        <p class="tool-note">Per ripristinare un backup: <button type="button" class="link-btn" id="backup-goto-import">Importa ricette → Da un backup completo</button></p>
+      </section>
+      <section class="tool-card">
+        <div class="tool-ico" aria-hidden="true">🗂️</div>
+        <h3>Salvataggio su file</h3>
+        <p class="tool-status" id="file-storage-status-text">Salvataggio: solo in questo browser</p>
+        <p>Collega un file (anche dentro una cartella sincronizzata come Drive): ogni modifica si salva da sola anche lì. Consigliato: una cartella «Il Mio Ricettario».</p>
+        <div class="tool-actions">
+          <button type="button" class="btn-gold" id="file-storage-link-btn">🗂️ Collega un file di salvataggio…</button>
+          <button type="button" class="btn-ghost" id="file-storage-unlink-btn" style="display:none;">🔌 Scollega (torna al solo browser)</button>
+        </div>
+      </section>
+      <section class="tool-card">
+        <div class="tool-ico" aria-hidden="true">📖</div>
+        <h3>Esporta le ricette</h3>
+        <p>Un foglio di calcolo (CSV) o un libro in PDF da stampare.</p>
+        <label class="tool-field">Quali ricette
+          <select id="csv-ricettario-scope"></select>
+        </label>
+        <div class="tool-actions">
+          <button type="button" class="btn-ghost" id="export-csv-btn">⬇ Esporta CSV</button>
+          <button type="button" class="btn-ghost" id="export-all-pdf-btn">📖 Esporta ricettario in PDF…</button>
+        </div>
+      </section>
+      <section class="tool-card">
+        <div class="tool-ico" aria-hidden="true">📲</div>
+        <h3>Cambio dispositivo</h3>
+        <p>Passa tutto su un nuovo telefono o computer con una procedura guidata.</p>
+        <button type="button" class="btn-gold" id="open-trasferimento-btn">Avvia il trasferimento…</button>
+      </section>
     </div>
   </div>
 

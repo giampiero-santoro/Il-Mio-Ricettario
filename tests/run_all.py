@@ -50,6 +50,8 @@ TEST_MODULES = [
     "test_23_cucina_timer_voce",
     "test_24_statistiche",
     "test_25_nessuna_chiamata_esterna",
+    "test_26_pasti_a_piacere",
+    "test_27_pagine_importa_backup",
 ]
 
 

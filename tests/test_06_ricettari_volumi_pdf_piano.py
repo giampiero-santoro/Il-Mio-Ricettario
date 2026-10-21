@@ -1,5 +1,5 @@
 """Volumi: riordino, etichetta del ricettario nel selettore del piano, nome file PDF."""
-from helpers import check, reset_app_state
+from helpers import check, reset_app_state, aggiungi_pasto
 
 
 async def run(page):
@@ -45,6 +45,7 @@ async def run(page):
     # Selettore del piano: etichetta del volume
     await page.click("#nav-planning-btn")
     await page.locator("#planning-view").wait_for(state="visible")
+    await aggiungi_pasto(page, "Pranzo")
     btn = page.locator("#planning-days .plan-add-btn").first
     await btn.click()
     await page.locator("#recipe-picker-overlay.active").wait_for(timeout=5000)
@@ -113,6 +114,6 @@ async def run(page):
     await page.click("#filters-apply-btn")
     check(not await page.locator("#filters-badge").is_visible(), "Azzera non ha tolto i filtri")
     await page.click("#more-menu-btn")
-    check(await page.locator("#export-btn").is_visible(), "Il menu ⋯ non mostra il backup")
-    check(await page.locator("#paste-import-btn").is_visible(), "Il menu ⋯ non mostra l'importazione")
+    check(await page.locator("#more-goto-backup").is_visible(), "Il menu ⋯ non porta al backup")
+    check(await page.locator("#more-goto-import").is_visible(), "Il menu ⋯ non porta all'importazione")
     await page.keyboard.press("Escape")

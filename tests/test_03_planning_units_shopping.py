@@ -3,7 +3,7 @@
  - raggruppamento della lista della spesa per reparto
  - persistenza dello stato delle spunte della lista della spesa
 """
-from helpers import check, reset_app_state
+from helpers import check, reset_app_state, aggiungi_pasto
 
 NOME_RICETTA = "Test Automatico Pane Fatto in Casa"
 NOME_PRODOTTO = "Test Automatico Farina Manitoba"
@@ -47,6 +47,7 @@ async def _crea_prodotto_dispensa(page):
 async def _pianifica_ricetta(page):
     await page.click("#nav-planning-btn")
     await page.locator("#planning-view").wait_for(state="visible")
+    await aggiungi_pasto(page, "Pranzo")
     first_add_btn = page.locator(".plan-add-btn").first
     await first_add_btn.click()
     await page.locator("#recipe-picker-overlay").wait_for(state="visible", timeout=5000)

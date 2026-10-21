@@ -150,7 +150,7 @@ Nel modulo di modifica puoi spuntare **"❄️ Si congela bene"** per le ricette
 
 ## Ricerca, filtri ed esclusione ingredienti
 
-**Barra compatta (novità 5.10):** in cima a "Le mie ricette" ci sono solo la ricerca, il pulsante **Filtri** (con un numero quando hai filtri attivi), il menu **⋯** (Importa, Backup e dati, Seleziona ed elimina, Gestisci ricettari) e le categorie. L'ordinamento e il numero di ricette stanno sopra l'elenco. Su telefono "Aggiungi ricetta" diventa un pulsante tondo in basso.
+**Barra compatta (novità 5.10):** in cima a "Le mie ricette" ci sono solo la ricerca, il pulsante **Filtri** (con un numero quando hai filtri attivi), il menu **⋯** (collegamenti a Importa ricette e Backup ed esportazione, Seleziona ed elimina, Gestisci ricettari, Cestino) e le categorie. L'ordinamento e il numero di ricette stanno sopra l'elenco. Su telefono "Aggiungi ricetta" diventa un pulsante tondo in basso.
 
 - Il campo di ricerca cerca sia nel nome della ricetta sia negli ingredienti
 - Il menu a tendina filtra per categoria
@@ -203,8 +203,9 @@ Puoi anche saltare la ricerca e pianificare al volo mentre guardi una ricetta: n
 
 - Su computer e tablet largo la pianificazione si apre come una **griglia della settimana**: i sette giorni in riga, le fasce pasto in colonna, con il giorno di oggi evidenziato e le celle già riempite in verde chiaro (quelle vuote restano bianche, così si vedono subito). In ogni cella premi **"+ Ricetta"** o **"Dispensa"** per aggiungere un pasto; nella griglia compaiono anche porzioni, ✓ consumato e × rimuovi. L'icona matita accanto al giorno apre quel giorno nel dettaglio
 - Con l'interruttore **"Settimana / Giorno"** puoi passare alla vista **un giorno alla volta** (la scelta si ricorda): usa le linguette in alto (Lun, Mar, Mer…) o le frecce ‹ › per cambiare giorno. Su smartphone e schermi stretti si usa sempre questa vista, perché la griglia non sarebbe leggibile. Orario e note per fascia si modificano nella vista "Giorno"
-- Ogni giorno è diviso in **fasce pasto** (di base: Colazione, Pranzo, Spuntino, Cena) e ciascuna fascia può contenere più ricette
-- Premi **"+ Aggiungi fascia pasto"** per crearne di nuove (es. "Aperitivo"); il cestino su una fascia la rimuove — le ricette già assegnate a quella fascia restano visibili sotto "Altro", non si perdono
+- **Ogni giorno parte vuoto**: i pasti li aggiungi tu, quanti ne servono (anche solo 2 in una giornata e 8 o più in un'altra). Dal menu a tendina **"＋ Aggiungi pasto…"** scegli tra Colazione, Spuntino, Pranzo, Merenda, Cena, Brunch, Aperitivo, Dopocena, Pre-allenamento, Post-allenamento, oppure **"Altro (scrivi il nome)…"** per un pasto tutto tuo (resta poi nel menu)
+- Puoi aggiungere **più pasti dello stesso tipo** nello stesso giorno (compaiono come "Spuntino" e "Spuntino 2"). I pasti si dispongono da soli in ordine di orario (usando l'orario che indichi o quello tipico del pasto) e ciascuno può contenere più ricette
+- La **×** su un pasto lo rimuove: se contiene ricette ti chiede conferma, e le ricette restano nel ricettario. Le pianificazioni già fatte restano com'erano
 - Per aggiungere una ricetta: imposta prima l'**orario facoltativo**, poi premi **"🔍 Cerca ricetta…"** — si apre una finestra dove puoi cercare per nome o ingrediente e toccare quella che vuoi, invece di scorrere un elenco lungo
 - Quando aggiungi una ricetta alla pianificazione (da qui o dal pulsante "📅 Pianifica" nella sua scheda), il ricettario controlla i suoi ingredienti rispetto a quello che hai segnato nella Dispensa: se qualcosa manca, te lo segnala e ti chiede conferma prima di aggiungerlo a un promemoria per la lista della spesa
 - Per aggiungere invece un prodotto della Dispensa come pasto (es. uno yogurt a colazione, della frutta come spuntino): imposta l'orario facoltativo e premi **"🥫 Dalla dispensa…"** — si apre una finestra di ricerca sui prodotti che hai in dispensa, allo stesso modo di quella delle ricette. Scelto il prodotto, viene chiesta una **quantità facoltativa** per quel pasto (precompilata con quella che hai in dispensa, ma modificabile): se la indichi, compare accanto al nome nella pianificazione
@@ -253,7 +254,7 @@ Ogni ingrediente che compare più volte (anche da ricette diverse, se pianifichi
 
 ## Backup: esportazione e importazione
 
-Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **"⋯"** (sezione "Backup e dati") in alto, per non affollare la pagina. In cima al menu trovi anche un promemoria discreto ("Ultimo backup: X giorni fa"), che diventa rosso dopo due settimane senza backup.
+Le funzioni di backup, esportazione e importazione hanno **due pagine dedicate** nel menu laterale: **Importa ricette** (da testo, da file .json, da CSV, da un backup completo) e **Backup ed esportazione** (backup, salvataggio su file, esportazione CSV e PDF, cambio dispositivo). Ci arrivi anche dal menu **⋯** di "Le mie ricette". In cima a "Backup" trovi un promemoria ("Ultimo backup: X giorni fa") che diventa rosso dopo due settimane senza backup.
 
 - **Esporta backup**: scarica un file `.json` con tutte le ricette (con il ricettario a cui appartengono), i ricettari stessi con le loro copertine, la pianificazione settimanale, le fasce pasto personalizzate e i promemoria di ingredienti mancanti dalla Dispensa. Fallo periodicamente, o prima di cancellare i dati del browser
 - **Importa backup**: seleziona un file `.json` esportato in precedenza per ricaricare i dati. Le ricette e i prodotti Dispensa nuovi (identificativo non già presente) vengono sempre aggiunti; se il backup contiene anche voci già presenti (stesso identificativo — capita importando un backup più recente esportato da un altro dispositivo), ti viene chiesto una volta se sostituirle con la versione dal backup oppure lasciarle come sono. Alla fine un riepilogo ti dice quante ne sono state aggiunte, aggiornate o lasciate invariate
@@ -263,7 +264,7 @@ Tutte le funzioni di questa sezione e della prossima si trovano sotto il menu **
 - Dalla vista di una ricetta, il menu **"⬇ Esporta ▾"** offre **"⬇ Esporta PDF"** per scaricarla come file (con ingredienti già scalati alle porzioni che stai visualizzando)
 - Dalla lista della spesa (settimana, giorno o singola ricetta), **"⬇ Esporta PDF"** scarica la lista come file
 - Dalla vista Pianificazione, **"⬇ Esporta PDF settimana"** scarica un file con il piano di tutti i giorni insieme alla lista della spesa aggregata
-- Per stampare o portare con te **tutto il ricettario**: menu **"⋯" → "📖 Esporta ricettario in PDF…"**. Scarica un unico file con un indice iniziale (i nomi di tutte le ricette, nell'ordine in cui le hai ordinate nell'elenco) seguito da ogni ricetta su una pagina nuova, alle sue porzioni base, con ingredienti, passaggi, valori nutrizionali e note come nell'esportazione di una singola ricetta. Le ricette **archiviate** restano escluse, come nel resto del sito
+- Per stampare o portare con te **tutto il ricettario**: **Backup ed esportazione → "📖 Esporta ricettario in PDF…"**. Scarica un unico file con un indice iniziale (i nomi di tutte le ricette, nell'ordine in cui le hai ordinate nell'elenco) seguito da ogni ricetta su una pagina nuova, alle sue porzioni base, con ingredienti, passaggi, valori nutrizionali e note come nell'esportazione di una singola ricetta. Le ricette **archiviate** restano escluse, come nel resto del sito
 - Nella stessa finestra puoi scegliere **quali ricette includere**: cerca per nome, spunta singole ricette o intere categorie, oppure apri **"🔍 Filtra per cottura, tag o allergeni"** per restringere l'elenco anche per metodo di cottura, tag dietetici, allergeni esclusi e **ricettario** (filtri combinabili). "Seleziona tutte (visibili)" seleziona solo ciò che risulta dai filtri correnti, senza perdere una selezione fatta in precedenza con un filtro diverso
 - Se esporti ricette di **più ricettari insieme**, sotto il titolo di ogni ricetta (e accanto al suo nome nell'indice) compare da quale ricettario viene — superfluo, e quindi omesso, quando filtri su un solo volume alla volta
 - Il PDF è generato interamente dal ricettario stesso (nessun servizio esterno): supporta più pagine e le lettere accentate italiane; eventuali emoji o simboli non standard nel testo vengono sostituiti con "?"
@@ -365,7 +366,7 @@ In modalità cucina i timer sono in alto e restano attivi cambiando passaggio: *
 Quando cambi le porzioni, le quantità si arrotondano a valori comodi da pesare (437.5 g → ~440 g, 1500 ml → 1.5 l, le uova a numeri interi). Il segno **~** indica un valore arrotondato. Il pulsante **≈ Misure pratiche** sopra gli ingredienti lo spegne per vedere i valori esatti. Liste della spesa e Dispensa usano sempre i valori esatti.
 
 ## Cambio dispositivo
-Menu ⋯ → **📲 Cambio dispositivo**. Sul vecchio dispositivo, scheda «Da questo dispositivo»: crea il file di trasferimento (sul telefono lo invii a te stesso con la condivisione) e, se usi il sito, condividi l'indirizzo. Sul nuovo, apri lo stesso indirizzo, poi «Cambio dispositivo» → «Su questo dispositivo» → scegli il file. Le ricette si aggiungono a quelle presenti e puoi annullare subito l'importazione. Il file contiene anche le foto.
+**Backup ed esportazione → Cambio dispositivo**. Sul vecchio dispositivo, scheda «Da questo dispositivo»: crea il file di trasferimento (sul telefono lo invii a te stesso con la condivisione) e, se usi il sito, condividi l'indirizzo. Sul nuovo, apri lo stesso indirizzo, poi «Cambio dispositivo» → «Su questo dispositivo» → scegli il file. Le ricette si aggiungono a quelle presenti e puoi annullare subito l'importazione. Il file contiene anche le foto.
 
 ## Annullare un'importazione
 Dopo l'importazione di un backup compare per 20 secondi «Annulla»: ripristina i dati come erano prima. Dopo aver ricaricato la pagina non è più possibile: se ti serve, esporta un backup prima di importare.
@@ -393,7 +394,7 @@ Oltre alla memoria del browser, puoi collegare un file sul tuo dispositivo dove 
 - Una volta collegato, ogni modifica si salva automaticamente anche lì, in aggiunta alla memoria del browser (che resta sempre aggiornata come rete di sicurezza: se il file diventasse irraggiungibile, non perdi nulla)
 - Alla riapertura del sito, il browser chiede di **riconfermare l'accesso al file**: comparirà un avviso in alto alla pagina con tre scelte — **"Riconnetti"** (concedi di nuovo l'accesso), **"Non ora"** (nascondi l'avviso per questa volta, il file resta collegato) e **"Non chiedere più"** (scollega il file e smetti di ricevere l'avviso; i dati restano comunque nel browser).
   Questa richiesta è una misura di sicurezza dei browser stessi, non qualcosa che dipende dal sito: i browser concedono l'accesso a un file solo finché la scheda resta aperta, quindi la riconferma va data a ogni nuova sessione. Se ti dà fastidio, "Non chiedere più" è la scelta giusta: continuerai a usare il sito normalmente, salvando nella memoria del browser, e potrai esportare un backup quando vuoi
-- Puoi cambiare file o tornare al solo browser in qualsiasi momento da **"⋯" → "🗂️ Collega/Cambia file di salvataggio"** o **"🔌 Scollega"**
+- Puoi cambiare file o tornare al solo browser in qualsiasi momento da **Backup ed esportazione → "🗂️ Collega/Cambia file di salvataggio"** o **"🔌 Scollega"**
 
 ## Dove vengono salvati e caricati i file
 
@@ -410,12 +411,12 @@ Durante la modalità cucina, **🧺 Ingredienti** (in alto a sinistra) apre l'el
 In "La mia lista della spesa" e nella lista della settimana il pulsante **Condividi testo** manda la lista (per reparto, senza gli articoli già spuntati) a WhatsApp, note o messaggi; sul computer la copia negli appunti.
 
 ## Promemoria di backup
-Ogni 7 giorni (se hai ricette) compare un avviso: "Fai il backup" salva il file (su telefono lo condividi su Drive, WhatsApp, e-mail); "Domani" lo rimanda; "Non ricordarmelo" lo spegne. Si riattiva da ⋯ → Backup e dati → Promemoria settimanale.
+Ogni 7 giorni (se hai ricette) compare un avviso: "Fai il backup" salva il file (su telefono lo condividi su Drive, WhatsApp, e-mail); "Domani" lo rimanda; "Non ricordarmelo" lo spegne. Si riattiva da Backup ed esportazione → Promemoria settimanale.
 
 ## Usare il ricettario dal telefono (consigliato)
 1. Pubblica la cartella su GitHub Pages e apri l'indirizzo `https://TUONOME.github.io/NOMEREPO/` con Chrome.
-2. Se la copia vecchia (file aperto dal telefono) contiene ricette: aprila, menu ⋯ → Backup e dati → **Esporta backup**.
-3. Nella copia dal sito: menu ⋯ → **Importa** → scegli il file di backup.
+2. Se la copia vecchia (file aperto dal telefono) contiene ricette: aprila, **Backup ed esportazione → Esporta backup**.
+3. Nella copia dal sito: **Importa ricette → Da un backup completo** → scegli il file di backup.
 4. Dal menu di Chrome scegli **Installa app / Aggiungi a schermata Home**. Da quel momento funziona anche offline.
 Nota: i dati di ogni indirizzo sono separati; l'aggiornamento dei file su GitHub richiede Ctrl+F5 (o riapertura dell'app).
 

@@ -76,6 +76,10 @@
   }
   const DAYS = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
   const DEFAULT_MEALTYPES = ['Colazione','Pranzo','Spuntino','Cena'];
+  // Pasti proponibili nel menu «Aggiungi pasto» (v5.32). Ogni giorno parte vuoto: i pasti si aggiungono
+  // a piacere, anche più volte lo stesso (Spuntino, Spuntino 2…). Orari tipici usati solo per l'ordine.
+  const MEAL_SUGGESTIONS = ['Colazione','Spuntino','Pranzo','Merenda','Cena','Brunch','Aperitivo','Dopocena','Pre-allenamento','Post-allenamento'];
+  const MEAL_DEFAULT_TIME = {'Colazione':'07:30','Brunch':'11:00','Spuntino':'10:30','Pranzo':'13:00','Merenda':'16:30','Pre-allenamento':'17:00','Aperitivo':'18:30','Post-allenamento':'19:00','Cena':'20:00','Dopocena':'22:00'};
   const TAG_OPTIONS = ['Vegetariano','Vegano','Senza glutine','Senza lattosio','Piccante'];
   // I 14 allergeni "a dichiarazione obbligatoria" nell'UE (Reg. 1169/2011), usati qui per
   // segnalare cosa CONTIENE una ricetta — distinto dai tag dietetici sopra, che indicano
@@ -422,6 +426,12 @@
       const prevValue = formEl.value;
       formEl.innerHTML = ricettari.map(rb => `<option value="${escapeAttr(rb.id)}">${escapeHtml(rb.name)}</option>`).join('');
       if(prevValue && ricettari.some(rb => rb.id === prevValue)) formEl.value = prevValue;
+    }
+    const csvImportEl = document.getElementById('csv-import-scope');
+    if(csvImportEl){
+      const prevImp = csvImportEl.value;
+      csvImportEl.innerHTML = ricettari.map(rb => `<option value="${escapeAttr(rb.id)}">${escapeHtml(rb.name)}</option>`).join('');
+      if(prevImp && ricettari.some(rb => rb.id === prevImp)) csvImportEl.value = prevImp;
     }
     const csvScopeEl = document.getElementById('csv-ricettario-scope');
     if(csvScopeEl){
@@ -3489,7 +3499,7 @@
     const opening = !viewScheduleDropdown.classList.contains('open');
     viewScheduleDropdown.classList.toggle('open');
     if(opening){
-      scheduleMealtypeSelect.innerHTML = mealTypes.map(mt=>`<option>${escapeHtml(mt)}</option>`).join('');
+      scheduleMealtypeSelect.innerHTML = mealCatalogue().map(mt=>`<option>${escapeHtml(mt)}</option>`).join('');
       const jsDay = new Date().getDay(); // 0=domenica...6=sabato
       scheduleDaySelect.selectedIndex = jsDay === 0 ? 6 : jsDay - 1;
       scheduleTimeInput.value = '';
@@ -4726,8 +4736,8 @@
         }
 
         // Ricettario di ricaduta per le righe senza colonna "Ricettario" (o con cella vuota):
-        // quello scelto nel menu "Backup e CSV" per questa importazione, altrimenti quello di partenza.
-        const fallbackRicettarioId = document.getElementById('csv-ricettario-scope').value || DEFAULT_RICETTARIO_ID;
+        // quello scelto nella pagina «Importa ricette» per questa importazione, altrimenti quello di partenza.
+        const fallbackRicettarioId = document.getElementById('csv-import-scope').value || DEFAULT_RICETTARIO_ID;
         let added = 0, updated = 0, skipped = 0;
 
         rows.forEach(row=>{
@@ -5520,7 +5530,8 @@
   // Etichetta breve mostrata nella barra ☰ su schermo piccolo, per vista corrente.
   const NAV_LABELS = {
     today: 'Oggi', recipes: 'Le mie ricette', planning: 'Pianificazione',
-    spesa: 'Lista della spesa', dispensa: 'Dispensa', info: 'Come funziona', stats: 'Statistiche'
+    spesa: 'Lista della spesa', dispensa: 'Dispensa', info: 'Come funziona', stats: 'Statistiche',
+    importa: 'Importa ricette', backup: 'Backup'
   };
   let currentView = 'today';
   // Evidenzia la voce attiva nella barra laterale e nella barra a schede dello smartphone.
@@ -5535,6 +5546,8 @@
       'nav-dispensa-btn': v === 'dispensa',
       'nav-shopping-btn': v === 'spesa',
       'nav-stats-btn': v === 'stats',
+      'nav-import-btn': v === 'importa',
+      'nav-backup-btn': v === 'backup',
       'nav-info-btn': v === 'info',
       'tab-today': v === 'today',
       'tab-recipes': v === 'recipes',
@@ -5560,6 +5573,8 @@
     document.getElementById('dispensa-view').style.display = view === 'dispensa' ? '' : 'none';
     document.getElementById('spesa-view').style.display = view === 'spesa' ? '' : 'none';
     document.getElementById('stats-view').style.display = view === 'stats' ? '' : 'none';
+    document.getElementById('import-view').style.display = view === 'importa' ? '' : 'none';
+    document.getElementById('backup-view').style.display = view === 'backup' ? '' : 'none';
     document.getElementById('info-view').style.display = view === 'info' ? '' : 'none';
     updateNavActive();
     if(view === 'today') renderToday();
@@ -5568,6 +5583,7 @@
     if(view === 'dispensa') renderDispensaList();
     if(view === 'spesa') renderSpesaLista();
     if(view === 'stats') renderStatistiche();
+    if(view === 'backup') updateBackupReminder();
     const navCurrentLabel = document.getElementById('nav-current-label');
     if(navCurrentLabel) navCurrentLabel.textContent = NAV_LABELS[view] || '';
     closeMobileNav();
@@ -5642,14 +5658,11 @@
       <p class="stat-foot">${S.conFoto} ricette su ${S.n} hanno una foto${S.archiviate ? ` · ${S.archiviate} archiviate non contate` : ''}. Il conteggio delle preparazioni parte da quando segni «Ho preparato questa oggi» o chiudi la modalità cucina con «Fine».</p>`;
     box.querySelectorAll('.stat-link').forEach(b=> b.addEventListener('click', ()=> openView(b.dataset.id)));
   }
-  document.getElementById('nav-import-btn').addEventListener('click', ()=>{
-    switchView('recipes');
-    setTimeout(()=> document.getElementById('more-menu-btn').click(), 0);
-  });
-  document.getElementById('nav-backup-btn').addEventListener('click', ()=>{
-    switchView('recipes');
-    setTimeout(()=> document.getElementById('more-menu-btn').click(), 0);
-  });
+  document.getElementById('nav-import-btn').addEventListener('click', ()=> switchView('importa'));
+  document.getElementById('nav-backup-btn').addEventListener('click', ()=> switchView('backup'));
+  document.getElementById('more-goto-import').addEventListener('click', ()=> switchView('importa'));
+  document.getElementById('more-goto-backup').addEventListener('click', ()=> switchView('backup'));
+  document.getElementById('backup-goto-import').addEventListener('click', ()=> switchView('importa'));
   document.getElementById('nav-ricettari-btn').addEventListener('click', ()=>{
     closeMobileNav();
     openRicettariManage();
@@ -6048,44 +6061,92 @@
   if(planNarrowMQ.addEventListener) planNarrowMQ.addEventListener('change', onPlanMQChange);
   else if(planNarrowMQ.addListener) planNarrowMQ.addListener(onPlanMQChange);
 
-  // Griglia settimanale: righe = giorni, colonne = fasce pasto. Ogni cella ospita più ricette
-  // e mostra a colpo d'occhio gli spazi vuoti (cella più chiara) rispetto a quelli già pianificati.
+  // ---------- Pasti a piacere (v5.32) ----------
+  // Un «pasto» di un giorno esiste se ha almeno una voce pianificata oppure è stato aggiunto
+  // a mano (in tal caso è registrato in weekNotes[giorno][nome], anche con nota vuota).
+  function mealCatalogue(){
+    const extra = mealTypes.filter(m => m && !MEAL_SUGGESTIONS.some(s => s.toLowerCase() === m.toLowerCase()));
+    return MEAL_SUGGESTIONS.concat(extra);
+  }
+  function baseMealName(n){ return String(n||'').replace(/\s+\d+$/, ''); }
+  function entryMealType(e){ return e.mealType || 'Pasto'; }
+  function slotsOfDay(day){
+    const seen = new Map();
+    const add = n => { if(!seen.has(n)) seen.set(n, { name: n, idx: seen.size, times: [] }); return seen.get(n); };
+    (weekPlan[day] || []).forEach(e => { const s = add(entryMealType(e)); if(e.time) s.times.push(e.time); });
+    Object.keys((weekNotes && weekNotes[day]) || {}).forEach(n => add(n));
+    const arr = Array.from(seen.values());
+    arr.forEach(s => { s.key = s.times.length ? s.times.slice().sort()[0] : (MEAL_DEFAULT_TIME[baseMealName(s.name)] || '99:99'); });
+    arr.sort((a,b) => a.key.localeCompare(b.key) || a.idx - b.idx);
+    return arr.map(s => s.name);
+  }
+  function addMealSlot(day, name){
+    name = String(name||'').trim();
+    if(!name) return;
+    const esistenti = new Set(slotsOfDay(day).map(s => s.toLowerCase()));
+    let finale = name, n = 2;
+    while(esistenti.has(finale.toLowerCase())) finale = `${name} ${n++}`;
+    if(!weekNotes[day]) weekNotes[day] = {};
+    weekNotes[day][finale] = '';
+    if(!mealCatalogue().some(m => m.toLowerCase() === name.toLowerCase())){ mealTypes.push(name); saveMealTypes(); }
+    saveWeekNotes();
+    renderPlanningDays();
+  }
+  async function removeMealSlot(day, mt){
+    const voci = (weekPlan[day] || []).filter(e => entryMealType(e) === mt);
+    if(voci.length){
+      const ok = await confirmDialog({
+        title: 'Rimuovere questo pasto?',
+        message: `«${mt}» di ${day} contiene ${voci.length} ${voci.length === 1 ? 'voce' : 'voci'}: verranno tolte dal piano (le ricette restano nel ricettario).`,
+        confirmText: 'Rimuovi pasto',
+        danger: true
+      });
+      if(!ok) return;
+      weekPlan[day] = (weekPlan[day] || []).filter(e => entryMealType(e) !== mt);
+    }
+    if(weekNotes[day]){ delete weekNotes[day][mt]; if(!Object.keys(weekNotes[day]).length) delete weekNotes[day]; }
+    saveWeek(); saveWeekNotes();
+    renderPlanningDays();
+  }
+  function addMealSelectHtml(day){
+    return `<div class="plan-add-meal"><select class="plan-add-meal-select" data-day="${escapeAttr(day)}" aria-label="Aggiungi un pasto: ${escapeAttr(day)}">
+      <option value="">＋ Aggiungi pasto…</option>
+      ${mealCatalogue().map(m => `<option value="${escapeAttr(m)}">${escapeHtml(m)}</option>`).join('')}
+      <option value="__altro">Altro (scrivi il nome)…</option>
+    </select></div>`;
+  }
+
+  // Settimana: una riga per giorno; ogni giorno contiene solo i pasti che hai aggiunto.
+  function weekSlotHtml(day, mt, isToday){
+    const entries = (weekPlan[day] || []).filter(e => entryMealType(e) === mt).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+    const note = (weekNotes[day] && weekNotes[day][mt]) || '';
+    return `<div class="plan-meal-block${entries.length ? ' filled' : ''}${isToday ? ' is-today' : ''}" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
+      <div class="plan-slot-head"><span class="plan-slot-name">${escapeHtml(mt)}</span><button type="button" class="icon-btn slot-remove-btn" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}" title="Rimuovi questo pasto" aria-label="Rimuovi il pasto ${escapeAttr(mt)} di ${escapeAttr(day)}">×</button></div>
+      ${entries.length ? `<div class="plan-entry-list">${entries.map(renderPlanEntry).join('')}</div>` : ''}
+      <input type="text" class="plan-grid-note-input" placeholder="Nota…" value="${escapeAttr(note)}" aria-label="Nota: ${escapeAttr(day)}, ${escapeAttr(mt)}"${note ? '' : ' hidden'}>
+      <div class="plan-add-row">
+        <input type="time" class="plan-add-time" aria-hidden="true" tabindex="-1">
+        <button type="button" class="btn-ghost btn-small plan-add-btn" aria-label="Aggiungi una ricetta: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Cerca una ricetta">${icon('plus','ico-xs')} Ricetta</button>
+        <button type="button" class="btn-ghost btn-small plan-add-dispensa-btn" aria-label="Aggiungi dalla dispensa: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Aggiungi un prodotto dalla dispensa">${icon('box','ico-xs')} Dispensa</button>
+        ${note ? '' : `<button type="button" class="btn-ghost btn-small plan-add-note-btn" aria-label="Aggiungi una nota: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Aggiungi una nota">${icon('pencil','ico-xs')}</button>`}
+      </div>
+    </div>`;
+  }
   function buildPlanGridHtml(){
     const jsDay = new Date().getDay();
     const todayName = planWeekStart === realMonday() ? DAYS[jsDay === 0 ? 6 : jsDay - 1] : '';
-    const hasOrphans = DAYS.some(d => (weekPlan[d]||[]).some(e => !mealTypes.includes(e.mealType)));
-    const cols = mealTypes.length + (hasOrphans ? 1 : 0);
-    let html = `<div class="plan-grid" style="--plan-cols:${cols}" role="group" aria-label="Pianificazione della settimana">`;
-    html += '<div class="plan-grid-corner"></div>';
-    mealTypes.forEach((mt, i)=>{
-      const last = (i === cols - 1) ? ' plan-last-col' : '';
-      html += `<div class="plan-grid-colhead${last}"><span>${escapeHtml(mt)}</span><button type="button" class="icon-btn mealtype-remove-btn" data-mealtype="${escapeAttr(mt)}" title="Rimuovi la fascia ${escapeAttr(mt)}" aria-label="Rimuovi la fascia pasto ${escapeAttr(mt)}">${icon('trash','ico-xs')}</button></div>`;
-    });
-    if(hasOrphans) html += '<div class="plan-grid-colhead plan-last-col"><span>Altro</span></div>';
-    DAYS.forEach((day, di)=>{
-      const rowLast = di === DAYS.length - 1 ? ' plan-last-row' : '';
+    let html = `<div class="plan-grid plan-week" role="group" aria-label="Pianificazione della settimana">`;
+    DAYS.forEach(day=>{
       const isToday = day === todayName;
-      const dayEntries = weekPlan[day] || [];
-      html += `<div class="plan-grid-dayhead${isToday ? ' today' : ''}${rowLast}"><span class="dname">${escapeHtml(day)}</span><span class="ddate">${escapeHtml(dataBreve(dataDelGiorno(day)))}</span><span class="dtools"><button type="button" class="icon-btn plan-grid-day-shopping" data-day="${escapeAttr(day)}" title="Lista della spesa di ${escapeAttr(day)}" aria-label="Lista della spesa di ${escapeAttr(day)}">${icon('cart','ico-xs')}</button><button type="button" class="icon-btn plan-grid-day-open" data-day="${escapeAttr(day)}" title="Apri ${escapeAttr(day)} nel dettaglio" aria-label="Apri ${escapeAttr(day)} nel dettaglio">${icon('pencil','ico-xs')}</button></span></div>`;
-      mealTypes.forEach((mt, i)=>{
-        const last = (i === cols - 1) ? ' plan-last-col' : '';
-        const entries = dayEntries.filter(e=>e.mealType === mt).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
-        const note = (weekNotes[day] && weekNotes[day][mt]) || '';
-        html += `<div class="plan-meal-block${entries.length ? ' filled' : ''}${isToday ? ' is-today' : ''}${last}${rowLast}" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
-          ${entries.length ? `<div class="plan-entry-list">${entries.map(renderPlanEntry).join('')}</div>` : ''}
-          <input type="text" class="plan-grid-note-input" placeholder="Nota…" value="${escapeAttr(note)}" aria-label="Nota: ${escapeAttr(day)}, ${escapeAttr(mt)}"${note ? '' : ' hidden'}>
-          <div class="plan-add-row">
-            <input type="time" class="plan-add-time" aria-hidden="true" tabindex="-1">
-            <button type="button" class="btn-ghost btn-small plan-add-btn" aria-label="Aggiungi una ricetta: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Cerca una ricetta">${icon('plus','ico-xs')} Ricetta</button>
-            <button type="button" class="btn-ghost btn-small plan-add-dispensa-btn" aria-label="Aggiungi dalla dispensa: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Aggiungi un prodotto dalla dispensa">${icon('box','ico-xs')} Dispensa</button>
-            ${note ? '' : `<button type="button" class="btn-ghost btn-small plan-add-note-btn" aria-label="Aggiungi una nota: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Aggiungi una nota">${icon('pencil','ico-xs')}</button>`}
-          </div>
-        </div>`;
-      });
-      if(hasOrphans){
-        const orph = dayEntries.filter(e=>!mealTypes.includes(e.mealType));
-        html += `<div class="plan-meal-block${orph.length ? ' filled' : ''}${isToday ? ' is-today' : ''} plan-last-col${rowLast}">${orph.length ? `<div class="plan-entry-list">${orph.map(renderPlanEntry).join('')}</div>` : ''}</div>`;
-      }
+      const slots = slotsOfDay(day);
+      html += `<div class="plan-week-row${isToday ? ' is-today' : ''}">
+        <div class="plan-grid-dayhead${isToday ? ' today' : ''}"><span class="dname">${escapeHtml(day)}</span><span class="ddate">${escapeHtml(dataBreve(dataDelGiorno(day)))}</span><span class="dtools"><button type="button" class="icon-btn plan-grid-day-shopping" data-day="${escapeAttr(day)}" title="Lista della spesa di ${escapeAttr(day)}" aria-label="Lista della spesa di ${escapeAttr(day)}">${icon('cart','ico-xs')}</button><button type="button" class="icon-btn plan-grid-day-open" data-day="${escapeAttr(day)}" title="Apri ${escapeAttr(day)} nel dettaglio" aria-label="Apri ${escapeAttr(day)} nel dettaglio">${icon('pencil','ico-xs')}</button></span></div>
+        <div class="plan-week-slots">
+          ${slots.map(mt => weekSlotHtml(day, mt, isToday)).join('')}
+          ${slots.length ? '' : '<span class="plan-day-free">Giorno libero: aggiungi i pasti che ti servono</span>'}
+          ${addMealSelectHtml(day)}
+        </div>
+      </div>`;
     });
     return html + '</div>';
   }
@@ -6129,8 +6190,8 @@
     const card = document.createElement('div');
     card.className = 'plan-day-card';
 
-    const blocksHtml = mealTypes.map(mt=>{
-      const entries = dayEntries.filter(e=>e.mealType === mt)
+    const blocksHtml = slotsOfDay(day).map(mt=>{
+      const entries = dayEntries.filter(e=>entryMealType(e) === mt)
         .slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
       const entriesHtml = entries.length ? entries.map(renderPlanEntry).join('') : `<div class="plan-entry-empty">Nessuna ricetta</div>`;
       const totaleMealHtml = entries.length ? (() => {
@@ -6140,7 +6201,7 @@
       return `<div class="plan-meal-block" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
         <div class="plan-meal-header">
           <span class="plan-meal-name">${escapeHtml(mt)}</span>
-          <span class="plan-meal-actions"><button class="icon-btn mealtype-remove-btn" data-mealtype="${escapeAttr(mt)}" title="Rimuovi questa fascia pasto">🗑</button></span>
+          <span class="plan-meal-actions"><button type="button" class="icon-btn slot-remove-btn" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}" title="Rimuovi questo pasto" aria-label="Rimuovi il pasto ${escapeAttr(mt)}">🗑</button></span>
         </div>
         <div class="plan-entry-list">${entriesHtml}</div>
         ${totaleMealHtml}
@@ -6152,12 +6213,8 @@
         <input type="text" class="plan-note-input" placeholder="Nota (es. cena fuori, avanzi, preparare il giorno prima…)" value="${escapeAttr((weekNotes[day] && weekNotes[day][mt]) || '')}">
       </div>`;
     }).join('');
-
-    const orphaned = dayEntries.filter(e=>!mealTypes.includes(e.mealType));
-    const orphanedHtml = orphaned.length ? `<div class="plan-meal-block">
-      <div class="plan-meal-header"><span class="plan-meal-name">Altro</span></div>
-      <div class="plan-entry-list">${orphaned.map(renderPlanEntry).join('')}</div>
-    </div>` : '';
+    const giornoLiberoHtml = blocksHtml ? '' : '<p class="plan-day-free">Giorno libero: aggiungi i pasti che ti servono.</p>';
+    const orphanedHtml = '';
 
     const totaleGiorno = nutrizioneGiorno(day);
     const totaleGiornoHtml = totaleGiorno
@@ -6169,7 +6226,7 @@
         <button type="button" class="btn-ghost btn-small plan-week-totals-btn">📊 Totali settimana</button>
       </div>
       ${totaleGiornoHtml}
-      ${blocksHtml}${orphanedHtml || ''}`;
+      ${blocksHtml}${giornoLiberoHtml}${addMealSelectHtml(day)}`;
     planningDaysEl.appendChild(card);
 
     card.querySelectorAll('.plan-note-input').forEach(input=>{
@@ -6177,8 +6234,7 @@
         const mt = input.closest('.plan-meal-block').dataset.mealtype;
         const testo = input.value.trim();
         if(!weekNotes[day]) weekNotes[day] = {};
-        if(testo) weekNotes[day][mt] = testo;
-        else delete weekNotes[day][mt];
+        weekNotes[day][mt] = testo;
         saveWeekNotes();
       });
     });
@@ -6207,7 +6263,7 @@
         const day = block.dataset.day, mt = block.dataset.mealtype;
         const testo = inp.value.trim();
         if(!weekNotes[day]) weekNotes[day] = {};
-        if(testo) weekNotes[day][mt] = testo; else delete weekNotes[day][mt];
+        weekNotes[day][mt] = testo;
         saveWeekNotes();
       });
     });
@@ -6306,19 +6362,18 @@
         openView(recipeId);
       });
     });
-    planningDaysEl.querySelectorAll('.mealtype-remove-btn').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        const mt = btn.dataset.mealtype;
-        const ok = await confirmDialog({
-          title: 'Rimuovere questa fascia pasto?',
-          message: `La fascia "${mt}" verrà rimossa. Le ricette già assegnate resteranno visibili sotto "Altro", non vengono eliminate.`,
-          confirmText: 'Rimuovi fascia',
-          danger: true
-        });
-        if(!ok) return;
-        mealTypes = mealTypes.filter(x=>x!==mt);
-        saveMealTypes();
-        renderPlanningDays();
+    planningDaysEl.querySelectorAll('.slot-remove-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=> removeMealSlot(btn.dataset.day, btn.dataset.mealtype));
+    });
+    planningDaysEl.querySelectorAll('.plan-add-meal-select').forEach(sel=>{
+      sel.addEventListener('change', ()=>{
+        let nome = sel.value;
+        const giorno = sel.dataset.day;
+        sel.value = '';
+        if(nome === '__altro'){
+          nome = prompt('Nome del pasto (es. Aperitivo, Spuntino di mezzanotte):') || '';
+        }
+        if(nome) addMealSlot(giorno, nome);
       });
     });
     updatePlanningShoppingCount();
@@ -6613,17 +6668,6 @@
     closeDispensaEdit();
   });
 
-  document.getElementById('add-mealtype-btn').addEventListener('click', ()=>{
-    const name = prompt('Nome della nuova fascia pasto (es. Aperitivo):');
-    if(!name) return;
-    const trimmed = name.trim();
-    if(!trimmed) return;
-    if(mealTypes.some(mt=>mt.toLowerCase() === trimmed.toLowerCase())){ alert('Questa fascia esiste già.'); return; }
-    mealTypes.push(trimmed);
-    saveMealTypes();
-    renderPlanningDays();
-  });
-
   document.getElementById('clear-week-btn').addEventListener('click', async ()=>{
     const ok = await confirmDialog({
       title: 'Svuotare la settimana?',
@@ -6637,7 +6681,7 @@
       previousWeekPlan = JSON.parse(JSON.stringify(weekPlan));
       savePreviousWeek(previousWeekPlan);
     }
-    weekPlan = {}; saveWeek(); renderPlanningDays();
+    weekPlan = {}; weekNotes = {}; saveWeek(); saveWeekNotes(); renderPlanningDays();
   });
 
   document.getElementById('copy-last-week-btn').addEventListener('click', ()=>{

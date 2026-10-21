@@ -111,3 +111,9 @@ async def confirm_dialog_cancel(page, timeout=4000):
 
 def slug(text):
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+
+
+async def aggiungi_pasto(page, nome="Pranzo", indice=0):
+    """Pianificazione: aggiunge un pasto al giorno `indice` (0 = primo giorno mostrato) dal menu a tendina."""
+    await page.locator(".plan-add-meal-select").nth(indice).select_option(nome)
+    await page.wait_for_timeout(200)

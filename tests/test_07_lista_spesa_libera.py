@@ -1,6 +1,6 @@
 """Lista della spesa indipendente: ingredienti a mano, ricette, unione con la settimana, annulla."""
 import asyncio
-from helpers import check, reset_app_state
+from helpers import check, reset_app_state, aggiungi_pasto
 
 
 async def righe(page):
@@ -56,6 +56,7 @@ async def run(page):
     # pianifico la ricetta nella settimana e unisco le due liste: farina +200 g (porzioni 4 di default -> 400 g)
     await page.click("#nav-planning-btn")
     await page.click("#plan-mode-week")
+    await aggiungi_pasto(page, "Pranzo")
     await page.locator(".plan-add-btn").first.click()
     await page.fill("#recipe-picker-search", "Sugo Test")
     await page.locator("#recipe-picker-list .recipe-picker-item").first.click()

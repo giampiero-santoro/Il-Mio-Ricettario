@@ -1329,3 +1329,39 @@ details.pantry-panel .panel-sub{white-space:nowrap;overflow:hidden;text-overflow
 :root[data-tema="scuro"] .today-stat{background:var(--sage-soft)}
 :root[data-tema="scuro"] .today-stat:nth-child(2),:root[data-tema="scuro"] .today-stat:nth-child(3){background:var(--terra-soft)}
 @media (max-width:900px){.today-hero-row{grid-template-columns:1fr}}
+
+/* ===== Pianificazione: pasti a piacere (v5.32) ===== */
+.plan-grid.plan-week{display:block;}
+.plan-week > .plan-week-row{border-right:none;border-bottom:1px solid var(--border);display:grid;grid-template-columns:132px minmax(0,1fr);}
+.plan-week > .plan-week-row:last-child{border-bottom:none;}
+.plan-week-row.is-today{background:color-mix(in srgb, var(--sage-soft) 30%, var(--surface));}
+.plan-week-row .plan-grid-dayhead{border-right:1px solid var(--border);}
+.plan-week-slots{display:flex;flex-wrap:wrap;gap:10px;padding:10px;align-items:stretch;min-width:0;}
+.plan-grid .plan-week-slots .plan-meal-block{flex:1 1 210px;max-width:340px;min-height:0;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);}
+.plan-grid .plan-week-slots .plan-meal-block.filled{background:color-mix(in srgb, var(--sage-soft) 55%, var(--surface));}
+.plan-slot-head{display:flex;align-items:center;justify-content:space-between;gap:6px;font-weight:700;font-size:var(--fs-sm);}
+.plan-slot-head .slot-remove-btn{opacity:.5;font-size:1.1rem;line-height:1;}
+.plan-slot-head .slot-remove-btn:hover{opacity:1;}
+.plan-add-meal{display:flex;align-items:center;flex:0 0 auto;}
+.plan-add-meal-select{min-width:190px;font-weight:600;color:var(--accent-ink);background:var(--mint);border:1px dashed var(--accent);border-radius:var(--r-md);padding:9px 12px;cursor:pointer;}
+.plan-day-free{align-self:center;color:var(--text-2);font-size:var(--fs-sm);font-style:italic;margin-right:6px;}
+.plan-day-card > .plan-add-meal{margin-top:10px;}
+.plan-day-card > .plan-day-free{text-align:center;margin:16px 0 6px;}
+:root[data-tema="scuro"] .plan-add-meal-select{background:var(--sage-soft);}
+
+/* Pagine "Importa ricette" e "Backup ed esportazione" (v5.33) */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:stretch;margin-bottom:24px}
+.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:20px;box-shadow:var(--shadow-card);display:flex;flex-direction:column;gap:10px}
+.tool-card:nth-child(odd) .tool-ico{background:var(--mint)}
+.tool-card:nth-child(even) .tool-ico{background:var(--terra-soft)}
+.tool-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.tool-card h3{margin:2px 0 0;font-size:1.15rem}
+.tool-card p{margin:0;color:var(--text-2);font-size:var(--fs-md);line-height:1.5}
+.tool-card p.tool-status{color:var(--text);font-weight:600}
+.tool-card p.tool-status.warning{color:var(--terra-ink)}
+.tool-card .tool-note{font-size:var(--fs-sm);margin-top:auto}
+.tool-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+.tool-card > .btn-gold,.tool-card > .btn-ghost{align-self:flex-start;margin-top:auto}
+.tool-field{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-sm);color:var(--text-2)}
+.tool-field select{width:100%}
+:root[data-tema="scuro"] .tool-card:nth-child(odd) .tool-ico{background:var(--sage-soft)}

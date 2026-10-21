@@ -2,6 +2,30 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.33.0] — Pagine dedicate per Importa e Backup
+
+### Cambiato
+- **Importa ricette** e **Backup ed esportazione** non si aprono più come lunga tendina a destra: sono **due pagine vere**, raggiungibili dal menu laterale e dal menu ⋯, con una scheda per ogni azione e una breve spiegazione.
+- **Importa ricette**: Da testo · Da file ricetta (.json) · Da foglio di calcolo (.csv, con scelta del ricettario di destinazione) · Da un backup completo.
+- **Backup ed esportazione**: Backup (stato dell'ultimo backup, esporta, promemoria settimanale) · Salvataggio su file · Esporta le ricette (CSV e PDF, con scelta del ricettario) · Cambio dispositivo.
+- Il menu ⋯ di «Le mie ricette» resta solo per le azioni sulle ricette (Seleziona ed elimina, Gestisci ricettari, Cestino) più due collegamenti alle nuove pagine.
+- Le funzioni sono le stesse di prima, solo spostate e spiegate meglio. Guida illustrata e GUIDA.md aggiornate, con nuove immagini.
+
+### Test
+- Nuovo `test_27` (schede, pulsanti visibili, download del backup e del CSV, collegamenti dal menu ⋯); `test_06` aggiornato. Suite: 27/27.
+
+## [5.32.0] — Pianificazione senza vincoli
+
+### Cambiato
+- **I giorni partono vuoti**: non ci sono più i quattro pasti fissi. In ogni giorno il menu a tendina **«＋ Aggiungi pasto…»** propone Colazione, Spuntino, Pranzo, Merenda, Cena, Brunch, Aperitivo, Dopocena, Pre-allenamento, Post-allenamento e **«Altro (scrivi il nome)…»** per un pasto personalizzato, che resta poi nel menu.
+- Puoi avere giornate con 2 pasti e giornate con 8 o più. Lo stesso tipo di pasto si può aggiungere più volte nello stesso giorno («Spuntino», «Spuntino 2»).
+- I pasti si ordinano da soli per orario (quello indicato o quello tipico del pasto). Con la **×** si rimuove un pasto: se contiene ricette viene chiesta conferma e le ricette restano nel ricettario.
+- Vale nella vista Settimana e nella vista Giorno (anche su smartphone), e per Oggi, lista della spesa, totali nutrizionali, ripetizione su altre settimane ed esportazione PDF.
+- Le pianificazioni già fatte restano com'erano.
+
+### Test
+- Nuovo `test_26` (giorni vuoti, menu, più pasti uguali, ordine, personalizzato, persistenza, rimozione con conferma, vista giorno). Suite: 26/26.
+
 ## [5.31.0] — Statistiche in Oggi
 
 ### Aggiunto
