@@ -2,6 +2,25 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.35.0] — Orari dei pasti, settimana in verticale
+
+### Cambiato
+- **Ogni pasto ha il suo orario**, mostrato nel riquadro verde sotto il nome. Quando aggiungi un pasto viene proposto l'orario tipico (Colazione 07:30, Spuntino 10:30, Pranzo 13:00, Merenda 16:30, Aperitivo 18:30, Cena 20:00, Dopocena 22:00…), che puoi cambiare.
+- **I pasti si posizionano nella giornata in base all'orario**: cambiando l'orario il pasto si sposta da solo. Le ricette del pasto prendono il suo orario (visibile in Oggi e nel PDF).
+- **Settimana in verticale**: un giorno per colonna e i pasti uno sotto l'altro, invece che affiancati in orizzontale. Vale anche nella vista Giorno (ordine per orario).
+- Guida illustrata e GUIDA.md aggiornate, con nuove immagini della pianificazione (settimana, giorno, telefono).
+
+### Test
+- Nuovo `test_28` (orari proposti, ordine, layout in colonne, ereditarietà dell'orario, persistenza, vista Giorno, rimozione); inserito in `run_all`. Suite: 28/28.
+
+## [5.34.0] — Guida illustrata aggiornata
+
+### Cambiato
+- Tutte le immagini della **guida illustrata** sono state rifatte con l'aspetto attuale (tema Verde acqua, nuova pagina Oggi, pianificazione con pasti a piacere, pagine Importa e Backup).
+- Capitoli aggiornati: Oggi (statistiche e riquadri), menu laterale, modalità cucina (timer multipli, lettura e comandi vocali), pianificazione («＋ Aggiungi pasto…»).
+- Nuovi capitoli: **17 Statistiche**, **18 Misure pratiche, voti e raccolte**, **19 Cestino e annullare**, **20 Privacy, note legali e crediti**. Ora i capitoli sono 20.
+- Guida e file singolo aggiornati; nessuna modifica alle funzioni.
+
 ## [5.33.0] — Pagine dedicate per Importa e Backup
 
 ### Cambiato

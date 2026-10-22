@@ -52,6 +52,7 @@ TEST_MODULES = [
     "test_25_nessuna_chiamata_esterna",
     "test_26_pasti_a_piacere",
     "test_27_pagine_importa_backup",
+    "test_28_orari_pasti",
 ]
 
 

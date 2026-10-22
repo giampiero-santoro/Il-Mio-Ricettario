@@ -1331,14 +1331,26 @@ details.pantry-panel .panel-sub{white-space:nowrap;overflow:hidden;text-overflow
 @media (max-width:900px){.today-hero-row{grid-template-columns:1fr}}
 
 /* ===== Pianificazione: pasti a piacere (v5.32) ===== */
-.plan-grid.plan-week{display:block;}
-.plan-week > .plan-week-row{border-right:none;border-bottom:1px solid var(--border);display:grid;grid-template-columns:132px minmax(0,1fr);}
-.plan-week > .plan-week-row:last-child{border-bottom:none;}
+.plan-grid.plan-week{display:grid;grid-template-columns:repeat(7,minmax(128px,1fr));overflow-x:auto;}
+.plan-week > .plan-week-row{border-right:1px solid var(--border);border-bottom:none;display:flex;flex-direction:column;min-width:0;}
+.plan-week > .plan-week-row:last-child{border-right:none;}
 .plan-week-row.is-today{background:color-mix(in srgb, var(--sage-soft) 30%, var(--surface));}
-.plan-week-row .plan-grid-dayhead{border-right:1px solid var(--border);}
-.plan-week-slots{display:flex;flex-wrap:wrap;gap:10px;padding:10px;align-items:stretch;min-width:0;}
-.plan-grid .plan-week-slots .plan-meal-block{flex:1 1 210px;max-width:340px;min-height:0;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);}
+.plan-week-row .plan-grid-dayhead{border-bottom:1px solid var(--border);flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:2px 8px;}
+.plan-week-row .plan-grid-dayhead .dtools{margin-top:0;margin-left:auto;}
+.plan-week-slots{display:flex;flex-direction:column;gap:8px;padding:6px;min-width:0;flex:1;}
+.plan-grid .plan-week-slots .plan-meal-block{flex:0 0 auto;min-height:0;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);}
 .plan-grid .plan-week-slots .plan-meal-block.filled{background:color-mix(in srgb, var(--sage-soft) 55%, var(--surface));}
+input[type="time"].plan-slot-time{width:104px;height:30px;padding:2px 8px;font-size:var(--fs-sm);font-weight:700;color:var(--accent-ink);background:var(--mint);border:1px solid var(--border);border-radius:8px;}
+.plan-slot-head{flex-wrap:wrap;justify-content:flex-start;}
+.plan-slot-head .plan-slot-name{order:1;flex:1;min-width:0;}
+.plan-slot-head .slot-remove-btn{order:2;}
+.plan-slot-head .plan-slot-time{order:3;flex:0 0 auto;}
+.plan-grid .plan-entry-time,.plan-day-card .plan-entry-time{display:none;}
+.plan-meal-header{display:flex;align-items:center;gap:10px;}
+.plan-meal-header .plan-meal-name{flex:1;}
+.plan-day-card .plan-add-time{display:none;}
+.plan-week .plan-add-meal-select{min-width:0;width:100%;}
+.plan-week .plan-add-meal{width:100%;}
 .plan-slot-head{display:flex;align-items:center;justify-content:space-between;gap:6px;font-weight:700;font-size:var(--fs-sm);}
 .plan-slot-head .slot-remove-btn{opacity:.5;font-size:1.1rem;line-height:1;}
 .plan-slot-head .slot-remove-btn:hover{opacity:1;}
@@ -1365,3 +1377,17 @@ details.pantry-panel .panel-sub{white-space:nowrap;overflow:hidden;text-overflow
 .tool-field{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-sm);color:var(--text-2)}
 .tool-field select{width:100%}
 :root[data-tema="scuro"] .tool-card:nth-child(odd) .tool-ico{background:var(--sage-soft)}
+
+.plan-meal-header{flex-wrap:wrap;}
+.plan-meal-header .plan-meal-name{order:1;}
+.plan-meal-header .plan-meal-actions{order:2;}
+.plan-meal-header .plan-slot-time{order:0;}
+.plan-week .plan-meal-block{padding:6px !important;}
+.plan-week .plan-grid-dayhead{padding:8px 8px;}
+.plan-week .plan-grid-dayhead .ddate{white-space:nowrap;}
+input[type="time"].plan-slot-time{width:100%;max-width:112px;}
+.plan-week .plan-entry-main{gap:4px;}
+.plan-week .plan-add-btn,.plan-week .plan-add-dispensa-btn{padding:3px 7px;}
+input[type="time"].plan-slot-time::-webkit-calendar-picker-indicator{display:none;}
+input[type="time"].plan-slot-time{font-variant-numeric:tabular-nums;}
+.plan-week .plan-add-meal-select{font-size:var(--fs-xs);padding:8px 4px 8px 8px;}

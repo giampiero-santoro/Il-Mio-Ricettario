@@ -94,7 +94,7 @@ async def run(page):
     check(ordine, "Ricette, scadenze e spesa devono stare sopra I pasti di oggi")
     await page.goto(page.url.rsplit("/", 1)[0] + "/guida.html")
     n = await page.locator("section h2").count()
-    check(n >= 16, f"La guida ha {n} capitoli, attesi almeno 16")
+    check(n >= 20, f"La guida ha {n} capitoli, attesi almeno 20")
     imgs = await page.evaluate("document.images.length")
     check(imgs >= 30, f"Immagini nella guida: {imgs}")
 

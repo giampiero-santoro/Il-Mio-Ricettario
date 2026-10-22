@@ -6070,13 +6070,37 @@
   }
   function baseMealName(n){ return String(n||'').replace(/\s+\d+$/, ''); }
   function entryMealType(e){ return e.mealType || 'Pasto'; }
+  // Orario di un pasto: quello scelto a mano (weekNotes[giorno].__orari[pasto]), altrimenti
+  // il più presto tra le voci già inserite, altrimenti l'orario tipico del pasto.
+  const ORARI_KEY = '__orari';
+  function explicitSlotTime(day, mt){
+    const o = weekNotes && weekNotes[day] && weekNotes[day][ORARI_KEY];
+    return (o && o[mt]) || '';
+  }
+  function slotTime(day, mt){
+    const ex = explicitSlotTime(day, mt);
+    if(ex) return ex;
+    const ts = (weekPlan[day] || []).filter(e => entryMealType(e) === mt && e.time).map(e => e.time).sort();
+    return ts[0] || MEAL_DEFAULT_TIME[baseMealName(mt)] || '';
+  }
+  function setSlotTime(day, mt, t){
+    if(!weekNotes[day]) weekNotes[day] = {};
+    if(!weekNotes[day][ORARI_KEY]) weekNotes[day][ORARI_KEY] = {};
+    if(t) weekNotes[day][ORARI_KEY][mt] = t; else delete weekNotes[day][ORARI_KEY][mt];
+    if(t) (weekPlan[day] || []).forEach(e => { if(entryMealType(e) === mt) e.time = t; });
+    saveWeek(); saveWeekNotes();
+    renderPlanningDays();
+  }
+  function slotTimeInputHtml(day, mt){
+    return `<input type="time" class="plan-slot-time" value="${escapeAttr(slotTime(day, mt))}" aria-label="Orario: ${escapeAttr(mt)} di ${escapeAttr(day)}" title="Orario del pasto: la giornata si ordina in base all'orario">`;
+  }
   function slotsOfDay(day){
     const seen = new Map();
     const add = n => { if(!seen.has(n)) seen.set(n, { name: n, idx: seen.size, times: [] }); return seen.get(n); };
     (weekPlan[day] || []).forEach(e => { const s = add(entryMealType(e)); if(e.time) s.times.push(e.time); });
-    Object.keys((weekNotes && weekNotes[day]) || {}).forEach(n => add(n));
+    Object.keys((weekNotes && weekNotes[day]) || {}).filter(n => n !== ORARI_KEY).forEach(n => add(n));
     const arr = Array.from(seen.values());
-    arr.forEach(s => { s.key = s.times.length ? s.times.slice().sort()[0] : (MEAL_DEFAULT_TIME[baseMealName(s.name)] || '99:99'); });
+    arr.forEach(s => { s.key = slotTime(day, s.name) || '99:99'; });
     arr.sort((a,b) => a.key.localeCompare(b.key) || a.idx - b.idx);
     return arr.map(s => s.name);
   }
@@ -6088,6 +6112,8 @@
     while(esistenti.has(finale.toLowerCase())) finale = `${name} ${n++}`;
     if(!weekNotes[day]) weekNotes[day] = {};
     weekNotes[day][finale] = '';
+    const orario = MEAL_DEFAULT_TIME[baseMealName(finale)];
+    if(orario){ if(!weekNotes[day][ORARI_KEY]) weekNotes[day][ORARI_KEY] = {}; weekNotes[day][ORARI_KEY][finale] = orario; }
     if(!mealCatalogue().some(m => m.toLowerCase() === name.toLowerCase())){ mealTypes.push(name); saveMealTypes(); }
     saveWeekNotes();
     renderPlanningDays();
@@ -6104,7 +6130,11 @@
       if(!ok) return;
       weekPlan[day] = (weekPlan[day] || []).filter(e => entryMealType(e) !== mt);
     }
-    if(weekNotes[day]){ delete weekNotes[day][mt]; if(!Object.keys(weekNotes[day]).length) delete weekNotes[day]; }
+    if(weekNotes[day]){
+      delete weekNotes[day][mt];
+      if(weekNotes[day][ORARI_KEY]) delete weekNotes[day][ORARI_KEY][mt];
+      if(!Object.keys(weekNotes[day]).filter(k => k !== ORARI_KEY).length) delete weekNotes[day];
+    }
     saveWeek(); saveWeekNotes();
     renderPlanningDays();
   }
@@ -6121,11 +6151,11 @@
     const entries = (weekPlan[day] || []).filter(e => entryMealType(e) === mt).slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
     const note = (weekNotes[day] && weekNotes[day][mt]) || '';
     return `<div class="plan-meal-block${entries.length ? ' filled' : ''}${isToday ? ' is-today' : ''}" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
-      <div class="plan-slot-head"><span class="plan-slot-name">${escapeHtml(mt)}</span><button type="button" class="icon-btn slot-remove-btn" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}" title="Rimuovi questo pasto" aria-label="Rimuovi il pasto ${escapeAttr(mt)} di ${escapeAttr(day)}">×</button></div>
+      <div class="plan-slot-head">${slotTimeInputHtml(day, mt)}<span class="plan-slot-name">${escapeHtml(mt)}</span><button type="button" class="icon-btn slot-remove-btn" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}" title="Rimuovi questo pasto" aria-label="Rimuovi il pasto ${escapeAttr(mt)} di ${escapeAttr(day)}">×</button></div>
       ${entries.length ? `<div class="plan-entry-list">${entries.map(renderPlanEntry).join('')}</div>` : ''}
       <input type="text" class="plan-grid-note-input" placeholder="Nota…" value="${escapeAttr(note)}" aria-label="Nota: ${escapeAttr(day)}, ${escapeAttr(mt)}"${note ? '' : ' hidden'}>
       <div class="plan-add-row">
-        <input type="time" class="plan-add-time" aria-hidden="true" tabindex="-1">
+        <input type="time" class="plan-add-time" aria-hidden="true" tabindex="-1" value="${escapeAttr(slotTime(day, mt))}">
         <button type="button" class="btn-ghost btn-small plan-add-btn" aria-label="Aggiungi una ricetta: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Cerca una ricetta">${icon('plus','ico-xs')} Ricetta</button>
         <button type="button" class="btn-ghost btn-small plan-add-dispensa-btn" aria-label="Aggiungi dalla dispensa: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Aggiungi un prodotto dalla dispensa">${icon('box','ico-xs')} Dispensa</button>
         ${note ? '' : `<button type="button" class="btn-ghost btn-small plan-add-note-btn" aria-label="Aggiungi una nota: ${escapeAttr(day)}, ${escapeAttr(mt)}" title="Aggiungi una nota">${icon('pencil','ico-xs')}</button>`}
@@ -6200,13 +6230,13 @@
       })() : '';
       return `<div class="plan-meal-block" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
         <div class="plan-meal-header">
-          <span class="plan-meal-name">${escapeHtml(mt)}</span>
+          ${slotTimeInputHtml(day, mt)}<span class="plan-meal-name">${escapeHtml(mt)}</span>
           <span class="plan-meal-actions"><button type="button" class="icon-btn slot-remove-btn" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}" title="Rimuovi questo pasto" aria-label="Rimuovi il pasto ${escapeAttr(mt)}">🗑</button></span>
         </div>
         <div class="plan-entry-list">${entriesHtml}</div>
         ${totaleMealHtml}
         <div class="plan-add-row">
-          <input type="time" class="plan-add-time">
+          <input type="time" class="plan-add-time" aria-hidden="true" tabindex="-1" value="${escapeAttr(slotTime(day, mt))}">
           <button class="btn-ghost btn-small plan-add-btn">🔍 Cerca ricetta…</button>
           <button class="btn-ghost btn-small plan-add-dispensa-btn">🥫 Dalla dispensa…</button>
         </div>
@@ -6360,6 +6390,12 @@
         if(!recipes.find(r=>r.id === recipeId)) return;
         switchView('recipes');
         openView(recipeId);
+      });
+    });
+    planningDaysEl.querySelectorAll('.plan-slot-time').forEach(inp=>{
+      inp.addEventListener('change', ()=>{
+        const block = inp.closest('.plan-meal-block');
+        setSlotTime(block.dataset.day, block.dataset.mealtype, inp.value);
       });
     });
     planningDaysEl.querySelectorAll('.slot-remove-btn').forEach(btn=>{
