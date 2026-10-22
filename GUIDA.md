@@ -27,7 +27,7 @@ Questa guida spiega passo passo come usare tutte le funzioni del ricettario.
 21. [Modificare, eliminare e archiviare](#modificare-eliminare-e-archiviare)
 22. [Dispensa](#dispensa)
 23. [Unità di misura](#unità-di-misura)
-24. [Tema grafico](#tema-grafico)
+24. [Temi di colore](#tema-grafico)
 25. [Salvataggio dei dati](#salvataggio-dei-dati)
 26. [Salvataggio su un file a tua scelta (facoltativo)](#salvataggio-su-un-file-a-tua-scelta-facoltativo)
 27. [Dove vengono salvati e caricati i file](#dove-vengono-salvati-e-caricati-i-file)
@@ -332,7 +332,9 @@ Questo riconoscimento resta comunque limitato alle unità elencate sopra (più q
 
 ## Tema grafico
 
-Il sito ha un'unica impostazione grafica, "Cucina Naturale Contemporanea": sfondo avorio caldo, verde salvia come colore dell'app, terracotta per piccoli dettagli, font DM Sans per l'interfaccia e Lora per i titoli. La barra laterale raggruppa le sezioni (Organizza, Gestione); su telefono diventa una barra a schede in basso (Oggi, Ricette, Piano, Dispensa, Spesa) più il menu ☰. C'è un interruttore un interruttore **"🌙 Tema scuro"** in fondo alla barra laterale (nel cassetto ☰ su telefono) per passare dallo sfondo chiaro a uno scuro, mantenendo la stessa impostazione. La scelta si applica subito a tutto il sito e resta salvata per le prossime visite.
+Il sito ha **sei temi di colore**, da scegliere nella pagina **Tema** (menu laterale, in fondo al gruppo Gestione; su telefono nel cassetto ☰): **Basilico** (verde foglia con accenti pomodoro, quello di partenza), **Pomodoro** (rosso mattone su crema), **Zafferano** (ambra e oro), **Melanzana** (viola), **Oliva e lino** (verde oliva su beige) e **Rame**, il tema scuro per la sera. Ogni tema ha un'anteprima: tocca la scheda e i colori cambiano subito in tutto il sito; la scelta resta salvata su questo dispositivo. Il vecchio interruttore "Tema scuro" non c'è più: è diventato il tema Rame (chi lo aveva attivo lo ritrova).
+
+I colori si basano sul framework CSS **Bulma** (incluso nel sito, nessun collegamento esterno). Font: DM Sans per l'interfaccia e Lora per i titoli. La barra laterale raggruppa le sezioni (Organizza, Gestione); su telefono diventa una barra a schede in basso (Oggi, Ricette, Piano, Dispensa, Spesa) più il menu ☰.
 
 ## Uso da tastiera
 
@@ -350,8 +352,8 @@ Tutto è salvato nel `localStorage` del browser che stai usando:
 ## La Dispensa si scala quando cucini
 Con **«Ho preparato questa oggi»** (o al «Fine ✓» della modalità cucina) l'app mostra cosa toglierebbe dalla Dispensa per le porzioni scelte. Scegli **Segna e scala dalla Dispensa**, **Solo segna come preparata** oppure **Annulla**. Dopo lo scalo hai 12 secondi per toccare «Annulla». Si scalano solo i prodotti riconosciuti con certezza e con unità compatibili; gli altri vengono elencati ma non modificati.
 
-## Aspetto e tema scuro
-L'app usa una palette verde acqua con riquadri menta e pesca. Dal menu laterale l'interruttore **Tema scuro** passa alla versione scura, con gli stessi colori su fondo blu-verde scuro.
+## Aspetto e temi
+L'aspetto del sito si cambia dalla pagina **Tema** (vedi "Tema grafico"): sei temi, tra cui **Rame** come versione scura con gli stessi componenti su fondo carbone.
 
 ## Note legali e crediti
 In **Come funziona**, in fondo (o dal link nel menu laterale), trovi privacy, avvertenze su nutrienti e allergeni, fonti e licenze dei dati usati.

@@ -2188,25 +2188,53 @@
   }
   updateBackupReminder();
 
-  // ---------- Tema chiaro/scuro ----------
+  // ---------- Temi (v5.36) ----------
+  // Sei temi: i colori sono nel CSS ([data-tema="…"]). Basilico è quello di partenza,
+  // Rame è il tema scuro. Il vecchio "scuro" salvato in precedenza diventa Rame.
   const TEMA_STORAGE_KEY = 'mc_ricettario_tema_v1';
-  const temaToggle = document.getElementById('tema-toggle');
-
+  const TEMI = [
+    { key:'basilico',  nome:'Basilico',     desc:'Verde foglia con accenti pomodoro' },
+    { key:'pomodoro',  nome:'Pomodoro',     desc:'Rosso mattone su fondo crema' },
+    { key:'zafferano', nome:'Zafferano',    desc:'Ambra e oro su avorio' },
+    { key:'melanzana', nome:'Melanzana',    desc:'Viola profondo con accenti oro' },
+    { key:'oliva',     nome:'Oliva e lino', desc:'Verde oliva spento su beige' },
+    { key:'rame',      nome:'Rame (scuro)', desc:'Carbone con arancio rame, per la sera' }
+  ];
+  function temaSalvato(){
+    let t = '';
+    try { t = localStorage.getItem(TEMA_STORAGE_KEY) || ''; } catch(e) {}
+    if(t === 'scuro') t = 'rame';
+    return TEMI.some(x => x.key === t) ? t : 'basilico';
+  }
+  let temaCorrente = temaSalvato();
   function applicaTema(tema, salvaScelta){
-    if(tema === 'scuro') document.documentElement.setAttribute('data-tema', 'scuro');
-    else document.documentElement.removeAttribute('data-tema');
-    if(temaToggle) temaToggle.checked = (tema === 'scuro');
+    if(!TEMI.some(x => x.key === tema)) tema = 'basilico';
+    temaCorrente = tema;
+    const root = document.documentElement;
+    if(tema === 'basilico') root.removeAttribute('data-tema'); else root.setAttribute('data-tema', tema);
+    root.classList.toggle('bulma-theme-dark', tema === 'rame');
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if(meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--accent').trim() || '#36723E');
     if(salvaScelta) safeStorageSet(TEMA_STORAGE_KEY, tema);
+    if(typeof renderTemaGrid === 'function') renderTemaGrid();
   }
-
-  if(temaToggle){
-    temaToggle.addEventListener('change', () => applicaTema(temaToggle.checked ? 'scuro' : 'chiaro', true));
+  function renderTemaGrid(){
+    const grid = document.getElementById('tema-grid');
+    if(!grid) return;
+    grid.innerHTML = TEMI.map(t => `
+      <button type="button" class="bulma-card tema-card${t.key === temaCorrente ? ' selected' : ''}" data-tema-scelta="${t.key}" role="radio" aria-checked="${t.key === temaCorrente}" aria-label="${escapeAttr(t.nome)}: ${escapeAttr(t.desc)}">
+        <span class="tema-preview" data-tema-preview="${t.key}" aria-hidden="true">
+          <span class="tp-bar"><span class="tp-dot"></span><span class="tp-line"></span></span>
+          <span class="tp-body">
+            <span class="tp-hero"><span class="tp-title"></span><span class="tp-btn">Cosa cucino?</span></span>
+            <span class="tp-row"><span class="tp-time">13:00</span><span class="tp-meal"></span><span class="tp-tag"></span></span>
+          </span>
+        </span>
+        <span class="tema-info"><span class="tema-name">${escapeHtml(t.nome)}</span>${t.key === temaCorrente ? '<span class="bulma-tag bulma-is-primary bulma-is-light">✓ In uso</span>' : ''}<span class="tema-desc">${escapeHtml(t.desc)}</span></span>
+      </button>`).join('');
+    grid.querySelectorAll('.tema-card').forEach(b => b.addEventListener('click', () => applicaTema(b.dataset.temaScelta, true)));
   }
-
-  // Applica di nuovo (senza ri-salvare) il tema già impostato nello script
-  // anti-lampo in <head>: qui serve solo a sincronizzare l'interruttore,
-  // il colore è già quello corretto.
-  applicaTema(localStorage.getItem(TEMA_STORAGE_KEY) || 'chiaro', false);
+  applicaTema(temaCorrente, false);
 
 
   // ---------- Edit modal ----------
@@ -5531,7 +5559,7 @@
   const NAV_LABELS = {
     today: 'Oggi', recipes: 'Le mie ricette', planning: 'Pianificazione',
     spesa: 'Lista della spesa', dispensa: 'Dispensa', info: 'Come funziona', stats: 'Statistiche',
-    importa: 'Importa ricette', backup: 'Backup'
+    importa: 'Importa ricette', backup: 'Backup', tema: 'Tema'
   };
   let currentView = 'today';
   // Evidenzia la voce attiva nella barra laterale e nella barra a schede dello smartphone.
@@ -5548,6 +5576,7 @@
       'nav-stats-btn': v === 'stats',
       'nav-import-btn': v === 'importa',
       'nav-backup-btn': v === 'backup',
+      'nav-tema-btn': v === 'tema',
       'nav-info-btn': v === 'info',
       'tab-today': v === 'today',
       'tab-recipes': v === 'recipes',
@@ -5575,6 +5604,7 @@
     document.getElementById('stats-view').style.display = view === 'stats' ? '' : 'none';
     document.getElementById('import-view').style.display = view === 'importa' ? '' : 'none';
     document.getElementById('backup-view').style.display = view === 'backup' ? '' : 'none';
+    document.getElementById('tema-view').style.display = view === 'tema' ? '' : 'none';
     document.getElementById('info-view').style.display = view === 'info' ? '' : 'none';
     updateNavActive();
     if(view === 'today') renderToday();
@@ -5584,6 +5614,7 @@
     if(view === 'spesa') renderSpesaLista();
     if(view === 'stats') renderStatistiche();
     if(view === 'backup') updateBackupReminder();
+    if(view === 'tema') renderTemaGrid();
     const navCurrentLabel = document.getElementById('nav-current-label');
     if(navCurrentLabel) navCurrentLabel.textContent = NAV_LABELS[view] || '';
     closeMobileNav();
@@ -5659,6 +5690,7 @@
     box.querySelectorAll('.stat-link').forEach(b=> b.addEventListener('click', ()=> openView(b.dataset.id)));
   }
   document.getElementById('nav-import-btn').addEventListener('click', ()=> switchView('importa'));
+  document.getElementById('nav-tema-btn').addEventListener('click', ()=> switchView('tema'));
   document.getElementById('nav-backup-btn').addEventListener('click', ()=> switchView('backup'));
   document.getElementById('more-goto-import').addEventListener('click', ()=> switchView('importa'));
   document.getElementById('more-goto-backup').addEventListener('click', ()=> switchView('backup'));

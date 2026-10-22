@@ -8,36 +8,12 @@
    codice JavaScript che li usa in stili inline continua a funzionare.
    ===================================================================== */
 :root{
-  color-scheme: light;
 
-  /* --- Palette di base (tema "Verde acqua", v5.28) --- */
-  --bg:#F4F8FD;            /* sfondo principale (azzurro chiarissimo) */
-  --surface:#FFFFFF;       /* schede e pannelli */
-  --surface-2:#F0F6FB;     /* superfici secondarie, righe alterne */
-  --field-bg:#FFFFFF;      /* campi di testo */
-  --sage:#15806A;          /* verde acqua scuro: colore identificativo */
-  --accent:#15806A;        /* sfondo dei pulsanti principali (contrasto 4,8:1 col bianco) */
-  --accent-hover:#0F6F5B;
-  --accent-ink:#0F6F5B;    /* testo verde su fondo chiaro */
-  --on-accent:#FFFFFF;
-  --sage-soft:#DDF5EE;     /* selezioni, voce attiva (menta) */
-  --teal:#2FA88A;          /* verde acqua vivo: solo decorazioni, barre, banner */
-  --mint:#D8F5EE;          /* riquadri menta */
-  --terra:#E8895F;         /* pesca/terracotta: dettagli e azioni secondarie */
-  --terra-ink:#A5532F;     /* terracotta per testi (contrasto AA su pesca) */
-  --terra-soft:#FDEEE0;    /* pesca chiaro */
-  --text:#1F2A2E;
-  --text-2:#5F6B7A;        /* testo secondario (≥ 4.5:1 su azzurro chiaro) */
-  --border:#DCE6EF;
-  --border-strong:#C3D2E0;
+  /* --- La palette (colori, ombre) dipende dal tema scelto: vedi più sotto --- */
   --white:#FFFFFF;
-  --danger:#B4493B;
 
   /* --- Forme e ombre (leggere) --- */
   --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:24px;
-  --shadow-card:0 1px 2px rgba(30,70,100,.05), 0 8px 24px rgba(30,70,100,.06);
-  --shadow-pop:0 12px 36px rgba(20,50,70,.20);
-  --overlay-bg:rgba(20,40,50,.42);
 
   /* --- Alias storici (usati dal resto del CSS e da stili inline in JS) --- */
   --parchment:var(--bg);
@@ -46,14 +22,10 @@
   --ink-soft:var(--text-2);
   --line:var(--border);
   --gold:var(--accent);
-  --gold-bright:#2FA88A;
   --gold-deep:var(--accent-hover);
   --brass:var(--accent-ink);
   --wood:var(--accent-ink);
   --wood-dark:var(--bg);
-  --shadow:rgba(30,70,100,.14);
-  --shadow-2:rgba(30,70,100,.07);
-  --green:#2E8B6A;
   --orange:var(--terra-ink);
   --red:var(--danger);
 
@@ -71,22 +43,101 @@
   --sidebar-w:264px;
 }
 
-/* ============ TEMA SCURO (facoltativo) ============
-   Un verde-grigio caldo, non nero: stesso schema di variabili. */
-:root[data-tema="scuro"]{
-  color-scheme: dark;
-  --bg:#0F1A1E; --surface:#16252A; --surface-2:#1B2D33; --field-bg:#122024;
-  --sage:#5FD0B2; --accent:#1E8F77; --accent-hover:#25A68B; --accent-ink:#86E3CB; --on-accent:#FFFFFF;
-  --sage-soft:#17382F; --teal:#2FA88A; --mint:#17382F;
-  --terra:#F0996F; --terra-ink:#F5B08F; --terra-soft:#3A2A22;
-  --text:#E8F1F3; --text-2:#9FB2B8; --border:#27393F; --border-strong:#35505A;
-  --danger:#E27C6D;
-  --shadow-card:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
-  --shadow-pop:0 12px 36px rgba(0,0,0,.55);
-  --overlay-bg:rgba(4,10,12,.62);
-  --gold-bright:#3DBF9F;
-  --shadow:rgba(0,0,0,.45); --shadow-2:rgba(0,0,0,.3);
-  --green:#6FD0A8;
+
+/* ============ TEMI (v5.36) ============
+   Sei temi, scelti dalla pagina «Tema» (menu Gestione). Basilico è quello di
+   partenza; Rame è il tema scuro. Ogni tema ridefinisce le stesse variabili e
+   imposta anche le variabili di Bulma (css/bulma.css, prefisso bulma-). Le schede
+   di anteprima della pagina Tema usano [data-tema-preview] con le stesse regole. */
+:root,:root[data-tema="basilico"],[data-tema-preview="basilico"]{
+  color-scheme:light;
+  --bg:#F4F8F2; --surface:#FFFFFF; --surface-2:#EBF2E8; --field-bg:#FFFFFF;
+  --sage:#36723E; --accent:#36723E; --accent-hover:#2C5E33; --accent-ink:#36723E; --on-accent:#FFFFFF;
+  --sage-soft:#E2F4E4; --teal:#4DA358; --mint:#DAF1DD;
+  --terra:#D84831; --terra-ink:#922B1C; --terra-soft:#FBE3DF;
+  --text:#1F281A; --text-2:#5D6D55; --border:#DEE6DA; --border-strong:#C6D2C0;
+  --danger:#B4493B; --green:#378141;
+  --shadow-card:0 1px 2px rgba(44,71,31,.06), 0 8px 24px rgba(44,71,31,.07);
+  --shadow-pop:0 12px 36px rgba(44,71,31,.22);
+  --overlay-bg:rgba(44,71,31,.45);
+  --gold-bright:#4DA358;
+  --shadow:rgba(44,71,31,.14); --shadow-2:rgba(44,71,31,.07);
+  --bulma-primary-h:128deg;--bulma-primary-s:36%;--bulma-primary-l:33%;--bulma-link-h:128deg;--bulma-link-s:36%;--bulma-link-l:33%;--bulma-warning-h:8deg;--bulma-warning-s:68%;--bulma-warning-l:52%;--bulma-scheme-h:100;--bulma-scheme-s:28%;
+}
+:root[data-tema="pomodoro"],[data-tema-preview="pomodoro"]{
+  color-scheme:light;
+  --bg:#FAF5EF; --surface:#FFFFFF; --surface-2:#F7EEE3; --field-bg:#FFFFFF;
+  --sage:#BA3C2C; --accent:#BA3C2C; --accent-hover:#A13426; --accent-ink:#AE3829; --on-accent:#FFFFFF;
+  --sage-soft:#F6E2DF; --teal:#D76556; --mint:#F4DBD7;
+  --terra:#EC9C13; --terra-ink:#8E5E0B; --terra-soft:#FBF1DF;
+  --text:#28221A; --text-2:#72675A; --border:#ECE1D5; --border-strong:#DBCBB8;
+  --danger:#B4493B; --green:#814037;
+  --shadow-card:0 1px 2px rgba(71,52,31,.06), 0 8px 24px rgba(71,52,31,.07);
+  --shadow-pop:0 12px 36px rgba(71,52,31,.22);
+  --overlay-bg:rgba(71,52,31,.45);
+  --gold-bright:#D76556;
+  --shadow:rgba(71,52,31,.14); --shadow-2:rgba(71,52,31,.07);
+  --bulma-primary-h:7deg;--bulma-primary-s:62%;--bulma-primary-l:45%;--bulma-link-h:7deg;--bulma-link-s:62%;--bulma-link-l:45%;--bulma-warning-h:38deg;--bulma-warning-s:85%;--bulma-warning-l:50%;--bulma-scheme-h:32;--bulma-scheme-s:55%;
+}
+:root[data-tema="zafferano"],[data-tema-preview="zafferano"]{
+  color-scheme:light;
+  --bg:#FCF8EE; --surface:#FFFFFF; --surface-2:#FAF3E1; --field-bg:#FFFFFF;
+  --sage:#A3610A; --accent:#A3610A; --accent-hover:#865009; --accent-ink:#955809; --on-accent:#FFFFFF;
+  --sage-soft:#F6ECDF; --teal:#E6890F; --mint:#F4E7D7;
+  --terra:#D93E26; --terra-ink:#932A1A; --terra-soft:#FBE3DF;
+  --text:#28251A; --text-2:#6F6958; --border:#EFE7D1; --border-strong:#E0D4B3;
+  --danger:#B4493B; --green:#816137;
+  --shadow-card:0 1px 2px rgba(71,61,31,.06), 0 8px 24px rgba(71,61,31,.07);
+  --shadow-pop:0 12px 36px rgba(71,61,31,.22);
+  --overlay-bg:rgba(71,61,31,.45);
+  --gold-bright:#E6890F;
+  --shadow:rgba(71,61,31,.14); --shadow-2:rgba(71,61,31,.07);
+  --bulma-primary-h:34deg;--bulma-primary-s:88%;--bulma-primary-l:34%;--bulma-link-h:34deg;--bulma-link-s:88%;--bulma-link-l:34%;--bulma-warning-h:8deg;--bulma-warning-s:70%;--bulma-warning-l:50%;--bulma-scheme-h:44;--bulma-scheme-s:70%;
+}
+:root[data-tema="melanzana"],[data-tema-preview="melanzana"]{
+  color-scheme:light;
+  --bg:#F7F3F7; --surface:#FFFFFF; --surface-2:#F1EAF1; --field-bg:#FFFFFF;
+  --sage:#6A3974; --accent:#6A3974; --accent-hover:#582F60; --accent-ink:#6A3974; --on-accent:#FFFFFF;
+  --sage-soft:#F0E2F3; --teal:#9651A4; --mint:#EDDBF0;
+  --terra:#EDAE1D; --terra-ink:#89630B; --terra-soft:#FBF3DF;
+  --text:#281A28; --text-2:#725A72; --border:#E5DCE5; --border-strong:#D0C3D0;
+  --danger:#B4493B; --green:#2E8B6A;
+  --shadow-card:0 1px 2px rgba(71,31,71,.06), 0 8px 24px rgba(71,31,71,.07);
+  --shadow-pop:0 12px 36px rgba(71,31,71,.22);
+  --overlay-bg:rgba(71,31,71,.45);
+  --gold-bright:#9651A4;
+  --shadow:rgba(71,31,71,.14); --shadow-2:rgba(71,31,71,.07);
+  --bulma-primary-h:290deg;--bulma-primary-s:34%;--bulma-primary-l:34%;--bulma-link-h:290deg;--bulma-link-s:34%;--bulma-link-l:34%;--bulma-warning-h:42deg;--bulma-warning-s:85%;--bulma-warning-l:52%;--bulma-scheme-h:300;--bulma-scheme-s:20%;
+}
+:root[data-tema="oliva"],[data-tema-preview="oliva"]{
+  color-scheme:light;
+  --bg:#F8F7F2; --surface:#FFFFFF; --surface-2:#F3F0E8; --field-bg:#FFFFFF;
+  --sage:#606F34; --accent:#606F34; --accent-hover:#4E5A2A; --accent-ink:#606F34; --on-accent:#FFFFFF;
+  --sage-soft:#EFF4E2; --teal:#8AA04B; --mint:#EBF1DA;
+  --terra:#CC7A33; --terra-ink:#8B5323; --terra-soft:#FBECDF;
+  --text:#28261A; --text-2:#6D6855; --border:#E7E4DA; --border-strong:#D3CFC0;
+  --danger:#B4493B; --green:#6E8137;
+  --shadow-card:0 1px 2px rgba(71,63,31,.06), 0 8px 24px rgba(71,63,31,.07);
+  --shadow-pop:0 12px 36px rgba(71,63,31,.22);
+  --overlay-bg:rgba(71,63,31,.45);
+  --gold-bright:#8AA04B;
+  --shadow:rgba(71,63,31,.14); --shadow-2:rgba(71,63,31,.07);
+  --bulma-primary-h:75deg;--bulma-primary-s:36%;--bulma-primary-l:32%;--bulma-link-h:75deg;--bulma-link-s:36%;--bulma-link-l:32%;--bulma-warning-h:28deg;--bulma-warning-s:60%;--bulma-warning-l:50%;--bulma-scheme-h:48;--bulma-scheme-s:30%;
+}
+:root[data-tema="rame"],[data-tema-preview="rame"]{
+  color-scheme:dark;
+  --bg:#171310; --surface:#201B17; --surface-2:#27211C; --field-bg:#1B1612;
+  --sage:#F0A070; --accent:#BF5518; --accent-hover:#DA611B; --accent-ink:#F5B58C; --on-accent:#FFFFFF;
+  --sage-soft:#3A2417; --teal:#E0732C; --mint:#3A2417;
+  --terra:#E8B84A; --terra-ink:#F0C86A; --terra-soft:#392E17;
+  --text:#F4ECE6; --text-2:#B9AA9C; --border:#352D26; --border-strong:#4A3F35;
+  --danger:#E27C6D; --green:#8FCB7A;
+  --shadow-card:0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.3);
+  --shadow-pop:0 12px 36px rgba(0,0,0,.6);
+  --overlay-bg:rgba(8,5,3,.66);
+  --gold-bright:#E0732C;
+  --shadow:rgba(0,0,0,.5); --shadow-2:rgba(0,0,0,.3);
+  --bulma-primary-h:22deg;--bulma-primary-s:78%;--bulma-primary-l:42%;--bulma-link-h:22deg;--bulma-link-s:78%;--bulma-link-l:60%;--bulma-warning-h:42deg;--bulma-warning-s:80%;--bulma-warning-l:55%;--bulma-scheme-h:24;--bulma-scheme-s:14%;
 }
 
 *{box-sizing:border-box;}
@@ -284,7 +335,7 @@ input[type="text"], select, textarea, input[type="number"], input[type="date"], 
 input[type="time"]{-webkit-appearance:none; appearance:none;}
 select{padding-right:8px;}
 input::placeholder, textarea::placeholder{color:#9A9C94; opacity:1;}
-:root[data-tema="scuro"] input::placeholder, :root[data-tema="scuro"] textarea::placeholder{color:#7F837A;}
+:root[data-tema="rame"] input::placeholder, :root[data-tema="rame"] textarea::placeholder{color:#7F837A;}
 input:focus, select:focus, textarea:focus{
   outline:none; border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
@@ -404,10 +455,10 @@ textarea{resize:vertical;min-height:70px;line-height:1.5;}
 .match-badge.ready{background:var(--sage-soft);color:var(--accent-ink);}
 .match-badge.missing{background:var(--terra-soft);color:var(--terra-ink);}
 .match-badge.scarso{background:#F4EBCB;color:#7A5E12;}
-:root[data-tema="scuro"] .match-badge.scarso{background:#3C3519;color:#E4CE82;}
+:root[data-tema="rame"] .match-badge.scarso{background:#3C3519;color:#E4CE82;}
 .card .missing-list{font-size:var(--fs-sm);color:var(--terra-ink);margin-top:6px;}
 .card .missing-list.scarso{color:#7A5E12;}
-:root[data-tema="scuro"] .card .missing-list.scarso{color:#E4CE82;}
+:root[data-tema="rame"] .card .missing-list.scarso{color:#E4CE82;}
 .card .missing-list b{color:inherit;}
 .pantry-caveat{font-size:var(--fs-xs);color:var(--text-2);margin:-2px 0 8px;}
 #freezable-suggestion{align-items:center;flex-wrap:wrap;gap:6px;background:var(--sage-soft);border-radius:var(--r-md);padding:10px 12px;color:var(--accent-ink);}
@@ -725,7 +776,7 @@ footer{text-align:center;color:var(--text-2);font-size:var(--fs-sm);margin-top:2
 .dispensa-expiry{display:inline-block;font-size:var(--fs-xs);color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:1px 9px;}
 .dispensa-expiry.soon{background:#F8EBCB;color:#7A5E12;border-color:transparent;font-weight:600;}
 .dispensa-expiry.expired{background:var(--terra-soft);color:var(--terra-ink);border-color:transparent;font-weight:600;}
-:root[data-tema="scuro"] .dispensa-expiry.soon{background:#3C3519;color:#E4CE82;}
+:root[data-tema="rame"] .dispensa-expiry.soon{background:#3C3519;color:#E4CE82;}
 .dispensa-low-stock{display:inline-block;background:var(--terra-soft);color:var(--terra-ink);font-weight:600;border-radius:999px;padding:1px 9px;font-size:var(--fs-xs);}
 .dispensa-row .cat-tag{margin:0;}
 
@@ -813,7 +864,7 @@ footer{text-align:center;color:var(--text-2);font-size:var(--fs-sm);margin-top:2
 .today-list li:last-child{border-bottom:0;}
 .today-meal{color:var(--text-2);font-size:var(--fs-sm);}
 .today-expiry-soon{color:#8A6A14;font-weight:600;}
-:root[data-tema="scuro"] .today-expiry-soon{color:#E4CE82;}
+:root[data-tema="rame"] .today-expiry-soon{color:#E4CE82;}
 .today-expiry-urgent{color:var(--terra-ink);font-weight:700;}
 .today-expiry-more{color:var(--text-2);font-size:var(--fs-sm);border-bottom:0;padding-top:3px;}
 .today-list .cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;}
@@ -1269,15 +1320,15 @@ details.pantry-panel .panel-sub{white-space:nowrap;overflow:hidden;text-overflow
   position:relative; overflow:hidden; align-items:center; padding:26px 28px; margin-bottom:20px;
   border-radius:var(--r-xl);
   background:
-    radial-gradient(circle at 88% 20%, rgba(255,255,255,.16) 0 70px, transparent 71px),
-    radial-gradient(circle at 96% 88%, rgba(255,255,255,.12) 0 110px, transparent 111px),
-    linear-gradient(100deg,#15806A 0%,#1B9279 55%,#2FA88A 100%);
-  color:#fff;
+    radial-gradient(circle at 92% 14%, color-mix(in srgb,var(--accent) 12%,transparent) 0 80px, transparent 81px),
+    color-mix(in srgb,var(--accent) 13%,var(--surface));
+  color:var(--text);
 }
-#today-content .today-hero-row > .page-head h2{color:#fff;font-size:38px;font-weight:500;letter-spacing:-.015em;}
-#today-content .today-hero-row > .page-head p,#today-content .today-hero-row > .page-head .today-hello,#today-content .today-hero-row > .page-head .today-hello strong{color:#fff;}
-#today-content .today-hero-row > .page-head .btn-gold{background:#fff;color:var(--accent-ink);border-color:#fff;font-weight:700;}
-#today-content .today-hero-row > .page-head .btn-gold:hover{background:var(--mint);}
+#today-content .today-hero-row > .page-head h2{color:var(--text);font-size:38px;font-weight:500;letter-spacing:-.015em;}
+#today-content .today-hero-row > .page-head p,#today-content .today-hero-row > .page-head .today-hello{color:var(--text-2);}
+#today-content .today-hero-row > .page-head .today-hello strong{color:var(--text);}
+#today-content .today-hero-row > .page-head .btn-gold{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700;}
+#today-content .today-hero-row > .page-head .btn-gold:hover{background:var(--accent-hover);}
 .today-empty-card{background:var(--terra-soft);border:0;}
 .quick-tile{border:0;box-shadow:none;background:var(--mint);}
 .quick-tile:nth-child(even){background:var(--terra-soft);}
@@ -1287,12 +1338,8 @@ details.pantry-panel .panel-sub{white-space:nowrap;overflow:hidden;text-overflow
 .guide-card{background:var(--mint);border:0;}
 .sidebar-footnote a{color:var(--accent-ink);text-decoration:underline;}
 #backup-weekly-banner{border:0!important;background:var(--terra-soft)!important;border-radius:var(--r-md)!important;}
-:root[data-tema="scuro"] #today-content .today-hero-row > .page-head{background:
-    radial-gradient(circle at 88% 20%, rgba(255,255,255,.08) 0 70px, transparent 71px),
-    linear-gradient(100deg,#0F5E4E 0%,#14705D 60%,#1E8F77 100%);}
-:root[data-tema="scuro"] .quick-tile,:root[data-tema="scuro"] .guide-card{background:var(--sage-soft);}
-:root[data-tema="scuro"] .quick-tile:nth-child(even),:root[data-tema="scuro"] .today-empty-card{background:var(--terra-soft);}
-:root[data-tema="scuro"] #today-content .today-hero-row > .page-head .btn-gold{color:#0F5E4E;}
+:root[data-tema="rame"] .quick-tile,:root[data-tema="rame"] .guide-card{background:var(--sage-soft);}
+:root[data-tema="rame"] .quick-tile:nth-child(even),:root[data-tema="rame"] .today-empty-card{background:var(--terra-soft);}
 @media (max-width:760px){#today-content .today-hero-row > .page-head{padding:20px 18px;}#today-content .today-hero-row > .page-head h2{font-size:30px;}}
 .stat-card li{display:list-item}
 .stat-card li > .stat-link{display:inline}
@@ -1301,8 +1348,8 @@ details.pantry-panel .panel-sub{white-space:nowrap;overflow:hidden;text-overflow
 .stat-tile{border:0;box-shadow:none;background:var(--mint)}
 .stat-tile:nth-child(even){background:var(--terra-soft)}
 .stat-bar-fill{background-image:none}
-:root[data-tema="scuro"] .stat-tile{background:var(--sage-soft)}
-:root[data-tema="scuro"] .stat-tile:nth-child(even){background:var(--terra-soft)}
+:root[data-tema="rame"] .stat-tile{background:var(--sage-soft)}
+:root[data-tema="rame"] .stat-tile:nth-child(even){background:var(--terra-soft)}
 .stat-card ol{list-style:none;padding:0;counter-reset:st}
 .stat-card li{display:flex;align-items:baseline;gap:8px;overflow:visible;counter-increment:st;padding:6px 0;border-bottom:1px solid var(--border)}
 .stat-card li:last-child{border-bottom:0}
@@ -1312,8 +1359,8 @@ details.pantry-panel .panel-sub{white-space:nowrap;overflow:hidden;text-overflow
 /* Oggi: riquadri Le mie ricette / Da consumare prima / Lista della spesa sopra i pasti (v5.29) */
 .today-grid .today-card{border:0;box-shadow:none;background:var(--mint)}
 .today-grid .today-card:nth-child(2){background:var(--terra-soft)}
-:root[data-tema="scuro"] .today-grid .today-card{background:var(--sage-soft)}
-:root[data-tema="scuro"] .today-grid .today-card:nth-child(2){background:var(--terra-soft)}
+:root[data-tema="rame"] .today-grid .today-card{background:var(--sage-soft)}
+:root[data-tema="rame"] .today-grid .today-card:nth-child(2){background:var(--terra-soft)}
 
 /* Oggi: banner + riquadro statistiche affiancati (v5.31) */
 .today-hero-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px;margin-bottom:20px;align-items:stretch}
@@ -1326,8 +1373,8 @@ details.pantry-panel .panel-sub{white-space:nowrap;overflow:hidden;text-overflow
 .today-stat b{font-size:1.25rem;line-height:1.2}
 .today-stat span{font-size:var(--fs-xs);color:var(--text-2)}
 .today-stats-top{margin:0;font-size:var(--fs-sm);color:var(--text-2)}
-:root[data-tema="scuro"] .today-stat{background:var(--sage-soft)}
-:root[data-tema="scuro"] .today-stat:nth-child(2),:root[data-tema="scuro"] .today-stat:nth-child(3){background:var(--terra-soft)}
+:root[data-tema="rame"] .today-stat{background:var(--sage-soft)}
+:root[data-tema="rame"] .today-stat:nth-child(2),:root[data-tema="rame"] .today-stat:nth-child(3){background:var(--terra-soft)}
 @media (max-width:900px){.today-hero-row{grid-template-columns:1fr}}
 
 /* ===== Pianificazione: pasti a piacere (v5.32) ===== */
@@ -1359,7 +1406,7 @@ input[type="time"].plan-slot-time{width:104px;height:30px;padding:2px 8px;font-s
 .plan-day-free{align-self:center;color:var(--text-2);font-size:var(--fs-sm);font-style:italic;margin-right:6px;}
 .plan-day-card > .plan-add-meal{margin-top:10px;}
 .plan-day-card > .plan-day-free{text-align:center;margin:16px 0 6px;}
-:root[data-tema="scuro"] .plan-add-meal-select{background:var(--sage-soft);}
+:root[data-tema="rame"] .plan-add-meal-select{background:var(--sage-soft);}
 
 /* Pagine "Importa ricette" e "Backup ed esportazione" (v5.33) */
 .tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:stretch;margin-bottom:24px}
@@ -1376,7 +1423,7 @@ input[type="time"].plan-slot-time{width:104px;height:30px;padding:2px 8px;font-s
 .tool-card > .btn-gold,.tool-card > .btn-ghost{align-self:flex-start;margin-top:auto}
 .tool-field{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-sm);color:var(--text-2)}
 .tool-field select{width:100%}
-:root[data-tema="scuro"] .tool-card:nth-child(odd) .tool-ico{background:var(--sage-soft)}
+:root[data-tema="rame"] .tool-card:nth-child(odd) .tool-ico{background:var(--sage-soft)}
 
 .plan-meal-header{flex-wrap:wrap;}
 .plan-meal-header .plan-meal-name{order:1;}
@@ -1391,3 +1438,33 @@ input[type="time"].plan-slot-time{width:100%;max-width:112px;}
 input[type="time"].plan-slot-time::-webkit-calendar-picker-indicator{display:none;}
 input[type="time"].plan-slot-time{font-variant-numeric:tabular-nums;}
 .plan-week .plan-add-meal-select{font-size:var(--fs-xs);padding:8px 4px 8px 8px;}
+
+/* ===== Pagina «Tema» (v5.36) ===== */
+.tema-grid{display:grid;grid-auto-rows:1fr;align-items:stretch;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;margin-bottom:20px}
+.tema-card{display:flex;flex-direction:column;gap:0;padding:0;text-align:left;cursor:pointer;font:inherit;color:var(--text);
+  background:var(--surface);border:2px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-card);overflow:hidden;
+  transition:border-color .15s, transform .15s}
+.tema-card:hover{border-color:var(--border-strong);transform:translateY(-2px)}
+.tema-card.selected{border-color:var(--accent)}
+.tema-card:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tema-info{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:12px 16px 14px}
+.tema-name{font-weight:700;font-size:1.05rem;font-family:var(--font-titoli)}
+.tema-desc{flex:1 0 100%;font-size:var(--fs-sm);color:var(--text-2)}
+.tema-info .bulma-tag{margin-left:auto}
+.tema-preview{display:block;background:var(--bg);color:var(--text);padding:12px;border-bottom:1px solid var(--border)}
+.tema-preview .tp-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.tema-preview .tp-dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.tema-preview .tp-line{height:7px;flex:1;border-radius:6px;background:var(--border)}
+.tema-preview .tp-body{display:flex;flex-direction:column;gap:8px}
+.tema-preview .tp-hero{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 13%,var(--surface))}
+.tema-preview .tp-title{height:9px;width:40%;border-radius:6px;background:var(--text);opacity:.8}
+.tema-preview .tp-btn{background:var(--accent);color:var(--on-accent);font-size:11px;font-weight:700;border-radius:99px;padding:5px 10px;white-space:nowrap}
+.tema-preview .tp-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:var(--surface);border:1px solid var(--border)}
+.tema-preview .tp-time{background:var(--sage-soft);color:var(--accent-ink);font-weight:700;font-size:11px;border-radius:7px;padding:2px 7px}
+.tema-preview .tp-meal{flex:1;height:7px;border-radius:6px;background:var(--border-strong)}
+.tema-preview .tp-tag{width:34px;height:14px;border-radius:99px;background:var(--terra-soft);border:1px solid var(--terra)}
+.tema-note{border-radius:var(--r-md);background:var(--sage-soft);color:var(--text)}
+/* componenti Bulma: stessi colori del tema */
+.bulma-tag.bulma-is-primary.bulma-is-light{background:var(--sage-soft);color:var(--accent-ink)}
+.bulma-notification{font-size:var(--fs-md);line-height:1.5}
+.theme-toggle-row{display:none}

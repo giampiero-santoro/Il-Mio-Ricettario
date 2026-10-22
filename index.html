@@ -25,11 +25,16 @@
   (function(){
     try {
       var t = localStorage.getItem('mc_ricettario_tema_v1');
-      if (t === 'scuro') document.documentElement.setAttribute('data-tema', 'scuro');
+      if (t === 'scuro') t = 'rame';
+      if (t && t !== 'chiaro' && t !== 'basilico') {
+        document.documentElement.setAttribute('data-tema', t);
+        if (t === 'rame') document.documentElement.classList.add('bulma-theme-dark');
+      }
     } catch(e) {}
   })();
 </script>
 <link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/bulma.css">
 <link rel="stylesheet" href="style.css">
 <base target="_blank">
 </head>
@@ -59,6 +64,7 @@
   <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
   <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.7-1.6 1.6-1.6H17a4 4 0 0 0 4-4c0-4.4-4-8.3-9-8.3Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
@@ -91,15 +97,9 @@
     <button class="view-nav-btn" id="nav-ricettari-btn" title="Gestisci ricettari" aria-label="Gestisci ricettari"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-library"/></svg></span><span class="nav-label">Gestisci ricettari</span></button>
     <button class="view-nav-btn" id="nav-info-btn" title="Come funziona" aria-label="Come funziona"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg></span><span class="nav-label">Come funziona</span></button>
     <a class="view-nav-btn nav-guide-link" id="nav-guide-link" href="guida.html" data-guida title="Guida illustrata" aria-label="Guida illustrata"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-help"/></svg></span><span class="nav-label">Guida illustrata</span></a>
+    <button class="view-nav-btn" id="nav-tema-btn" title="Tema" aria-label="Tema"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg></span><span class="nav-label">Tema</span></button>
   </nav>
 
-  <label class="theme-toggle-row" for="tema-toggle">
-    <span class="theme-toggle-label"><span aria-hidden="true"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-moon"/></svg></span><span class="theme-toggle-text">Tema scuro</span></span>
-    <span class="switch">
-      <input type="checkbox" id="tema-toggle" aria-label="Tema scuro">
-      <span class="switch-track" aria-hidden="true"></span>
-    </span>
-  </label>
   <div class="sidebar-credit">
     <img src="img/logo-clan-destino.png" alt="Clan Destino" width="32" height="32">
     <span>Clan Destino<br>Autore: Giampiero Santoro</span>
@@ -394,6 +394,12 @@
     </div>
   </div>
 
+  <div id="tema-view" style="display:none;">
+    <div class="page-head"><div><h2>Tema</h2><p>Scegli i colori del ricettario. La scelta resta salvata su questo dispositivo.</p></div></div>
+    <div class="tema-grid" id="tema-grid" role="radiogroup" aria-label="Tema dei colori"></div>
+    <div class="bulma-notification tema-note"><b>Rame</b> è il tema scuro, comodo la sera o con poca luce. Gli altri cinque sono chiari e cambiano solo i colori: tutte le funzioni restano uguali.</div>
+  </div>
+
   <div id="backup-view" style="display:none;">
     <div class="page-head"><div><h2>Backup ed esportazione</h2><p>Metti al sicuro le tue ricette, salvale in un file che scegli tu o esportale per stamparle e condividerle.</p></div></div>
     <div class="tool-grid">
@@ -546,6 +552,7 @@
       <ul style="margin:0 0 8px;padding-left:20px;line-height:1.55;">
         <li><b>Open Food Facts</b> — dati sotto licenza ODbL, immagini sotto CC BY-SA, © i collaboratori di Open Food Facts, <a href="https://world.openfoodfacts.org" rel="noopener">world.openfoodfacts.org</a>.</li>
         <li><b>DM Sans</b> e <b>Lora</b> — caratteri sotto SIL Open Font License 1.1 (testi in <code>fonts/</code>).</li>
+        <li><b>Bulma</b> 1.0 — licenza MIT (testo in <code>css/</code>), usato in locale per i colori dei temi e alcuni componenti.</li>
         <li><b>html5-qrcode</b> 2.3.8 — licenza Apache 2.0 (testo in <code>js/vendor/</code>).</li>
         <li>Il codice di questa app è distribuito con licenza MIT (file LICENSE).</li>
       </ul>

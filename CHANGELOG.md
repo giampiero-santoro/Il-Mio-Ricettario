@@ -2,6 +2,20 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.36.0] — Sei temi di colore con Bulma
+
+### Aggiunto
+- **Pagina «Tema»** (menu laterale, in fondo al gruppo Gestione): sei temi con anteprima — **Basilico** (verde foglia, di partenza), **Pomodoro**, **Zafferano**, **Melanzana**, **Oliva e lino** e **Rame** (scuro). Il tema scelto si applica subito a tutto il sito e resta salvato.
+- Framework **Bulma 1.0** incluso in locale (`css/bulma.css`, solo le parti usate, prefisso `bulma-`, licenza MIT): fornisce le variabili di colore dei temi e i componenti della pagina Tema. Nessun collegamento esterno.
+
+### Cambiato
+- Tutti i colori del sito (sfondi, pulsanti, etichette, ombre, banner di Oggi) dipendono dal tema; contrasti dei testi controllati (almeno 4,5:1).
+- Il vecchio interruttore «Tema scuro» è sostituito dal tema **Rame**: chi aveva il tema scuro attivo lo ritrova.
+- Guida illustrata, GUIDA.md e note legali (crediti Bulma) aggiornate; tutte le immagini della guida rifatte con i nuovi colori.
+
+### Test
+- Nuovo `test_29` (sei temi, scelta, persistenza, migrazione del vecchio tema scuro). Suite: 29/29.
+
 ## [5.35.0] — Orari dei pasti, settimana in verticale
 
 ### Cambiato
