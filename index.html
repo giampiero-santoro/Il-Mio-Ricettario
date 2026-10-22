@@ -31,6 +31,7 @@
         if (t === 'rame') document.documentElement.classList.add('bulma-theme-dark');
       }
     } catch(e) {}
+    try { if (localStorage.getItem('mc_ricettario_sidebar_v1') === 'hidden') document.documentElement.classList.add('sidebar-hidden'); } catch(e) {}
   })();
 </script>
 <link rel="stylesheet" href="fonts/fonts.css">
@@ -67,6 +68,7 @@
   <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.7-1.6 1.6-1.6H17a4 4 0 0 0 4-4c0-4.4-4-8.3-9-8.3Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9.5 4.5v15"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
   <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
@@ -117,6 +119,7 @@
   <button type="button" id="mobile-alerts-btn" aria-label="Avvisi dispensa: scorte in esaurimento o in scadenza" title="Avvisi dispensa"><svg class="ico" aria-hidden="true"><use href="#i-bell"/></svg><span class="topbar-badge" id="mobile-alerts-badge" style="display:none;"></span></button>
 </div>
 <header class="app-topbar">
+  <button type="button" class="sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Nascondi il menu" title="Nascondi il menu" aria-expanded="true"><svg class="ico" aria-hidden="true"><use href="#i-sidebar"/></svg></button>
   <div class="topbar-search">
     <span class="topbar-search-icon" aria-hidden="true"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-search"/></svg></span>
     <input type="text" id="topbar-search" placeholder="Cerca una ricetta…" aria-label="Cerca una ricetta">
@@ -277,7 +280,7 @@
     <div class="planning-header">
       <div>
         <h2>Pianificazione settimanale</h2>
-        <p class="page-sub">Ogni giorno parte vuoto: aggiungi tu i pasti che ti servono (anche più di quattro), con più ricette per pasto e orario facoltativo.</p>
+        <p class="page-sub">Ogni giorno parte vuoto: aggiungi tu i pasti che ti servono (anche più di quattro), ognuno con il suo orario e più ricette.</p>
       </div>
       <div class="page-actions">
         <button class="btn-ghost btn-small" id="planning-goto-dispensa-btn" title="Apri la Dispensa per controllare cosa hai già">Dispensa</button>

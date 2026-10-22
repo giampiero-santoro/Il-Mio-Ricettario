@@ -1468,3 +1468,49 @@ input[type="time"].plan-slot-time{font-variant-numeric:tabular-nums;}
 .bulma-tag.bulma-is-primary.bulma-is-light{background:var(--sage-soft);color:var(--accent-ink)}
 .bulma-notification{font-size:var(--fs-md);line-height:1.5}
 .theme-toggle-row{display:none}
+
+/* ===== Pianificazione: matrice settimanale e menu nascondibile (v5.37) ===== */
+.sidebar-toggle-btn{display:none;flex:0 0 auto;width:40px;height:40px;padding:0;align-items:center;justify-content:center;background:var(--surface);color:var(--text-2);border:1px solid var(--border);border-radius:12px;}
+.sidebar-toggle-btn:hover{background:var(--sage-soft);color:var(--accent-ink);}
+@media (min-width:761px){
+  .sidebar-toggle-btn{display:inline-flex;margin-right:10px;}
+  .app-topbar{display:flex;align-items:center;}
+  :root.sidebar-hidden .app-sidebar{display:none;}
+  :root.sidebar-hidden #view-overlay.active{left:0;}
+}
+body[data-view="planning"] .app-main > .app-topbar,body[data-view="planning"] .app-main > .book{max-width:1640px;}
+.plan-grid.plan-week.plan-matrix{display:grid;grid-template-columns:38px repeat(7,minmax(138px,1fr));column-gap:0;row-gap:8px;padding:10px 10px 14px;overflow-x:auto;background:var(--surface);}
+.plan-matrix > .plan-week-row{grid-row:1 / -1;display:grid;grid-template-rows:subgrid;row-gap:8px;padding:0 4px;border:none;min-width:0;background:transparent;}
+.plan-matrix > .plan-week-row.is-today{background:color-mix(in srgb, var(--sage-soft) 40%, transparent);border-radius:var(--r-md);}
+.plan-matrix .plan-grid-dayhead{border-bottom:none;background:transparent;flex-direction:column;align-items:center;text-align:center;padding:6px 4px 4px;gap:0;box-shadow:none;}
+.plan-matrix .plan-grid-dayhead.today{background:transparent;box-shadow:none;}
+.plan-matrix .plan-grid-dayhead .dname{font-size:var(--fs-md);}
+.plan-matrix .plan-grid-dayhead .dtools{margin:2px 0 0;justify-content:center;}
+.plan-row-label{display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);font-size:var(--fs-xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra-ink);background:var(--surface-2);border-radius:10px;padding:10px 0;margin-right:4px;}
+.plan-slot-empty{min-height:56px;border:1.5px dashed var(--border-strong);border-radius:var(--r-md);background:transparent;color:var(--text-2);font-size:1.3rem;line-height:1;cursor:pointer;}
+.plan-slot-empty:hover{border-color:var(--accent);color:var(--accent-ink);background:var(--sage-soft);}
+.plan-matrix .plan-meal-block{margin:0;align-self:stretch;}
+.plan-matrix .plan-slot-head{justify-content:space-between;}
+.plan-matrix .plan-slot-head .plan-slot-time{order:0;}
+.plan-matrix .plan-slot-head .slot-remove-btn{order:1;}
+.plan-matrix .plan-slot-head .plan-slot-name{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+.plan-matrix .plan-day-free{grid-row:2;align-self:start;}
+/* schede delle ricette con foto */
+.plan-entry-thumb,.plan-entry-meta{display:none;}
+.plan-grid.plan-matrix .plan-entry{padding:0;overflow:hidden;display:flex;flex-direction:column;border-radius:12px;}
+.plan-matrix .plan-entry-thumb{display:flex;align-items:center;justify-content:center;height:62px;background:var(--sage-soft);font-size:26px;}
+.plan-matrix .plan-entry-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.plan-matrix .plan-entry-main{padding:6px 8px 4px;}
+.plan-matrix .plan-entry-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.plan-matrix .plan-entry-meta{display:flex;gap:10px;padding:0 8px 7px;font-size:var(--fs-xxs);color:var(--text-2);}
+.plan-matrix .plan-entry-meta .ico{vertical-align:-2px;}
+.plan-matrix .plan-entry-nutrition{display:none;}
+
+.plan-grid.plan-matrix > div{border:none;}
+.plan-matrix .plan-add-row{flex-wrap:nowrap;gap:4px;}
+.plan-matrix .plan-add-btn,.plan-matrix .plan-add-dispensa-btn,.plan-matrix .plan-add-note-btn{padding:5px 8px;min-width:0;}
+.plan-matrix .plan-add-btn .lbl,.plan-matrix .plan-add-dispensa-btn .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+.plan-matrix .plan-slot-head{flex-wrap:nowrap;gap:4px;}
+input[type="time"].plan-slot-time{max-width:96px;}
+.plan-matrix .plan-entry-thumb.no-photo{height:32px;font-size:18px;}
+.plan-matrix .plan-entry-servings-input{width:44px;}

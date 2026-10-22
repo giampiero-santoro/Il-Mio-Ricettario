@@ -2,6 +2,20 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.37.0] — Pianificazione a tabella e menu nascondibile
+
+### Cambiato
+- **Settimana a tabella**: i giorni sono le colonne e i pasti sono le righe, con il nome del pasto scritto in verticale a sinistra. Le righe sono allineate tra i giorni e ordinate per orario (media degli orari del pasto).
+- **Schede con foto**: ogni ricetta pianificata è una piccola scheda con la foto, il nome, le porzioni e il tempo di preparazione (e le kcal, se note). Senza foto compare un segnaposto.
+- Le caselle vuote tratteggiate con **＋** creano quel pasto nel giorno; il menu «＋ Aggiungi pasto…» resta in fondo a ogni colonna. I pulsanti Ricetta, Dispensa e Nota sono diventati icone per risparmiare spazio.
+- La pagina Pianificazione usa tutta la larghezza disponibile.
+
+### Aggiunto
+- **Menu laterale nascondibile** (computer e tablet): pulsante in alto a sinistra, la scelta resta salvata sul dispositivo.
+
+### Test
+- Nuovo `test_30` (righe ordinate e allineate, etichetta verticale, casella vuota → pasto, scheda con foto e tempo, menu nascosto/riaperto e persistenza). Suite: 30/30.
+
 ## [5.36.0] — Sei temi di colore con Bulma
 
 ### Aggiunto

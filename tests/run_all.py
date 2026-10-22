@@ -54,6 +54,7 @@ TEST_MODULES = [
     "test_27_pagine_importa_backup",
     "test_28_orari_pasti",
     "test_29_temi",
+    "test_30_matrice_menu",
 ]
 
 
