@@ -55,6 +55,7 @@ TEST_MODULES = [
     "test_28_orari_pasti",
     "test_29_temi",
     "test_30_matrice_menu",
+    "test_31_giorno_timeline",
 ]
 
 

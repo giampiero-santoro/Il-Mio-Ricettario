@@ -6309,7 +6309,7 @@
       })() : '';
       return `<div class="plan-meal-block" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}">
         <div class="plan-meal-header">
-          ${slotTimeInputHtml(day, mt)}<span class="plan-meal-name">${escapeHtml(mt)}</span>
+          <span class="plan-tl-time">${slotTimeInputHtml(day, mt)}</span><span class="plan-meal-name">${escapeHtml(mt)}</span>
           <span class="plan-meal-actions"><button type="button" class="icon-btn slot-remove-btn" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}" title="Rimuovi questo pasto" aria-label="Rimuovi il pasto ${escapeAttr(mt)}">🗑</button></span>
         </div>
         <div class="plan-entry-list">${entriesHtml}</div>
@@ -6328,14 +6328,30 @@
     const totaleGiorno = nutrizioneGiorno(day);
     const totaleGiornoHtml = totaleGiorno
       ? `<div class="plan-day-total">📊 Totale ${escapeHtml(day.toLowerCase())}: ${formattaNutrizioneCompatta(totaleGiorno)}</div>` : '';
-
-    card.innerHTML = `<h3>${escapeHtml(day)} <span class="plan-day-date">${escapeHtml(dataBreve(dataDelGiorno(day)))}</span></h3>
-      <div style="text-align:center;margin:-6px 0 14px;">
-        <button type="button" class="btn-ghost btn-small plan-day-shopping-btn">🛒 Lista della spesa del giorno</button>
-        <button type="button" class="btn-ghost btn-small plan-week-totals-btn">📊 Totali settimana</button>
-      </div>
+    const nPasti = slotsOfDay(day).length;
+    const nRicette = dayEntries.filter(e => !e.dispensaItemId).length;
+    const nDispensa = dayEntries.filter(e => e.dispensaItemId).length;
+    const kcalGiorno = totaleGiorno && totaleGiorno.kcal !== null && totaleGiorno.kcal !== undefined ? roundNice(totaleGiorno.kcal) : null;
+    const riepilogoHtml = `<aside class="plan-day-side" aria-label="${escapeAttr(day)} in breve">
+      <h4>${escapeHtml(day)} in breve</h4>
+      <div class="plan-sum-row"><span>Pasti</span><b>${nPasti}</b></div>
+      <div class="plan-sum-row"><span>Ricette</span><b>${nRicette}</b></div>
+      ${nDispensa ? `<div class="plan-sum-row"><span>Dalla dispensa</span><b>${nDispensa}</b></div>` : ''}
+      <div class="plan-sum-row"><span>Calorie</span><b>${kcalGiorno !== null ? kcalGiorno + ' kcal' : '—'}</b></div>
+      <div class="plan-sum-row"><span>Persone</span><b>${planServings}</b></div>
       ${totaleGiornoHtml}
-      ${blocksHtml}${giornoLiberoHtml}${addMealSelectHtml(day)}`;
+      <hr>
+      <button type="button" class="btn-ghost btn-small plan-day-shopping-btn">🛒 Lista della spesa del giorno</button>
+      <button type="button" class="btn-ghost btn-small plan-week-totals-btn">📊 Totali settimana</button>
+    </aside>`;
+
+    card.innerHTML = `<div class="plan-day-wrap">
+      <div class="plan-day-main">
+        <h3>${escapeHtml(day)} <span class="plan-day-date">${escapeHtml(dataBreve(dataDelGiorno(day)))}</span></h3>
+        <div class="plan-timeline">${blocksHtml}</div>${giornoLiberoHtml}${addMealSelectHtml(day)}
+      </div>
+      ${riepilogoHtml}
+    </div>`;
     planningDaysEl.appendChild(card);
 
     card.querySelectorAll('.plan-note-input').forEach(input=>{

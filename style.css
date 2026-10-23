@@ -1514,3 +1514,50 @@ body[data-view="planning"] .app-main > .app-topbar,body[data-view="planning"] .a
 input[type="time"].plan-slot-time{max-width:96px;}
 .plan-matrix .plan-entry-thumb.no-photo{height:32px;font-size:18px;}
 .plan-matrix .plan-entry-servings-input{width:44px;}
+
+/* ===== Vista Giorno: linea del tempo + riepilogo (v5.38) ===== */
+body[data-view="planning"] .plan-day-card{padding:22px 26px;}
+.plan-day-wrap{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:26px;align-items:start;}
+.plan-day-main .plan-day-free{text-align:left;margin:12px 0;}
+.plan-timeline{position:relative;padding-left:84px;}
+.plan-timeline::before{content:"";position:absolute;left:66px;top:10px;bottom:10px;width:2px;background:var(--border-strong);}
+.plan-day-card .plan-timeline .plan-meal-block{position:relative;max-width:660px;margin:0 0 14px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface-2);}
+.plan-day-card .plan-timeline .plan-meal-block:first-of-type{padding-top:12px;border-top:1px solid var(--border);}
+.plan-tl-time{position:absolute;left:-84px;top:16px;width:56px;text-align:right;font-weight:700;color:var(--accent-ink);font-variant-numeric:tabular-nums;font-size:var(--fs-sm);}
+.plan-day-card .plan-timeline .plan-meal-block::before{content:"";position:absolute;left:-24px;top:19px;width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--surface);}
+.plan-day-card .plan-meal-header{margin-bottom:6px;}
+.plan-day-card .plan-entry-list{margin-bottom:8px;}
+.plan-day-card .plan-entry{display:grid;grid-template-columns:48px minmax(0,1fr);column-gap:12px;align-items:center;padding:7px 0;}
+.plan-day-card .plan-entry-thumb{display:flex;grid-row:1 / span 3;width:48px;height:48px;border-radius:11px;overflow:hidden;align-items:center;justify-content:center;background:var(--sage-soft);font-size:20px;}
+.plan-day-card .plan-entry-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.plan-day-card .plan-entry-meta{display:flex;gap:10px;font-size:var(--fs-xs);color:var(--text-2);margin:1px 0 0;}
+.plan-day-card .plan-entry-meta .ico{vertical-align:-2px;}
+.plan-day-card .plan-entry-nutrition{margin:2px 0 0;}
+.plan-day-card .plan-entry-empty{padding:4px 0 8px;color:var(--text-2);font-size:var(--fs-sm);}
+.plan-day-card .plan-note-input{margin-top:6px;}
+.plan-day-card .plan-meal-total{text-align:left;}
+.plan-day-side{position:sticky;top:16px;background:var(--surface-2);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;gap:9px;}
+.plan-day-side h4{margin:0 0 2px;font-family:var(--font-titoli);font-size:18px;font-weight:600;}
+.plan-sum-row{display:flex;justify-content:space-between;gap:10px;font-size:var(--fs-md);}
+.plan-day-side hr{border:none;border-top:1px solid var(--border-strong);margin:4px 0;width:100%;}
+.plan-day-side .plan-day-total{margin:2px 0 0;font-size:var(--fs-xs);font-weight:500;line-height:1.45;}
+.plan-day-side .btn-small{width:100%;justify-content:center;}
+@media (max-width:1100px){.plan-day-wrap{grid-template-columns:minmax(0,1fr);}.plan-day-side{position:static;order:-1;}}
+@media (max-width:760px){
+  .plan-timeline{padding-left:0;}.plan-timeline::before{display:none;}
+  .plan-day-card .plan-timeline .plan-meal-block::before{display:none;}
+  body[data-view="planning"] .plan-day-card{padding:16px;}
+}
+
+.plan-tl-time{position:absolute;left:-88px;top:10px;width:76px;text-align:right;}
+.plan-tl-time input[type="time"].plan-slot-time{width:76px;max-width:76px;height:28px;padding:2px 4px;font-size:var(--fs-sm);text-align:center;}
+.plan-day-card .plan-timeline .plan-meal-block::before{top:17px;}
+@media (max-width:760px){
+  .plan-tl-time{display:block;position:static;width:auto;text-align:left;margin-right:8px;}
+  .plan-tl-time input[type="time"].plan-slot-time{width:104px;max-width:104px;}
+}
+
+.plan-tl-time{left:-92px;width:64px;}
+.plan-tl-time input[type="time"].plan-slot-time{width:64px;max-width:64px;padding:2px 2px;font-size:var(--fs-xs);}
+@media (max-width:1100px){.plan-day-side{order:0;margin-top:6px;}}
+@media (max-width:760px){.plan-tl-time input[type="time"].plan-slot-time{width:104px;max-width:104px;font-size:var(--fs-sm);padding:2px 8px;}}

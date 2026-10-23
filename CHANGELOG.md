@@ -2,6 +2,16 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.38.0] — Vista Giorno a linea del tempo
+
+### Cambiato
+- **Vista «Giorno»**: niente più pasti a tutta larghezza. Gli orari stanno a sinistra su una linea verticale (si modificano da lì) e ogni pasto è una scheda di larghezza contenuta, con le ricette (foto, tempo di preparazione, porzioni) e la nota.
+- **Riquadro «Lunedì in breve»** a lato (il nome segue il giorno): pasti, ricette, calorie, persone e totali nutrizionali, con i pulsanti per la lista della spesa del giorno e i totali della settimana, che prima erano sopra i pasti. Sotto i 1100 px e sul telefono il riquadro passa sotto le schede.
+- Guida illustrata e GUIDA.md aggiornate, con nuove immagini.
+
+### Test
+- Nuovo `test_31` (riquadro «in breve», conteggi, posizione a lato, schede contenute, orari a sinistra). Suite: 31/31.
+
 ## [5.37.0] — Pianificazione a tabella e menu nascondibile
 
 ### Cambiato
