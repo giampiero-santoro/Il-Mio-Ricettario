@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.39.0] — Importa valori nutrizionali da testo
+
+### Aggiunto
+- Pulsante **📥 Importa valori…** nel modulo del prodotto (Dispensa, valori per 100 g) e in quello della ricetta (valori per porzione): incolla una tabella nutrizionale copiata da un sito, da un documento o scritta a mano.
+- Riconosce energia (kcal o kJ), grassi, carboidrati, zuccheri, fibre, proteine e sale (o sodio, convertito in sale), in italiano e inglese, con la virgola decimale, «<0,5» e «tracce»; ignora saturi, amido, vitamine e percentuali.
+- Conversione automatica tra «per 100 g» e «per porzione» (grammi della porzione riconosciuti o indicati a mano).
+- Anteprima modificabile e avvisi di coerenza (macronutrienti oltre 100 g, zuccheri maggiori dei carboidrati, calorie che non tornano). Tutto sul dispositivo, nessuna richiesta esterna.
+- Nuovo file `js/nutrition-import.js`, test 33. Guida illustrata e GUIDA.md aggiornate.
+
 ## [5.38.3] — Ricerca Open Food Facts riparata
 
 ### Corretto

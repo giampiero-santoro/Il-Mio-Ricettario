@@ -4837,6 +4837,80 @@
   const pasteImportOverlay = document.getElementById('paste-import-overlay');
   const pasteImportText = document.getElementById('paste-import-text');
 
+  // ===== Importa valori nutrizionali da testo =====
+  (function(){
+    const ov = document.getElementById('nutri-import-overlay');
+    if(!ov || typeof NutritionParser === 'undefined') return;
+    const $ = id => document.getElementById(id);
+    const KEYS = NutritionParser.CAMPI;
+    let target = null; // 'dispensa' (per 100 g) | 'ricetta' (per porzione)
+    let parsed = null;
+    const campiForm = {
+      dispensa: { kcal:'d-kcal', protein:'d-protein', fat:'d-fat', carbs:'d-carbs', fiber:'d-fiber', sugar:'d-sugar', salt:'d-salt', panel:'dispensa-nutrition-fields', btn:'dispensa-nutrition-toggle-btn' },
+      ricetta: { kcal:'f-nutri-kcal', protein:'f-nutri-protein', fat:'f-nutri-fat', carbs:'f-nutri-carbs', fiber:'f-nutri-fiber', sugar:'f-nutri-sugar', salt:'f-nutri-salt', panel:'recipe-nutrition-fields', btn:'recipe-nutrition-toggle-btn' }
+    };
+    const baseTarget = () => target === 'dispensa' ? '100g' : 'porzione';
+    const nomeBase = b => b === '100g' ? '100 g' : 'una porzione';
+    function msg(html, colore){ const m = $('nutri-import-msg'); m.innerHTML = html; m.style.color = colore || 'var(--ink-soft)'; }
+    function apri(t){
+      target = t; parsed = null;
+      $('nutri-import-text').value = '';
+      $('nutri-import-base').value = 'auto';
+      $('nutri-import-grams').value = '';
+      $('nutri-import-preview').style.display = 'none';
+      $('nutri-import-apply').style.display = 'none';
+      msg(t === 'dispensa' ? 'I valori verranno salvati <b>per 100 g</b> di prodotto: se incolli quelli per porzione, li converto io.' : 'I valori verranno salvati <b>per porzione</b>: se incolli quelli per 100 g, li converto io con i grammi della porzione.');
+      ov.classList.add('active');
+      setTimeout(() => $('nutri-import-text').focus(), 50);
+    }
+    function chiudi(){ ov.classList.remove('active'); }
+    function analizza(){
+      const testo = $('nutri-import-text').value;
+      const r = NutritionParser.interpreta(testo);
+      if(!r.trovati){ parsed = null; $('nutri-import-preview').style.display = 'none'; $('nutri-import-apply').style.display = 'none'; msg('Non ho riconosciuto nessun valore nutrizionale. Incolla la tabella con i nomi (Energia, Grassi, Carboidrati, Proteine…) e i numeri.', 'var(--danger, #b3261e)'); return; }
+      let base = $('nutri-import-base').value; if(base === 'auto') base = r.base;
+      const gIn = parseFloat($('nutri-import-grams').value);
+      const grammi = gIn > 0 ? gIn : r.porzioneGrammi;
+      if(r.porzioneGrammi && !(gIn > 0)) $('nutri-import-grams').value = r.porzioneGrammi;
+      const avvisi = r.note.slice();
+      let valori = r.valori;
+      if(!base){ base = baseTarget(); avvisi.push('Non ho trovato se i valori sono per 100 g o per porzione: li considero ' + (base === '100g' ? 'per 100 g' : 'per porzione') + '. Cambia la scelta qui sopra se non è così.'); }
+      if(base !== baseTarget()){
+        const c = NutritionParser.converti(valori, base, baseTarget(), grammi);
+        if(!c){ parsed = null; $('nutri-import-preview').style.display = 'none'; $('nutri-import-apply').style.display = 'none'; msg('I valori sono ' + (base === '100g' ? 'per 100 g' : 'per porzione') + ' ma servono ' + (baseTarget() === '100g' ? 'per 100 g' : 'per porzione') + ': indica i <b>grammi di una porzione</b> e premi di nuovo «Leggi i valori».', 'var(--danger, #b3261e)'); return; }
+        valori = c; avvisi.push('Convertiti da ' + nomeBase(base) + ' a ' + nomeBase(baseTarget()) + ' (porzione di ' + grammi + ' g).');
+      }
+      valori = NutritionParser.arrotonda(valori);
+      parsed = valori;
+      KEYS.forEach(k => { $('nutri-p-' + k).value = valori[k] !== undefined ? valori[k] : ''; });
+      $('nutri-import-preview-title').textContent = 'Valori trovati (' + (baseTarget() === '100g' ? 'per 100 g' : 'per porzione') + ')';
+      $('nutri-import-preview').style.display = 'block';
+      $('nutri-import-apply').style.display = '';
+      avvisi.push(...NutritionParser.controlla(valori, baseTarget()));
+      const mancano = KEYS.filter(k => valori[k] === undefined).length;
+      if(mancano) avvisi.push(mancano + ' valori non trovati: restano come sono nel modulo.');
+      msg(avvisi.length ? '<ul style="margin:4px 0 0 18px;padding:0;">' + avvisi.map(a => '<li>' + a.replace(/</g,'&lt;') + '</li>').join('') + '</ul>' : 'Controlla i valori e premi «Usa questi valori».');
+    }
+    function applica(){
+      if(!parsed) return;
+      const cf = campiForm[target];
+      KEYS.forEach(k => {
+        const v = $('nutri-p-' + k).value;
+        if(v !== '') $(cf[k]).value = v;
+      });
+      $(cf.panel).style.display = 'flex';
+      $(cf.btn).classList.add('active');
+      chiudi();
+    }
+    $('dispensa-nutrition-import-btn').addEventListener('click', () => apri('dispensa'));
+    $('recipe-nutrition-import-btn').addEventListener('click', () => apri('ricetta'));
+    $('nutri-import-close').addEventListener('click', chiudi);
+    $('nutri-import-cancel').addEventListener('click', chiudi);
+    $('nutri-import-analyze').addEventListener('click', analizza);
+    $('nutri-import-apply').addEventListener('click', applica);
+    ['nutri-import-base','nutri-import-grams'].forEach(id => $(id).addEventListener('change', () => { if($('nutri-import-text').value.trim()) analizza(); }));
+  })();
+
   function iso8601DurationToMinutes(s){
     if(!s || typeof s !== 'string') return '';
     const m = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(s.trim());

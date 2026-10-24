@@ -683,6 +683,7 @@
     <div class="field">
       <div class="ingredients-actions" style="justify-content:flex-start;">
         <button type="button" class="btn-ghost btn-small" id="recipe-nutrition-toggle-btn">🍎 Valori nutrizionali (per porzione)</button>
+        <button type="button" class="btn-ghost btn-small" id="recipe-nutrition-import-btn">📥 Importa valori…</button>
       </div>
       <div class="ingredient-nutrition" id="recipe-nutrition-fields" style="display:none;margin-top:8px;">
         <div class="mini">Kcal<input type="number" id="f-nutri-kcal" min="0"></div>
@@ -782,6 +783,7 @@
     <div class="field">
       <div class="ingredients-actions" style="justify-content:flex-start;">
         <button type="button" class="btn-ghost btn-small" id="dispensa-nutrition-toggle-btn">🍎 Valori nutrizionali</button>
+        <button type="button" class="btn-ghost btn-small" id="dispensa-nutrition-import-btn">📥 Importa valori…</button>
       </div>
       <div class="ingredient-nutrition" id="dispensa-nutrition-fields" style="display:none;margin-top:8px;">
         <div class="mini">Kcal<input type="number" id="d-kcal" min="0"></div>
@@ -814,6 +816,43 @@
 </div>
 
 <!-- ============ IMPORTA RICETTA DA TESTO ============ -->
+<div class="overlay" id="nutri-import-overlay">
+  <div class="modal">
+    <button class="close-x" id="nutri-import-close" aria-label="Chiudi">×</button>
+    <h2>Importa valori nutrizionali</h2>
+    <p style="font-size:13.5px;color:var(--ink-soft);margin-top:-6px;line-height:1.5;" id="nutri-import-intro">
+      Incolla la tabella nutrizionale copiata da una pagina web, da un documento o scritta a mano. Tutto resta sul tuo dispositivo. Prima di usarli potrai correggere ogni valore.
+    </p>
+    <div class="field"><textarea id="nutri-import-text" rows="7" placeholder="Es. Energia 1046 kJ / 250 kcal, Grassi 8,5 g, Carboidrati 38 g, di cui zuccheri 12 g, Fibre 2,1 g, Proteine 6,5 g, Sale 0,9 g"></textarea></div>
+    <div class="field-row" style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div class="field" style="flex:1;min-width:140px;"><label for="nutri-import-base">I valori incollati sono per</label>
+        <select id="nutri-import-base"><option value="auto">Riconosci da solo</option><option value="100g">100 g</option><option value="porzione">una porzione</option></select></div>
+      <div class="field" style="flex:1;min-width:140px;"><label for="nutri-import-grams">Grammi di una porzione</label>
+        <input type="number" id="nutri-import-grams" min="1" step="any" placeholder="se serve"></div>
+    </div>
+    <div id="nutri-import-msg" style="font-size:13px;line-height:1.5;"></div>
+    <div id="nutri-import-preview" style="display:none;">
+      <style>#nutri-import-preview label{display:block;font-size:12.5px;min-width:0;}#nutri-import-preview input{width:100%;box-sizing:border-box;min-width:0;}</style>
+      <h3 style="font-size:14px;margin:8px 0 4px;" id="nutri-import-preview-title">Valori trovati</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;">
+        <label>Calorie (kcal)<input type="number" step="any" id="nutri-p-kcal"></label>
+        <label>Proteine (g)<input type="number" step="any" id="nutri-p-protein"></label>
+        <label>Grassi (g)<input type="number" step="any" id="nutri-p-fat"></label>
+        <label>Carboidrati (g)<input type="number" step="any" id="nutri-p-carbs"></label>
+        <label>Fibre (g)<input type="number" step="any" id="nutri-p-fiber"></label>
+        <label>Zuccheri (g)<input type="number" step="any" id="nutri-p-sugar"></label>
+        <label>Sale (g)<input type="number" step="any" id="nutri-p-salt"></label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="nutri-import-cancel">Annulla</button>
+      <div style="flex:1;"></div>
+      <button class="btn-ghost" id="nutri-import-analyze">Leggi i valori</button>
+      <button class="btn-gold" id="nutri-import-apply" style="display:none;">Usa questi valori</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="paste-import-overlay">
   <div class="modal">
     <button class="close-x" id="paste-import-close" aria-label="Chiudi">×</button>
@@ -1431,6 +1470,7 @@
 </datalist>
 
 <script src="js/off-integration.js"></script>
+<script src="js/nutrition-import.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

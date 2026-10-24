@@ -129,6 +129,8 @@ I valori nutrizionali compaiono nella scheda di una ricetta solo se li inserisci
 
 - Nel modulo di modifica, premi **"🍎 Valori nutrizionali (per porzione)"** per scrivere Kcal, Proteine, Grassi, Carboidrati, Fibre, Zuccheri e Sale — facoltativi, utili quando li conosci già da un'altra fonte (un'etichetta, un sito). Sono sempre riferiti a **una singola porzione**
 
+**Importare da un testo.** Accanto al pulsante dei valori nutrizionali (nel modulo della ricetta e in quello del prodotto in Dispensa) c'è **"📥 Importa valori…"**: incolla la tabella copiata da un sito o da un documento. Il ricettario riconosce energia, grassi, carboidrati, zuccheri, fibre, proteine e sale (anche il sodio, convertito in sale), in italiano e inglese, e converte da solo tra "per 100 g" e "per porzione" indicando i grammi della porzione. Vedi un'anteprima modificabile con eventuali avvisi di coerenza prima di usare i valori.
+
 Una ricetta scritta a mano senza questi valori semplicemente non mostra quella sezione — non viene inventato nulla.
 
 ## Tag dietetici e allergeni

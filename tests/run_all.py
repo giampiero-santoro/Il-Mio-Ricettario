@@ -57,6 +57,7 @@ TEST_MODULES = [
     "test_30_matrice_menu",
     "test_31_giorno_timeline",
     "test_32_ricerca_off",
+    "test_33_importa_nutrizionali",
 ]
 
 
