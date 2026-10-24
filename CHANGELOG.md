@@ -2,6 +2,14 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.42.0] — Sottocategorie
+
+### Aggiunto
+- **Sottocategorie facoltative** per ognuna delle otto categorie (Primi, Secondi, Zuppe & Vellutate, Impasti & Pane, Salse & Sughi, Dolci, Infusi & Tisane, Altro).
+- Nel modulo ricetta il campo **Sottocategoria** mostra solo le voci della categoria scelta; si può lasciare vuoto.
+- Nell'elenco, scelta una categoria compare una seconda fila di chip con il conteggio; l'etichetta della ricetta mostra «Categoria · Sottocategoria».
+- Salvate nelle ricette: viaggiano nei backup. Test 35. Guida illustrata e GUIDA.md aggiornate.
+
 ## [5.41.0] — Backup in un ricettario scelto, conferma all'eliminazione
 
 ### Aggiunto

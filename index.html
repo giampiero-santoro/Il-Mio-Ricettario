@@ -205,6 +205,7 @@
   </div>
 
   <div class="chip-row" id="category-chips" role="group" aria-label="Filtra per categoria" style="margin:14px 0;"></div>
+  <div class="chip-row" id="subcategory-chips" role="group" aria-label="Filtra per sottocategoria" style="margin:-6px 0 14px;display:none;"></div>
   <select id="category-filter" hidden aria-hidden="true" tabindex="-1">
     <option value="">Tutte le categorie</option>
     <option value="Primi">Primi</option>
@@ -599,6 +600,10 @@
           <option>Infusi &amp; Tisane</option>
           <option>Altro</option>
         </select>
+      </div>
+      <div class="field">
+        <label for="f-subcategory">Sottocategoria <span style="font-weight:400;color:var(--ink-soft);">(facoltativa)</span></label>
+        <select id="f-subcategory"></select>
       </div>
       <div class="field">
         <label>Ricettario</label>

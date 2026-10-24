@@ -167,6 +167,21 @@
     'Infusi & Tisane': '🍵', 'Altro': '🍽️'
   };
 
+  // Sottocategorie (facoltative): ogni categoria principale ne ha un elenco proprio.
+  const SOTTOCATEGORIE = {
+    'Primi': ['Pasta secca e fresca', 'Risi e risotti', 'Gnocchi e chicchi', 'Primi al forno e lasagne', 'Pasta ripiena'],
+    'Secondi': ['Carne rossa (manzo, vitello, maiale)', 'Carne bianca (pollo, tacchino, coniglio)', 'Pesce e crostacei', 'Uova e frittate', 'Vegetariani e formaggi'],
+    'Zuppe & Vellutate': ['Zuppe e minestroni', 'Vellutate e creme', 'Zuppe di pesce e brodi'],
+    'Impasti & Pane': ['Pane e lievitati', 'Pizza e focacce', 'Torte salate e piadine', 'Pasta fresca (base)'],
+    'Salse & Sughi': ['Sughi per pasta (pesto, ragù, pomodoro)', 'Salse d\'accompagnamento (maionese, senape, BBQ, verde)', 'Marinate e condimenti'],
+    'Dolci': ['Torte e ciambelle', 'Dolci al cucchiaio e dessert', 'Biscotti e piccola pasticceria', 'Lievitati dolci e brioche', 'Frutta e gelati'],
+    'Infusi & Tisane': ['Tè e infusi', 'Tisane rilassanti e digestive', 'Bevande calde e decotti'],
+    'Altro': ['Contorni e insalate', 'Antipasti e snack', 'Conserve e sottoli']
+  };
+  let subcategoryFilter = ''; // vale solo insieme alla categoria scelta (subcategoryFilterCat)
+  let subcategoryFilterCat = '';
+  function recipeCategoryLabel(r){ return r.subcategory ? `${r.category} · ${r.subcategory}` : r.category; }
+
   // ---------- Storage ----------
   function loadRecipes(){
     try{
@@ -1169,7 +1184,7 @@
     return `${r.time ? `<span>${icon('clock')} ${r.time} min</span>` : ''}<span>${icon('user')} ${porzioniLabel(r.servings)}</span>${r.rating ? `<span class="rating-mini" title="Il tuo voto">★ ${r.rating}</span>` : ''}`;
   }
   function recipeTagsHtml(r){
-    return `<span class="cat-tag">${escapeHtml(r.category)}</span>`
+    return `<span class="cat-tag">${escapeHtml(recipeCategoryLabel(r))}</span>`
       + (ricettari.length > 1 ? `<span class="ricettario-tag" title="Ricettario">${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : '')
       + (recipeHasPressure(r) ? '<span class="pressure-badge" title="Ha passaggi per pentola a pressione">🍲</span>' : '')
       + (recipeHasRobot(r) ? '<span class="robot-badge" title="Ha passaggi con impostazioni robot da cucina">🤖</span>' : '')
@@ -1597,6 +1612,7 @@
   // cottura, tag, allergeni esclusi, ingredienti esclusi, archiviate) usati dall'elenco a schermo —
   // estratta a parte così anche l'esportazione PDF dell'intero ricettario può riutilizzarla ed
   // esportare esattamente le ricette che si vedono in quel momento, non sempre tutte.
+  let ignoraSottocategoria = false;
   function getFilteredRecipes(){
     const q = normalize(searchEl.value);
     const cat = categoryFilterEl.value;
@@ -1611,6 +1627,7 @@
       if(traditionalOnly && !recipeIsTraditional(r)) return false;
       const matchesCat = !cat || r.category === cat;
       if(!matchesCat) return false;
+      if(cat && subcategoryFilter && subcategoryFilterCat === cat && !ignoraSottocategoria && r.subcategory !== subcategoryFilter) return false;
       if(activeRicettarioFilter && recipeRicettarioId(r) !== activeRicettarioFilter) return false;
       if(minRatingFilter === 'none'){ if(r.rating) return false; }
       else if(minRatingFilter && (r.rating || 0) < parseInt(minRatingFilter, 10)) return false;
@@ -1670,6 +1687,7 @@
   }
   function renderList(){
     syncCategoryChips();
+    syncSubcategoryChips();
     syncFavoritesUi();
     let filtered = getFilteredRecipes();
 
@@ -1866,6 +1884,31 @@
       b.classList.toggle('chip-empty', n === 0 && !on);
       b.setAttribute('aria-label', `${b.dataset.label}: ${n} ricett${n === 1 ? 'a' : 'e'}`);
     });
+  }
+  const subcategoryChipsEl = document.getElementById('subcategory-chips');
+  function syncSubcategoryChips(){
+    const cat = categoryFilterEl.value;
+    const lista = SOTTOCATEGORIE[cat];
+    if(!cat || !lista){ subcategoryChipsEl.style.display = 'none'; subcategoryChipsEl.innerHTML = ''; return; }
+    if(subcategoryFilterCat !== cat){ subcategoryFilter = ''; subcategoryFilterCat = cat; }
+    const conteggi = {}; let totale = 0;
+    ignoraSottocategoria = true;
+    try{ getFilteredRecipes().forEach(r=>{ totale++; if(r.subcategory) conteggi[r.subcategory] = (conteggi[r.subcategory] || 0) + 1; }); }
+    finally{ ignoraSottocategoria = false; }
+    // sottocategorie personalizzate presenti nelle ricette (da un import) si aggiungono in fondo
+    const voci = lista.concat(Object.keys(conteggi).filter(k => !lista.includes(k)));
+    subcategoryChipsEl.innerHTML = '';
+    [['', 'Tutte']].concat(voci.map(v => [v, v])).forEach(([val, label])=>{
+      const n = val === '' ? totale : (conteggi[val] || 0);
+      const on = subcategoryFilter === val;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip' + (on ? ' active' : '') + (n === 0 && !on ? ' chip-empty' : '');
+      b.dataset.value = val; b.setAttribute('aria-pressed', String(on));
+      b.innerHTML = `${escapeHtml(label)} <span class="chip-n">${n}</span>`;
+      b.addEventListener('click', ()=>{ subcategoryFilter = val; subcategoryFilterCat = cat; renderList(); });
+      subcategoryChipsEl.appendChild(b);
+    });
+    subcategoryChipsEl.style.display = 'flex';
   }
   buildCategoryChips();
   const archivedFilterBtn = document.getElementById('archived-filter-btn');
@@ -2245,6 +2288,14 @@
   const editTitle = document.getElementById('edit-title');
   const fName = document.getElementById('f-name');
   const fCategory = document.getElementById('f-category');
+  const fSubcategory = document.getElementById('f-subcategory');
+  function refreshSubcategoryOptions(valore){
+    const lista = SOTTOCATEGORIE[fCategory.value] || [];
+    const voci = (valore && !lista.includes(valore)) ? lista.concat([valore]) : lista;
+    fSubcategory.innerHTML = '<option value="">— nessuna —</option>' + voci.map(v => `<option value="${escapeAttr(v)}">${escapeHtml(v)}</option>`).join('');
+    fSubcategory.value = valore || '';
+  }
+  fCategory.addEventListener('change', ()=> refreshSubcategoryOptions(''));
   const fServings = document.getElementById('f-servings');
   const fTime = document.getElementById('f-time');
   const fCookerType = document.getElementById('f-cooker-type');
@@ -2482,6 +2533,7 @@
 
     fName.value = source ? (source.name || '') : '';
     fCategory.value = source ? (source.category || 'Primi') : 'Primi';
+    refreshSubcategoryOptions(source ? (source.subcategory || '') : '');
     // Una ricetta esistente mantiene il suo ricettario; una nuova parte da quello attualmente
     // filtrato nel Ricettario (se si è aperto "+ Nuova ricetta" da dentro un volume specifico),
     // altrimenti dal ricettario di partenza.
@@ -2891,7 +2943,7 @@
     const nutrizioneUtente = leggiNutrizioneUtenteForm();
 
     const recipeData = {
-      id: editingId || cryptoId(), name, category: fCategory.value,
+      id: editingId || cryptoId(), name, category: fCategory.value, subcategory: fSubcategory.value || '',
       ricettarioId: document.getElementById('f-ricettario').value || DEFAULT_RICETTARIO_ID,
       servings: parseInt(fServings.value) || 1, time: parseInt(fTime.value) || 0,
       cookerType: fCookerType.value,
@@ -3264,7 +3316,7 @@
     {key:'sale', label:'Sale', unit:'g'}
   ];
   function renderView(r){
-    viewCategory.textContent = r.category;
+    viewCategory.textContent = recipeCategoryLabel(r);
     viewCategory.style.setProperty('--cat-color', CATEGORY_COLORS[r.category] || '#8A8F86');
     const viewRicettarioEl = document.getElementById('view-ricettario');
     if(ricettari.length > 1){

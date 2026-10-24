@@ -59,6 +59,7 @@ TEST_MODULES = [
     "test_32_ricerca_off",
     "test_33_importa_nutrizionali",
     "test_34_importa_destinazione",
+    "test_35_sottocategorie",
 ]
 
 
