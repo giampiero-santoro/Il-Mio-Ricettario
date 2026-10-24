@@ -148,6 +148,8 @@ Entrambi compaiono nella scheda della ricetta come etichette colorate (gli aller
 
 ## Visualizzare e scalare le porzioni
 
+**Ricetta precedente / successiva.** Aprendo una ricetta dall'elenco compaiono in alto **"‹ Precedente"** e **"Successiva ›"** con la posizione (es. "2 di 3"): scorri le ricette dell'elenco — con i filtri e l'ordine attivi — senza tornare indietro. Funziona anche con le frecce ← → della tastiera e, su telefono, trascinando il dito di lato. Aprendo la ricetta da altre pagine (Oggi, Statistiche, Pianificazione) i pulsanti non compaiono.
+
 Cliccando su una ricetta si apre la vista di lettura, con ingredienti, passaggi numerati e un controllo **+/−** per aumentare o diminuire le porzioni: le quantità si ricalcolano automaticamente in proporzione. Per le unità "a conteggio" — cucchiaio/cucchiai, cucchiaino/cucchiaini, pizzico/pizzichi, pezzo/pezzi, tazza/tazze, fetta/fette, spicchio/spicchi, rametto/rametti, filetto/filetti, foglia/foglie — quando il ricalcolo scende sotto l'unità intera, al posto del decimale compare la frazione da cucina più vicina (es. 2 cucchiai scalati a un quarto delle porzioni diventano "1/2 cucchiai" invece di "0.5"; se resta una parte intera, es. "1 e 1/2"). Per grammi, ml, litri e simili resta invece il numero decimale, più preciso per queste unità.
 
 ### Porzione doppia e congelamento

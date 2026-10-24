@@ -1685,6 +1685,8 @@
     };
     more();
   }
+  let elencoIds = []; // ordine delle ricette nell'elenco mostrato
+  let viewSeq = [];   // ordine per i pulsanti Precedente / Successiva nella scheda
   function renderList(){
     syncCategoryChips();
     syncSubcategoryChips();
@@ -1708,6 +1710,7 @@
       scored.sort((a,b)=> (b.priorityMatches.length - a.priorityMatches.length)
         || (a.match.missing.length - b.match.missing.length)
         || (a.match.insufficienti.length - b.match.insufficienti.length));
+      elencoIds = scored.map(x => x.recipe.id);
       if(scored.length === 0){
         const messaggio = priorityPantryNames.length
           ? 'Nessuna ricetta usa i prodotti che scadono a breve con i filtri attuali. Prova a rimuovere filtri o ad aggiungere una ricetta che li utilizzi.'
@@ -1741,7 +1744,7 @@
             }</div>`:''}
           </div>
         `;
-        card.addEventListener('click', ()=> openView(r.id));
+        card.addEventListener('click', ()=> openView(r.id, true));
         makeKeyboardClickable(card, r.name);
         return card;
       });
@@ -1759,6 +1762,7 @@
     }
 
     filtered = sortRecipes(filtered);
+    elencoIds = filtered.map(r => r.id);
     listTotal = filtered.length;
     listFilteredIds = filtered.map(r => r.id);
 
@@ -1797,7 +1801,7 @@
           aggiornaBarraSelezione();
           renderList();
         } else {
-          openView(r.id);
+          openView(r.id, true);
         }
       });
       makeKeyboardClickable(card, r.name);
@@ -3189,14 +3193,57 @@
     refreshRaccolteUi(); renderRaccolteList(); renderList();
   });
 
-  function openView(id){
+  function openView(id, dallElenco){
     const r = recipes.find(x=>x.id === id);
     if(!r) return;
+    if(dallElenco) viewSeq = elencoIds.slice();
+    else if(!viewOverlay.classList.contains('active')) viewSeq = [];
     currentViewId = id;
     currentServings = r.servings;
     renderView(r);
+    aggiornaNavSequenza();
     viewOverlay.classList.add('active');
   }
+
+  // Precedente / Successiva: scorre l'elenco da cui si è aperta la ricetta, senza tornare indietro.
+  const viewSeqNav = document.getElementById('view-seq-nav');
+  function aggiornaNavSequenza(){
+    const i = viewSeq.indexOf(currentViewId);
+    const mostra = viewSeq.length > 1 && i > -1;
+    viewSeqNav.hidden = !mostra;
+    if(!mostra) return;
+    document.getElementById('view-seq-count').textContent = `${i + 1} di ${viewSeq.length}`;
+    document.getElementById('view-prev-btn').disabled = i === 0;
+    document.getElementById('view-next-btn').disabled = i === viewSeq.length - 1;
+  }
+  function vaiARicettaVicina(dir){
+    const i = viewSeq.indexOf(currentViewId);
+    if(i < 0) return;
+    const j = i + dir;
+    if(j < 0 || j >= viewSeq.length) return;
+    openView(viewSeq[j]);
+    viewOverlay.scrollTop = 0;
+    const m = viewOverlay.querySelector('.modal'); if(m) m.scrollTop = 0;
+  }
+  document.getElementById('view-prev-btn').addEventListener('click', ()=> vaiARicettaVicina(-1));
+  document.getElementById('view-next-btn').addEventListener('click', ()=> vaiARicettaVicina(1));
+  document.addEventListener('keydown', (e)=>{
+    if(!viewOverlay.classList.contains('active') || e.altKey || e.ctrlKey || e.metaKey) return;
+    if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    if(/^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName||'')) || e.target.isContentEditable) return;
+    if(document.querySelector('.overlay.active:not(#view-overlay)')) return;
+    vaiARicettaVicina(e.key === 'ArrowLeft' ? -1 : 1);
+  });
+  // Su telefono: scorri da destra a sinistra per la successiva, da sinistra a destra per la precedente.
+  (function(){
+    let x0 = null, y0 = 0;
+    viewOverlay.addEventListener('touchstart', e=>{ const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; if(e.touches.length > 1 || e.target.closest('input,textarea,select,.timer,[data-no-swipe]')) x0 = null; }, {passive:true});
+    viewOverlay.addEventListener('touchend', e=>{
+      if(x0 === null) return;
+      const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0; x0 = null;
+      if(Math.abs(dx) > 90 && Math.abs(dy) < 45 && Math.abs(dx) > Math.abs(dy) * 2.5) vaiARicettaVicina(dx < 0 ? 1 : -1);
+    }, {passive:true});
+  })();
 
   // La scheda ricetta si comporta come una pagina: apre una voce nella cronologia del browser,
   // così il tasto/gesto "indietro" (anche su telefono) torna all'elenco invece di uscire dal sito.

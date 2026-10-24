@@ -2,6 +2,13 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.43.0] — Ricetta precedente / successiva
+
+### Aggiunto
+- Nella scheda ricetta, aperta dall'elenco, compaiono **‹ Precedente** e **Successiva ›** con la posizione («2 di 24»): si scorrono le ricette dell'elenco (con filtri e ordine attivi, anche in «Cosa posso cucinare?») senza tornare indietro.
+- Scorciatoie: frecce ← → della tastiera e scorrimento laterale del dito su telefono.
+- Aprendo la ricetta da Oggi, Statistiche o Pianificazione i pulsanti non compaiono. Test 36; guida illustrata e GUIDA.md aggiornate.
+
 ## [5.42.0] — Sottocategorie
 
 ### Aggiunto

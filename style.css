@@ -1572,3 +1572,11 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 }
 
 #plan-week-label-text{align-items:center;text-align:center;}
+
+/* Scheda ricetta: passa alla precedente / successiva dell'elenco */
+.view-seq-nav{position:absolute;top:12px;right:32px;display:flex;align-items:center;gap:8px;}
+.view-seq-nav[hidden]{display:none;}
+.view-seq-count{font-size:var(--fs-sm);color:var(--text-2);min-width:52px;text-align:center;}
+@media (max-width:760px){
+  .view-seq-nav{position:static;justify-content:space-between;margin:0 0 12px;}
+}

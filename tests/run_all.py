@@ -60,6 +60,7 @@ TEST_MODULES = [
     "test_33_importa_nutrizionali",
     "test_34_importa_destinazione",
     "test_35_sottocategorie",
+    "test_36_ricetta_successiva",
 ]
 
 
