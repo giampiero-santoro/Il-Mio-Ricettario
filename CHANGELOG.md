@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.40.0] — Importa valori nutrizionali da foto
+
+### Aggiunto
+- **📷 Da foto dell'etichetta…** nella finestra «Importa valori…»: la tabella nutrizionale viene letta da una foto con un riconoscimento del testo (Tesseract.js, italiano e inglese) che gira **sul dispositivo**; nessuna immagine esce dal telefono o dal computer.
+- Gli strumenti di lettura (circa 13 MB, in `js/vendor/ocr/`) si caricano solo al primo uso e restano nella memoria dell'app.
+- Prima ingrandisce e schiarisce la foto, poi corregge gli errori tipici (la «g» letta come 9, «09» al posto di «0,9»); l'anteprima è sempre mostrata e avvisa se i numeri non tornano.
+- Non disponibile nel file singolo (serve la versione completa del sito).
+- Guida illustrata e GUIDA.md aggiornate; test 33 esteso con la lettura di una foto.
+
 ## [5.39.0] — Importa valori nutrizionali da testo
 
 ### Aggiunto

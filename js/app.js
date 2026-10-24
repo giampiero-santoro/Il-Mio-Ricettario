@@ -4853,7 +4853,7 @@
     const nomeBase = b => b === '100g' ? '100 g' : 'una porzione';
     function msg(html, colore){ const m = $('nutri-import-msg'); m.innerHTML = html; m.style.color = colore || 'var(--ink-soft)'; }
     function apri(t){
-      target = t; parsed = null;
+      target = t; parsed = null; daFoto = false;
       $('nutri-import-text').value = '';
       $('nutri-import-base').value = 'auto';
       $('nutri-import-grams').value = '';
@@ -4864,9 +4864,10 @@
       setTimeout(() => $('nutri-import-text').focus(), 50);
     }
     function chiudi(){ ov.classList.remove('active'); }
+    let daFoto = false;
     function analizza(){
       const testo = $('nutri-import-text').value;
-      const r = NutritionParser.interpreta(testo);
+      const r = NutritionParser.interpreta(testo, { ocr: daFoto });
       if(!r.trovati){ parsed = null; $('nutri-import-preview').style.display = 'none'; $('nutri-import-apply').style.display = 'none'; msg('Non ho riconosciuto nessun valore nutrizionale. Incolla la tabella con i nomi (Energia, Grassi, Carboidrati, Proteine…) e i numeri.', 'var(--danger, #b3261e)'); return; }
       let base = $('nutri-import-base').value; if(base === 'auto') base = r.base;
       const gIn = parseFloat($('nutri-import-grams').value);
@@ -4886,7 +4887,7 @@
       $('nutri-import-preview-title').textContent = 'Valori trovati (' + (baseTarget() === '100g' ? 'per 100 g' : 'per porzione') + ')';
       $('nutri-import-preview').style.display = 'block';
       $('nutri-import-apply').style.display = '';
-      avvisi.push(...NutritionParser.controlla(valori, baseTarget()));
+      avvisi.push(...NutritionParser.controlla(NutritionParser.arrotonda(r.valori), base));
       const mancano = KEYS.filter(k => valori[k] === undefined).length;
       if(mancano) avvisi.push(mancano + ' valori non trovati: restano come sono nel modulo.');
       msg(avvisi.length ? '<ul style="margin:4px 0 0 18px;padding:0;">' + avvisi.map(a => '<li>' + a.replace(/</g,'&lt;') + '</li>').join('') + '</ul>' : 'Controlla i valori e premi «Usa questi valori».');
@@ -4904,6 +4905,52 @@
     }
     $('dispensa-nutrition-import-btn').addEventListener('click', () => apri('dispensa'));
     $('recipe-nutrition-import-btn').addEventListener('click', () => apri('ricetta'));
+    // --- Lettura da foto: OCR locale (Tesseract.js), caricato solo al primo uso ---
+    let ocrPronto = null;
+    function caricaScript(src){
+      return new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = () => ko(new Error('script')); document.head.appendChild(sc); });
+    }
+    async function prepara(){
+      if(ocrPronto) return ocrPronto;
+      ocrPronto = (async () => {
+        if(typeof Tesseract === 'undefined') await caricaScript('js/vendor/ocr/tesseract.min.js');
+        return Tesseract.createWorker(['ita','eng'], 1, {
+          workerPath: 'js/vendor/ocr/worker.min.js', corePath: 'js/vendor/ocr/', langPath: 'js/vendor/ocr/', workerBlobURL: false,
+          logger: m => { if(m.status === 'recognizing text') msg('Lettura della foto… ' + Math.round((m.progress||0)*100) + '%'); }
+        });
+      })();
+      ocrPronto.catch(() => { ocrPronto = null; });
+      return ocrPronto;
+    }
+    // Ingrandisce e rende in grigio la foto: la lettura dei numeri piccoli migliora molto.
+    async function migliora(file){
+      try{
+        const bmp = await createImageBitmap(file);
+        const lato = Math.max(bmp.width, bmp.height);
+        const k = Math.min(3, Math.max(1, 2200 / lato));
+        const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+        const cx = cv.getContext('2d'); cx.filter = 'grayscale(1) contrast(1.4)'; cx.drawImage(bmp, 0, 0, cv.width, cv.height);
+        return await new Promise(ok => cv.toBlob(b => ok(b || file), 'image/png'));
+      }catch(e){ return file; }
+    }
+    $('nutri-import-photo').addEventListener('change', async (e) => {
+      const f = e.target.files && e.target.files[0]; e.target.value = '';
+      if(!f) return;
+      try{
+        msg('Preparo la lettura da foto (al primo uso carica circa 13 MB, poi resta sul dispositivo)…');
+        const w = await prepara();
+        msg('Lettura della foto…');
+        const r = await w.recognize(await migliora(f));
+        const testo = (r && r.data && r.data.text || '').trim();
+        if(!testo){ msg('Non sono riuscito a leggere testo nella foto. Prova con una foto più nitida e dritta, oppure scrivi o incolla i valori.', 'var(--danger, #b3261e)'); return; }
+        $('nutri-import-text').value = testo;
+        daFoto = true; analizza();
+        const m = $('nutri-import-msg'); m.innerHTML = '<div><b>Testo letto dalla foto: controlla bene i numeri</b>, la lettura può sbagliare.</div>' + m.innerHTML;
+      }catch(err){
+        ocrPronto = null;
+        msg('La lettura da foto non è disponibile (serve la versione completa del sito, non il file singolo). Puoi incollare o scrivere il testo qui sotto.', 'var(--danger, #b3261e)');
+      }
+    });
     $('nutri-import-close').addEventListener('click', chiudi);
     $('nutri-import-cancel').addEventListener('click', chiudi);
     $('nutri-import-analyze').addEventListener('click', analizza);

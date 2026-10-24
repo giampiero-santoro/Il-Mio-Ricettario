@@ -102,7 +102,17 @@ const NutritionParser = (() => {
    *   porzioneGrammi: n|null, trovati: n, note: [] }
    * I valori sono riferiti a `base`. Se il testo ha due colonne si usa quella «per 100 g».
    */
-  function interpreta(testo) {
+  /** Rimedia agli errori tipici del riconoscimento da foto: «g» letta come 9 a fine riga, «0,9» letto «09». */
+  function riparaOcr(testo) {
+    return String(testo || '').split('\n').map(r => {
+      let x = r.replace(/\b0(\d)(?=\s*g\b|\s*$)/g, '0,$1');
+      if (!/(kcal|kj|mg|%)\s*$/i.test(x) && !/\bg\s*$/i.test(x)) x = x.replace(/(\d+[.,]\d)9\s*$/, '$1 g').replace(/(\d{2,})9\s*$/, (m, d) => d + ' g');
+      return x;
+    }).join('\n');
+  }
+
+  function interpreta(testo, opzioni) {
+    if (opzioni && opzioni.ocr) testo = riparaOcr(testo);
     const t0 = pulisci(testo);
     const note = [];
     const { colonne, porzioneGrammi } = rilevaBase(t0);
@@ -181,6 +191,7 @@ const NutritionParser = (() => {
     const P = valori.protein || 0, F = valori.fat || 0, C = valori.carbs || 0, fib = valori.fiber || 0;
     if (base === '100g' && P + F + C > 101) av.push('Proteine, grassi e carboidrati insieme superano i 100 g: controlla i numeri.');
     if (valori.sugar !== undefined && valori.carbs !== undefined && valori.sugar > valori.carbs + 0.05) av.push('Gli zuccheri sono più dei carboidrati totali: gli zuccheri dovrebbero esserne una parte.');
+    if (valori.fiber !== undefined && valori.carbs !== undefined && valori.fiber > valori.carbs + 0.05) av.push('Le fibre sono più dei carboidrati totali: controlla i numeri (nelle foto la virgola può andare persa).');
     if (valori.kcal !== undefined && (valori.protein !== undefined || valori.fat !== undefined || valori.carbs !== undefined)) {
       const calc = 4 * P + 9 * F + 4 * C + 2 * fib;
       if (calc > 20 && Math.abs(calc - valori.kcal) / Math.max(calc, valori.kcal) > 0.3) {

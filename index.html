@@ -823,6 +823,11 @@
     <p style="font-size:13.5px;color:var(--ink-soft);margin-top:-6px;line-height:1.5;" id="nutri-import-intro">
       Incolla la tabella nutrizionale copiata da una pagina web, da un documento o scritta a mano. Tutto resta sul tuo dispositivo. Prima di usarli potrai correggere ogni valore.
     </p>
+    <div class="field" style="margin-bottom:6px;">
+      <label class="btn-ghost btn-small" for="nutri-import-photo" style="display:inline-block;cursor:pointer;">📷 Da foto dell'etichetta…</label>
+      <input type="file" id="nutri-import-photo" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+      <span style="font-size:12.5px;color:var(--ink-soft);margin-left:6px;">oppure incolla il testo qui sotto</span>
+    </div>
     <div class="field"><textarea id="nutri-import-text" rows="7" placeholder="Es. Energia 1046 kJ / 250 kcal, Grassi 8,5 g, Carboidrati 38 g, di cui zuccheri 12 g, Fibre 2,1 g, Proteine 6,5 g, Sale 0,9 g"></textarea></div>
     <div class="field-row" style="display:flex;gap:10px;flex-wrap:wrap;">
       <div class="field" style="flex:1;min-width:140px;"><label for="nutri-import-base">I valori incollati sono per</label>

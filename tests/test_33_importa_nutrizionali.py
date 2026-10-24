@@ -52,3 +52,18 @@ async def run(page):
     await page.fill("#nutri-import-text", "ciao mondo")
     await page.click("#nutri-import-analyze")
     check("Non ho riconosciuto" in await page.inner_text("#nutri-import-msg"), "Messaggio se non trova nulla")
+
+    # lettura da foto (OCR locale, nessuna richiesta esterna)
+    esterne = []
+    page.on("request", lambda rq: esterne.append(rq.url) if not rq.url.startswith(("http://localhost", "data:", "blob:")) else None)
+    await page.click("#nutri-import-cancel")
+    await page.click("#recipe-nutrition-import-btn")
+    import os
+    await page.fill("#nutri-import-grams", "100")
+    await page.set_input_files("#nutri-import-photo", os.path.join(os.path.dirname(__file__), "etichetta_nutrizionale.png"))
+    await page.locator("#nutri-import-apply").wait_for(state="visible", timeout=60000)
+    check(await page.input_value("#nutri-p-kcal") == "250", "OCR: calorie lette dalla foto")
+    check(await page.input_value("#nutri-p-carbs") == "38" and await page.input_value("#nutri-p-protein") == "6.5", "OCR: carboidrati e proteine (g letta come 9, riparata)")
+    check("superano i 100 g" in await page.inner_text("#nutri-import-msg") or await page.input_value("#nutri-p-fat") == "8.5", "OCR: virgola persa nei grassi segnalata")
+    check("controlla bene" in await page.inner_text("#nutri-import-msg"), "Avviso di controllare i numeri")
+    check(not esterne, f"Nessuna richiesta esterna: {esterne}")

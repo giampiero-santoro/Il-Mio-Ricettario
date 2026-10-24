@@ -1,5 +1,5 @@
 /* Il Mio Ricettario - service worker (uso offline). Cambia VERSION ad ogni release. */
-const VERSION = 'ricettario-5.39.0';
+const VERSION = 'ricettario-5.40.0';
 const PRECACHE = ['./', 'index.html', 'style.css', 'css/bulma.css', 'js/app.js', 'js/off-integration.js', 'js/nutrition-import.js', 'js/vendor/html5-qrcode.min.js', 'fonts/fonts.css',
   'manifest.json', 'guida.html', 'img/icon-192.png', 'img/icon-512.png', 'img/apple-touch-icon.png', 'img/favicon-32.png'];
 
@@ -14,7 +14,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
-  const isData = /\/(data|img|fonts)\//.test(url.pathname);
+  const isData = /\/(data|img|fonts|vendor\/ocr)\//.test(url.pathname);
   if (isData) { // cache-first
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
       if (res.ok) { const cp = res.clone(); caches.open(VERSION).then(c => c.put(req, cp)); }

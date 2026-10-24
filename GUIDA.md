@@ -131,6 +131,8 @@ I valori nutrizionali compaiono nella scheda di una ricetta solo se li inserisci
 
 **Importare da un testo.** Accanto al pulsante dei valori nutrizionali (nel modulo della ricetta e in quello del prodotto in Dispensa) c'è **"📥 Importa valori…"**: incolla la tabella copiata da un sito o da un documento. Il ricettario riconosce energia, grassi, carboidrati, zuccheri, fibre, proteine e sale (anche il sodio, convertito in sale), in italiano e inglese, e converte da solo tra "per 100 g" e "per porzione" indicando i grammi della porzione. Vedi un'anteprima modificabile con eventuali avvisi di coerenza prima di usare i valori.
 
+**Importare da una foto.** Dalla stessa finestra, **"📷 Da foto dell'etichetta…"** legge la tabella da una foto, interamente sul dispositivo (nessuna immagine viene inviata). La prima volta carica circa 13 MB di strumenti di lettura, poi li ricorda. La lettura può sbagliare, soprattutto le virgole: controlla sempre l'anteprima. Non disponibile nel file singolo.
+
 Una ricetta scritta a mano senza questi valori semplicemente non mostra quella sezione — non viene inventato nulla.
 
 ## Tag dietetici e allergeni
