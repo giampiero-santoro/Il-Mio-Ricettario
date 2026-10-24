@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.41.0] — Backup in un ricettario scelto, conferma all'eliminazione
+
+### Aggiunto
+- **Importa backup**: prima di importare, il ricettario chiede dove mettere le ricette — come nel backup, in un ricettario esistente o in un **nuovo ricettario** (nome proposto dal file). Si può annullare senza importare nulla.
+
+### Modificato
+- **Eliminare un ricettario chiede sempre conferma**, anche se è vuoto; con ricette dentro, conferma anche per «Sposta ed elimina» e «Elimina ricette e volume».
+- Test 34; test 19 aggiornato. Guida illustrata e GUIDA.md aggiornate.
+
 ## [5.40.0] — Importa valori nutrizionali da foto
 
 ### Aggiunto

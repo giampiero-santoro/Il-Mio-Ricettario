@@ -532,7 +532,8 @@
         const count = recipes.filter(r => recipeRicettarioId(r) === id).length;
         const panel = row.querySelector('.ricettario-row-delete-panel');
         if(count === 0){
-          eliminaRicettario(id, null);
+          confirmDialog({ title: 'Elimina ricettario', message: `Vuoi eliminare il ricettario «${ricettarioName(id)}»? È vuoto.`, confirmText: 'Elimina', danger: true })
+            .then(ok => { if(ok) eliminaRicettario(id, null); });
           return;
         }
         const altri = ricettari.filter(rb => rb.id !== id);
@@ -547,10 +548,12 @@
         panel.style.display = 'block';
         panel.querySelector('.ricettario-move-btn').addEventListener('click', ()=>{
           const target = panel.querySelector('.ricettario-move-target').value;
-          eliminaRicettario(id, target);
+          confirmDialog({ title: 'Sposta ed elimina', message: `Le ${count} ricett${count===1?'a':'e'} di «${ricettarioName(id)}» andranno in «${ricettarioName(target)}» e il ricettario verrà eliminato. Continuare?`, confirmText: 'Sposta ed elimina', danger: true })
+            .then(ok => { if(ok) eliminaRicettario(id, target); });
         });
         panel.querySelector('.ricettario-delete-all-btn').addEventListener('click', ()=>{
-          eliminaRicettario(id, 'ELIMINA_RICETTE');
+          confirmDialog({ title: 'Elimina ricettario e ricette', message: `Verranno eliminati il ricettario «${ricettarioName(id)}» e le sue ${count} ricett${count===1?'a':'e'} (restano 30 giorni nel Cestino). Continuare?`, confirmText: 'Elimina tutto', danger: true })
+            .then(ok => { if(ok) eliminaRicettario(id, 'ELIMINA_RICETTE'); });
         });
         panel.querySelector('.ricettario-cancel-delete-btn').addEventListener('click', ()=>{
           panel.style.display = 'none';
@@ -4485,18 +4488,64 @@
   });
 
   const importBtn = document.getElementById('import-btn');
+  // Sceglie dove vanno le ricette di un backup: come nel backup, in un ricettario esistente o in uno nuovo.
+  // Restituisce { mode, id?, name? } oppure null se l'utente annulla.
+  function chiediDestinazioneImport(numRicette, nomeFile){
+    return new Promise(resolve=>{
+      const ov = document.getElementById('import-dest-overlay');
+      const sel = document.getElementById('import-dest-existing');
+      const nome = document.getElementById('import-dest-new-name');
+      document.getElementById('import-dest-intro').textContent = `Il file contiene ${numRicette} ricett${numRicette === 1 ? 'a' : 'e'}.`;
+      sel.innerHTML = ricettari.map(rb => `<option value="${escapeAttr(rb.id)}">${escapeHtml(rb.name)}</option>`).join('');
+      nome.value = String(nomeFile || '').replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+      ov.querySelector('input[value="originale"]').checked = true;
+      function fine(r){
+        ov.classList.remove('active');
+        okB.removeEventListener('click', onOk); cancB.removeEventListener('click', onCanc); xB.removeEventListener('click', onCanc);
+        resolve(r);
+      }
+      const okB = document.getElementById('import-dest-ok'), cancB = document.getElementById('import-dest-cancel'), xB = document.getElementById('import-dest-close');
+      function onCanc(){ fine(null); }
+      function onOk(){
+        const mode = ov.querySelector('input[name="import-dest"]:checked').value;
+        if(mode === 'esistente') return fine({ mode, id: sel.value });
+        if(mode === 'nuovo'){
+          const n = nome.value.trim();
+          if(!n){ alert('Dai un nome al nuovo ricettario.'); nome.focus(); return; }
+          return fine({ mode, name: n });
+        }
+        fine({ mode: 'originale' });
+      }
+      sel.onfocus = () => { ov.querySelector('input[value="esistente"]').checked = true; };
+      nome.onfocus = () => { ov.querySelector('input[value="nuovo"]').checked = true; };
+      okB.addEventListener('click', onOk); cancB.addEventListener('click', onCanc); xB.addEventListener('click', onCanc);
+      ov.classList.add('active');
+    });
+  }
+
   const importFileInput = document.getElementById('import-file-input');
   importBtn.addEventListener('click', ()=> importFileInput.click());
   importFileInput.addEventListener('change', ()=>{
     const file = importFileInput.files[0];
     if(!file) return;
     const reader = new FileReader();
-    reader.onload = (e)=>{
+    reader.onload = async (e)=>{
       try{
-        const parsed = JSON.parse(e.target.result);
+        let parsed = JSON.parse(e.target.result);
         const prima = JSON.stringify(datiCompletiPerFile()); // per «Annulla importazione»
-        const incoming = Array.isArray(parsed) ? parsed : (parsed.recipes || []);
+        let incoming = Array.isArray(parsed) ? parsed : (parsed.recipes || []);
         if(!Array.isArray(incoming)) throw new Error('Formato non valido');
+        if(incoming.length){
+          const dest = await chiediDestinazioneImport(incoming.length, file.name);
+          if(!dest){ importFileInput.value = ''; return; }
+          if(dest.mode !== 'originale'){
+            let destId = dest.id;
+            if(dest.mode === 'nuovo'){ destId = cryptoId(); ricettari.push({ id: destId, name: dest.name, cover: '' }); saveRicettari(); refreshRicettarioSelects(); }
+            incoming = incoming.map(r => r ? Object.assign({}, r, { ricettarioId: destId }) : r);
+            // ogni ricetta va nel ricettario scelto: i ricettari del backup non servono
+            if(!Array.isArray(parsed)) parsed = Object.assign({}, parsed, { ricettari: [] });
+          }
+        }
         const incomingDispensa = Array.isArray(parsed.dispensaItems) ? parsed.dispensaItems : [];
 
         const existingRecipeIds = new Set(recipes.map(r=>r.id));

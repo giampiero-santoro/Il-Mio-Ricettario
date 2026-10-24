@@ -858,6 +858,26 @@
   </div>
 </div>
 
+<div class="overlay" id="import-dest-overlay">
+  <div class="modal">
+    <button class="close-x" id="import-dest-close" aria-label="Chiudi">×</button>
+    <h2>Dove metto le ricette?</h2>
+    <p style="font-size:13.5px;color:var(--ink-soft);margin-top:-6px;line-height:1.5;" id="import-dest-intro"></p>
+    <div class="field">
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;"><input type="radio" name="import-dest" value="originale" checked> <span><b>Come nel backup</b><br><small>Ogni ricetta torna nel ricettario da cui proviene; quelli che mancano vengono creati.</small></span></label>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;"><input type="radio" name="import-dest" value="esistente"> <span><b>In un ricettario che ho già</b></span></label>
+      <select id="import-dest-existing" style="margin:0 0 10px 26px;max-width:calc(100% - 26px);"></select>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;"><input type="radio" name="import-dest" value="nuovo"> <span><b>In un nuovo ricettario</b></span></label>
+      <input type="text" id="import-dest-new-name" placeholder="Nome del nuovo ricettario" style="margin:0 0 4px 26px;max-width:calc(100% - 26px);">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="import-dest-cancel">Annulla importazione</button>
+      <div style="flex:1;"></div>
+      <button class="btn-gold" id="import-dest-ok">Importa</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="paste-import-overlay">
   <div class="modal">
     <button class="close-x" id="paste-import-close" aria-label="Chiudi">×</button>

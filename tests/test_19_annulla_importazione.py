@@ -14,6 +14,7 @@ async def run(page):
     await page.reload(); await page.wait_for_timeout(1000); await dismiss_storage_choice(page)
     backup = {"recipes": [ric("i2", "Ricetta Due Import"), ric("i3", "Ricetta Tre Import")]}
     await page.set_input_files("#import-file-input", {"name": "b.json", "mimeType": "application/json", "buffer": json.dumps(backup).encode()})
+    await page.locator("#import-dest-ok").click()
     await page.locator("#undo-toast:not([hidden])").wait_for(timeout=5000)
     n = await page.evaluate("JSON.parse(localStorage.getItem('mc_ricettario_v1')).length")
     check(n == 3, f"Dopo l'importazione le ricette sono 3 ({n})")

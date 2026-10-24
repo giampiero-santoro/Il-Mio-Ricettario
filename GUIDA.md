@@ -73,9 +73,10 @@ Le ricette possono essere organizzate in più "volumi" distinti — ad esempio "
 - **"Gestisci ricettari"** (sotto la libreria in Oggi, oppure il pulsante omonimo in cima al Ricettario) apre il pannello dove puoi:
   - **rinominare** un ricettario (modifica direttamente il nome e premi fuori dal campo per salvare)
   - assegnargli una **copertina** personalizzata: premi "📷 Copertina", scegli una foto e ritagliala con lo stesso editor usato per le foto delle ricette — senza copertina viene mostrata un'icona 📚 su sfondo colorato
-  - **eliminarlo**: se è vuoto sparisce subito; se contiene ancora ricette, ti viene chiesto se spostarle in un altro ricettario (restano tutte, solo cambiano "scaffale") oppure eliminarle insieme al volume. Deve sempre restare almeno un ricettario
+  - **eliminarlo**: viene sempre chiesta conferma. Se contiene ancora ricette, ti viene chiesto se spostarle in un altro ricettario (restano tutte, solo cambiano "scaffale") oppure eliminarle insieme al volume. Deve sempre restare almeno un ricettario
   - **cambiare l'ordine** dei volumi con le frecce ↑ ↓: l'ordine si riflette nella libreria di "Oggi" e nei menu
   - crearne uno **nuovo**: scrivi il nome (e, se vuoi, scegli una copertina prima di premere "+ Aggiungi")
+- **Importare un backup in un ricettario**: quando importi un backup, il ricettario chiede dove mettere le ricette — **come nel backup** (ognuna nel suo volume), **in un ricettario che hai già** oppure **in un nuovo ricettario** (nome a scelta, proposto dal nome del file). Puoi annullare e non importare nulla.
 - Nel modulo di una ricetta, il campo **"Ricettario"** accanto alla categoria indica dove salvarla — una nuova ricetta parte già nel volume che stai guardando in quel momento, se ne hai aperto uno specifico dalla libreria
 - Nella vista Ricettario, il menu a tendina accanto a quello della categoria **filtra per ricettario** ("Tutti i ricettari" mostra tutto insieme, come prima). La Pianificazione e "Cosa posso cucinare?" continuano invece a cercare sempre su **tutti i ricettari insieme**, per non perdere di vista nessuna ricetta mentre pianifichi la settimana
 - Nella finestra "Cerca ricetta" della Pianificazione, con più ricettari ogni ricetta mostra l'etichetta del suo volume e la ricerca trova anche per nome del volume

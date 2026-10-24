@@ -58,6 +58,7 @@ TEST_MODULES = [
     "test_31_giorno_timeline",
     "test_32_ricerca_off",
     "test_33_importa_nutrizionali",
+    "test_34_importa_destinazione",
 ]
 
 
