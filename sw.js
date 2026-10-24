@@ -1,5 +1,5 @@
 /* Il Mio Ricettario - service worker (uso offline). Cambia VERSION ad ogni release. */
-const VERSION = 'ricettario-5.38.0';
+const VERSION = 'ricettario-5.38.3';
 const PRECACHE = ['./', 'index.html', 'style.css', 'css/bulma.css', 'js/app.js', 'js/off-integration.js', 'js/vendor/html5-qrcode.min.js', 'fonts/fonts.css',
   'manifest.json', 'guida.html', 'img/icon-192.png', 'img/icon-512.png', 'img/apple-touch-icon.png', 'img/favicon-32.png'];
 

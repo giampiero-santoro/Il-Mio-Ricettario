@@ -2333,12 +2333,21 @@
     formDirty = true;
   }
 
+  // Messaggio chiaro: Open Food Facts è un servizio gratuito gestito da volontari e a volte è
+  // sovraccarico o in manutenzione, oppure limita le ricerche ravvicinate.
+  function messaggioErroreOff(err){
+    if(typeof navigator !== 'undefined' && navigator.onLine === false) return 'Sei offline: la ricerca su Open Food Facts richiede internet. Puoi compilare a mano.';
+    if(err && err.status === 429) return 'Troppe ricerche ravvicinate su Open Food Facts: aspetta qualche secondo e riprova.';
+    if(err && err.status >= 500) return 'Open Food Facts non risponde in questo momento (servizio in manutenzione o sovraccarico). Riprova tra poco, oppure compila a mano.';
+    return 'Non riesco a raggiungere Open Food Facts. Riprova tra poco, oppure compila a mano.';
+  }
+
   if (typeof attachOffAutocomplete === 'function') {
     attachOffAutocomplete(offTextSearch, (prodotto) => {
       offStatus.textContent = '';
       applicaProdottoOff(prodotto);
     }, (err) => {
-      offStatus.textContent = 'Errore nella ricerca su Open Food Facts (verifica la connessione).';
+      offStatus.textContent = messaggioErroreOff(err);
       console.error(err);
     });
   }
@@ -2357,7 +2366,7 @@
         offStatus.textContent = 'Prodotto trovato ✅';
       })
       .catch(err => {
-        offStatus.textContent = 'Errore nella ricerca su Open Food Facts (verifica la connessione).';
+        offStatus.textContent = messaggioErroreOff(err);
         console.error(err);
       })
       .finally(() => { offBarcodeSearchBtn.disabled = false; });
@@ -5715,7 +5724,6 @@
   });
   // Scorciatoie dirette tra Pianificazione e Dispensa, per non dover passare dal menu di
   // navigazione in alto quando si passa dall'una all'altra mentre si organizza la settimana.
-  document.getElementById('planning-goto-dispensa-btn').addEventListener('click', ()=> switchView('dispensa'));
   document.getElementById('dispensa-goto-planning-btn').addEventListener('click', ()=> switchView('planning'));
 
   // ---------- Barra superiore: ricerca rapida e avvisi dispensa ----------
@@ -6105,7 +6113,16 @@
     return rel ? `${rng} · ${rel}` : rng;
   }
   function aggiornaEtichettaSettimana(){
-    if(planWeekLabelText) planWeekLabelText.textContent = etichettaSettimana(planWeekStart);
+    if(planWeekLabelText){
+      const intero = etichettaSettimana(planWeekStart), p = intero.split(' · ');
+      planWeekLabelText.textContent = '';
+      const riga1 = document.createElement('span'); riga1.className = 'plan-week-range'; riga1.textContent = p[0];
+      planWeekLabelText.appendChild(riga1);
+      if(p[1]){
+        const riga2 = document.createElement('span'); riga2.className = 'plan-week-rel'; riga2.textContent = p[1].charAt(0).toUpperCase() + p[1].slice(1);
+        planWeekLabelText.appendChild(riga2);
+      }
+    }
     const oggiBtn = document.getElementById('plan-week-today');
     if(oggiBtn) oggiBtn.hidden = planWeekStart === realMonday();
   }
@@ -6331,6 +6348,10 @@
     const nPasti = slotsOfDay(day).length;
     const nRicette = dayEntries.filter(e => !e.dispensaItemId).length;
     const nDispensa = dayEntries.filter(e => e.dispensaItemId).length;
+    const porzioniGiorno = dayEntries.filter(e => !e.dispensaItemId).map(e => entryServings(e)).filter(n => Number.isFinite(n) && n > 0);
+    const personeMin = porzioniGiorno.length ? Math.min(...porzioniGiorno) : planServings;
+    const personeMax = porzioniGiorno.length ? Math.max(...porzioniGiorno) : planServings;
+    const personeTesto = personeMin === personeMax ? String(personeMin) : `da ${personeMin} a ${personeMax}`;
     const kcalGiorno = totaleGiorno && totaleGiorno.kcal !== null && totaleGiorno.kcal !== undefined ? roundNice(totaleGiorno.kcal) : null;
     const riepilogoHtml = `<aside class="plan-day-side" aria-label="${escapeAttr(day)} in breve">
       <h4>${escapeHtml(day)} in breve</h4>
@@ -6338,7 +6359,7 @@
       <div class="plan-sum-row"><span>Ricette</span><b>${nRicette}</b></div>
       ${nDispensa ? `<div class="plan-sum-row"><span>Dalla dispensa</span><b>${nDispensa}</b></div>` : ''}
       <div class="plan-sum-row"><span>Calorie</span><b>${kcalGiorno !== null ? kcalGiorno + ' kcal' : '—'}</b></div>
-      <div class="plan-sum-row"><span>Persone</span><b>${planServings}</b></div>
+      <div class="plan-sum-row"><span>Persone</span><b>${personeTesto}</b></div>
       ${totaleGiornoHtml}
       <hr>
       <button type="button" class="btn-ghost btn-small plan-day-shopping-btn">🛒 Lista della spesa del giorno</button>

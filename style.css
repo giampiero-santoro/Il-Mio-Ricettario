@@ -1561,3 +1561,14 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 .plan-tl-time input[type="time"].plan-slot-time{width:64px;max-width:64px;padding:2px 2px;font-size:var(--fs-xs);}
 @media (max-width:1100px){.plan-day-side{order:0;margin-top:6px;}}
 @media (max-width:760px){.plan-tl-time input[type="time"].plan-slot-time{width:104px;max-width:104px;font-size:var(--fs-sm);padding:2px 8px;}}
+
+/* Etichetta della settimana su due righe: data sopra, «Questa settimana» sotto (v5.39) */
+.plan-week-label{padding:7px 16px;}
+#plan-week-label-text{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;}
+#plan-week-label-text .plan-week-rel{font-size:var(--fs-xs);font-weight:600;color:var(--accent-ink);}
+@media (max-width:760px){
+  .plan-tl-time{position:static;left:auto;width:auto;flex:0 0 auto;}
+  .plan-day-card .plan-meal-header{gap:10px;}
+}
+
+#plan-week-label-text{align-items:center;text-align:center;}

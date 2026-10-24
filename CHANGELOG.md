@@ -2,6 +2,33 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.38.3] — Ricerca Open Food Facts riparata
+
+### Corretto
+- **«Errore nella ricerca su Open Food Facts (verifica la connessione)»** durante la ricerca per nome: la vecchia ricerca di Open Food Facts (`cgi/search.pl`) risponde spesso 503 «in manutenzione». La ricerca per nome ora usa il **nuovo motore ufficiale (Search-a-licious)**, con la vecchia ricerca solo come ripiego. Se il motore non include i valori nutrizionali, vengono recuperati con il codice a barre alla scelta del prodotto.
+- La ricerca per codice a barre prova anche l'interfaccia v3 se la v2 non risponde.
+- **Messaggi chiari**: «Open Food Facts non risponde in questo momento…» (servizio giù), «Troppe ricerche ravvicinate…» (limite di richieste), «Sei offline…».
+- Il servizio limita le ricerche (circa 10 al minuto): la ricerca parte dopo 0,7 s dall'ultima lettera, da 3 lettere in su, e le ricerche già fatte sono ricordate.
+- Note legali: indicato anche l'indirizzo `search.openfoodfacts.org`. Guida illustrata e GUIDA.md aggiornate.
+
+### Test
+- Nuovo `test_32` (risposte del servizio simulate: nuovo motore, cache, ripiego, errore, limite). Suite: 32/32.
+
+## [5.38.2] — Persone da… a… nel riepilogo del giorno
+
+### Cambiato
+- In **«Venerdì in breve»** (e negli altri giorni) le **Persone** ora seguono le porzioni delle ricette del giorno: se un pasto è per 1 persona e un altro per 8 compare **«da 1 a 8»**; se sono tutte uguali, un solo numero. Senza ricette resta il valore «Persone» impostato in alto.
+- «Questa settimana» (sotto la data) è **centrato**.
+- Guida illustrata e GUIDA.md aggiornate. `test_31` esteso. Suite: 31/31.
+
+## [5.38.1] — Pianificazione più pulita
+
+### Cambiato
+- Tolto il pulsante **Dispensa** dall'intestazione della Pianificazione (la Dispensa resta nel menu e nella barra in basso).
+- L'etichetta della settimana ora è su due righe: **la data sopra** e **«Questa settimana»** (o «Prossima settimana», «Settimana scorsa») **sotto**, più leggibile soprattutto su telefono.
+- Sul telefono, nella vista Giorno, l'orario del pasto non si sovrappone più al nome.
+- Guida illustrata e GUIDA.md aggiornate, con nuove immagini.
+
 ## [5.38.0] — Vista Giorno a linea del tempo
 
 ### Cambiato

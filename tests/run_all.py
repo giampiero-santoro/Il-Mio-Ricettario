@@ -56,6 +56,7 @@ TEST_MODULES = [
     "test_29_temi",
     "test_30_matrice_menu",
     "test_31_giorno_timeline",
+    "test_32_ricerca_off",
 ]
 
 

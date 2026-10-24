@@ -21,7 +21,12 @@
 const OffIntegration = (() => {
 
   const BASE_PRODUCT_URL = 'https://world.openfoodfacts.org/api/v2/product/';
+  const BASE_PRODUCT_V3_URL = 'https://world.openfoodfacts.org/api/v3/product/';
+  // Ricerca per testo: il motore ufficiale oggi è «Search-a-licious»; la vecchia ricerca
+  // (cgi/search.pl) risponde spesso 503 «in manutenzione», quindi resta solo come ripiego.
+  const SEARCH_URL = 'https://search.openfoodfacts.org/search';
   const BASE_SEARCH_URL = 'https://world.openfoodfacts.org/cgi/search.pl';
+  const TIMEOUT_MS = 12000;
 
   function numOrNull(v) {
     if (v === undefined || v === null || v === '') return null;
@@ -86,12 +91,30 @@ const OffIntegration = (() => {
     return { numero: parseFloat(m[1].replace(',', '.')), unita: (m[2] || '').toLowerCase() };
   }
 
+  // Alcuni campi possono arrivare come testo, come elenco o come oggetto per lingua.
+  function testoDa(v) {
+    if (v === undefined || v === null) return '';
+    if (Array.isArray(v)) return v.filter(Boolean).join(', ');
+    if (typeof v === 'object') return String(v.it || v.main || v.en || Object.values(v).find(x => typeof x === 'string') || '');
+    return String(v);
+  }
+
+  async function fetchJson(url) {
+    const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), TIMEOUT_MS) : null;
+    try {
+      const res = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined);
+      if (!res.ok) { const e = new Error(`Open Food Facts non raggiungibile (${res.status})`); e.status = res.status; throw e; }
+      return await res.json();
+    } finally { if (timer) clearTimeout(timer); }
+  }
+
   function normalizzaProdotto(p, barcodeFallback) {
     const n = p.nutriments || {};
     return {
       barcode: p.code || barcodeFallback || '',
-      nome: p.product_name_it || p.product_name || '',
-      marca: p.brands || '',
+      nome: p.product_name_it ? testoDa(p.product_name_it) : testoDa(p.product_name),
+      marca: testoDa(p.brands),
       immagine: p.image_front_small_url || p.image_small_url || p.image_url || '',
       nutriscore: (p.nutriscore_grade || '').toUpperCase(),
       categoria: mappaCategoria(p.categories_tags || p.categories || ''),
@@ -110,24 +133,51 @@ const OffIntegration = (() => {
   async function cercaDaBarcode(barcode) {
     const codice = (barcode || '').trim();
     if (!codice) return null;
-    const res = await fetch(`${BASE_PRODUCT_URL}${encodeURIComponent(codice)}.json?lc=it`);
-    if (!res.ok) throw new Error(`Open Food Facts non raggiungibile (${res.status})`);
-    const data = await res.json();
-    if (data.status !== 1 || !data.product) return null; // codice non in banca dati
-    return normalizzaProdotto(data.product, codice);
+    let ultimoErrore = null;
+    for (const base of [BASE_PRODUCT_URL, BASE_PRODUCT_V3_URL]) {
+      try {
+        const data = await fetchJson(`${base}${encodeURIComponent(codice)}.json?lc=it`);
+        const trovato = data.status === 1 || data.status === 'success';
+        if (!trovato || !data.product) return null; // codice non in banca dati
+        return normalizzaProdotto(data.product, codice);
+      } catch (e) { ultimoErrore = e; }
+    }
+    throw ultimoErrore || new Error('Open Food Facts non raggiungibile');
+  }
+
+  const cacheRicerche = new Map(); // stessa ricerca ripetuta: nessuna nuova richiesta (il servizio limita le ricerche)
+
+  async function cercaConSearchALicious(q, limite) {
+    const url = `${SEARCH_URL}?q=${encodeURIComponent(q)}&page_size=${limite}&langs=it`;
+    const data = await fetchJson(url);
+    return Array.isArray(data.hits) ? data.hits : (data.products || []);
+  }
+  async function cercaConRicercaClassica(q, limite) {
+    const url = `${BASE_SEARCH_URL}?search_terms=${encodeURIComponent(q)}&json=true&page_size=${limite}&lc=it`;
+    const data = await fetchJson(url);
+    return data.products || [];
   }
 
   /** Cerca prodotti per nome/testo libero, fino a `limite` risultati. */
   async function cercaTesto(query, limite = 10) {
     const q = (query || '').trim();
-    if (q.length < 2) return [];
-    const url = `${BASE_SEARCH_URL}?search_terms=${encodeURIComponent(q)}&json=true&page_size=${limite}&lc=it`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Open Food Facts non raggiungibile (${res.status})`);
-    const data = await res.json();
-    return (data.products || [])
+    if (q.length < 3) return [];
+    const chiave = q.toLowerCase() + '|' + limite;
+    if (cacheRicerche.has(chiave)) return cacheRicerche.get(chiave);
+    let grezzi, errore = null;
+    try { grezzi = await cercaConSearchALicious(q, limite); }
+    catch (e) {
+      errore = e;
+      if (e && e.status === 429) throw e; // troppe richieste: inutile insistere con l'altro servizio
+      try { grezzi = await cercaConRicercaClassica(q, limite); errore = null; }
+      catch (e2) { errore = e2; }
+    }
+    if (errore) throw errore;
+    const risultati = grezzi
       .map(p => normalizzaProdotto(p))
       .filter(p => p.nome); // scarta risultati senza nemmeno un nome
+    cacheRicerche.set(chiave, risultati);
+    return risultati;
   }
 
   return { cercaDaBarcode, cercaTesto, mappaCategoria, parseQuantita };
@@ -180,7 +230,15 @@ function attachOffAutocomplete(inputEl, onSelect, onError) {
         e.preventDefault();
         inputEl.value = prodotto.nome;
         chiudi();
-        onSelect(prodotto);
+        // Il nuovo motore di ricerca può non includere i valori nutrizionali: in quel caso li
+        // chiediamo con il codice a barre (se fallisce si usa comunque il risultato trovato).
+        if (prodotto.kcal100 === null && prodotto.barcode) {
+          OffIntegration.cercaDaBarcode(prodotto.barcode)
+            .then(completo => onSelect(completo ? Object.assign({}, prodotto, completo, { nome: completo.nome || prodotto.nome }) : prodotto))
+            .catch(() => onSelect(prodotto));
+        } else {
+          onSelect(prodotto);
+        }
       });
       dropdown.appendChild(voce);
     }
@@ -195,7 +253,7 @@ function attachOffAutocomplete(inputEl, onSelect, onError) {
       OffIntegration.cercaTesto(valore)
         .then(risultati => { if (mioId === richiestaCorrenteId) mostraRisultati(risultati); })
         .catch(err => { if (onError) onError(err); });
-    }, 350);
+    }, 700);
   });
 
   inputEl.addEventListener('blur', () => setTimeout(chiudi, 150));

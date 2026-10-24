@@ -40,3 +40,22 @@ async def run(page):
     check(len(t) == 2 and t[0] < b["x"], f"Gli orari stanno a sinistra delle schede: {t}")
     # il pulsante della spesa del giorno è nel riquadro
     check(await side.locator(".plan-day-shopping-btn").count() == 1 and await side.locator(".plan-week-totals-btn").count() == 1, "Pulsanti spesa e totali nel riquadro")
+
+    # Persone: se i pasti hanno porzioni diverse il riquadro mostra l'intervallo
+    persone = await side.locator(".plan-sum-row", has_text="Persone").inner_text()
+    check(persone.replace("\n", " ").strip().endswith("4"), f"Con una sola ricetta: persone di base {persone!r}")
+    await page.locator(".plan-meal-block").first.locator(".plan-add-btn").click()
+    await page.fill("#recipe-picker-search", "Pasta Giorno")
+    await page.locator(".recipe-picker-item", has_text="Pasta Giorno").first.click()
+    await page.wait_for_timeout(400)
+    inputs = page.locator(".plan-day-card .plan-entry-servings-input")
+    check(await inputs.count() == 2, "Due ricette nel giorno")
+    await inputs.nth(0).fill("1"); await inputs.nth(0).press("Tab"); await page.wait_for_timeout(300)
+    await page.locator(".plan-day-card .plan-entry-servings-input").nth(1).fill("8")
+    await page.locator(".plan-day-card .plan-entry-servings-input").nth(1).press("Tab"); await page.wait_for_timeout(300)
+    persone = await page.locator(".plan-day-side .plan-sum-row", has_text="Persone").inner_text()
+    check("da 1 a 8" in persone.replace("\n", " "), f"Persone da 1 a 8: {persone!r}")
+    await page.locator(".plan-day-card .plan-entry-servings-input").nth(0).fill("3"); await page.locator(".plan-day-card .plan-entry-servings-input").nth(0).press("Tab"); await page.wait_for_timeout(300)
+    await page.locator(".plan-day-card .plan-entry-servings-input").nth(1).fill("3"); await page.locator(".plan-day-card .plan-entry-servings-input").nth(1).press("Tab"); await page.wait_for_timeout(300)
+    persone = await page.locator(".plan-day-side .plan-sum-row", has_text="Persone").inner_text()
+    check("da" not in persone and persone.replace("\n", " ").strip().endswith("3"), f"Porzioni uguali: un solo numero {persone!r}")
