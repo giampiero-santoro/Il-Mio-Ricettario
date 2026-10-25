@@ -1580,3 +1580,41 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 @media (max-width:760px){
   .view-seq-nav{position:static;justify-content:space-between;margin:0 0 12px;}
 }
+
+/* ===== Stampa A4 orizzontale: una ricetta per pagina, impianto della scheda, senza pulsanti ===== */
+#print-root{display:none;}
+.ps-sheet{font-family:"DM Sans",system-ui,sans-serif;color:#1f2a22;background:#fff;padding:0;break-after:page;page-break-after:always;font-size:13pt;line-height:1.45;}
+.ps-sheet:last-child{break-after:auto;page-break-after:auto;}
+.ps-tags{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px;}
+.ps-pill{display:inline-block;font-size:10pt;font-weight:700;padding:2px 9px;border-radius:6px;background:#efe3d8;color:#7a4a35;letter-spacing:.02em;}
+.ps-pill.alt{background:#dcecdc;color:#2f5a35;}
+.ps-title{font-family:"Lora",Georgia,serif;font-size:30pt;line-height:1.15;margin:0 0 8px;font-weight:600;}
+.ps-meta{display:flex;gap:16px;color:#5a645d;font-size:12.5pt;margin-bottom:10px;}
+.ps-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 6px;font-size:11pt;}
+.ps-chip{padding:2px 9px;border-radius:999px;background:#dcecdc;color:#2f5a35;font-weight:600;}
+.ps-chip.allergen{background:#f7dcdc;color:#8a2a2a;}
+.ps-chips .lbl{color:#5a645d;font-weight:600;}
+.ps-body{display:flex;gap:12mm;align-items:flex-start;margin-top:12px;}
+.ps-main{flex:1.55;min-width:0;}
+.ps-side{flex:1;min-width:0;}
+.ps-h{font-family:"Lora",Georgia,serif;font-size:19pt;margin:0 0 12px;font-weight:600;}
+.ps-step{display:flex;gap:12px;margin:0 0 13px;break-inside:avoid;page-break-inside:avoid;}
+.ps-num{flex:0 0 28px;height:28px;border-radius:50%;background:#2f6b3a;color:#fff;font-weight:700;font-size:11.5pt;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.ps-step .t{flex:1;}
+.ps-step .m{color:#5a645d;font-size:11pt;margin-top:2px;}
+.ps-notes{border-top:1px solid #cfd6cf;margin-top:10px;padding-top:10px;color:#4a544d;font-size:11.5pt;white-space:pre-wrap;}
+.ps-box{background:#eef4ec;border:1px solid #d7e2d4;border-radius:14px;padding:16px 18px;margin-bottom:12px;break-inside:avoid;page-break-inside:avoid;}
+.ps-box h3{font-size:14.5pt;margin:0 0 8px;font-weight:700;}
+.ps-ing{list-style:none;margin:0;padding:0;}
+.ps-ing li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid #d7e2d4;}
+.ps-ing li:first-child{border-top:0;}
+.ps-ing .amt{color:#5a645d;white-space:nowrap;}
+.ps-photo{width:100%;max-height:70mm;object-fit:cover;border-radius:10px;margin-bottom:10px;}
+.ps-nutri{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:11.5pt;}
+.ps-foot{margin-top:10px;font-size:8pt;color:#8a938c;}
+@media print{
+  body.printing-sheets{background:#fff !important;}
+  body.printing-sheets > *:not(#print-root){display:none !important;}
+  body.printing-sheets #print-root{display:block !important;}
+  .ps-sheet, .ps-sheet *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}

@@ -2,6 +2,16 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.44.0] — Stampa A4 orizzontale del ricettario
+
+### Aggiunto
+- **🖨️ Stampa A4** su ogni riga di «Gestisci ricettari»: stampa tutte le ricette attive del ricettario, una per pagina, in A4 orizzontale.
+- **Stampa del browser (Ctrl/Cmd+P)** con una scheda aperta: esce la scheda pulita in A4 orizzontale, senza menu né pulsanti («Modifica», «Modalità cucina», porzioni, ecc.).
+
+### Modificato
+- Il foglio A4 orizzontale usa caratteri e spazi più grandi, per riempire meglio la pagina e assomigliare alla scheda a schermo.
+- Test 37; guida illustrata e GUIDA.md aggiornate (nuova sezione sulla stampa).
+
 ## [5.43.0] — Ricetta precedente / successiva
 
 ### Aggiunto

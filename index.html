@@ -968,7 +968,7 @@
 <div class="overlay" id="export-pdf-overlay">
   <div class="modal">
     <button class="close-x" id="export-pdf-close" aria-label="Chiudi">×</button>
-    <h2>Esporta ricettario in PDF</h2>
+    <h2>Esporta o stampa il ricettario</h2>
     <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">
       Scegli le categorie intere o le singole ricette da includere (le archiviate restano escluse). Nel PDF le ricette sono raggruppate per categoria, con una pagina divisoria tra una categoria e l'altra.
     </div>
@@ -999,6 +999,7 @@
     </div>
     <div class="recipe-picker-list" id="export-pdf-list"></div>
     <div class="modal-actions">
+      <button type="button" class="btn-ghost" id="print-a4-confirm-btn" title="Una ricetta per pagina, con lo stesso impianto della scheda, pronta per la stampante o per «Salva come PDF»">🖨️ Stampa A4 orizzontale</button>
       <button type="button" class="btn-gold" id="export-pdf-confirm-btn">📖 Esporta PDF</button>
     </div>
   </div>
@@ -1221,6 +1222,7 @@
         <button class="btn-ghost btn-with-ico" id="view-export-menu-btn"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-download"/></svg> Esporta ▾</button>
         <div class="menu-dropdown" id="view-export-menu-dropdown">
           <button id="export-recipe-pdf-btn">Esporta PDF</button>
+          <button id="print-recipe-a4-btn">🖨️ Stampa A4 orizzontale</button>
           <button id="export-recipe-json-btn">Esporta ricetta (.json)</button>
         </div>
       </div>

@@ -486,6 +486,7 @@
           </span>
           <input type="file" class="ricettario-row-cover-input" accept="image/*" style="display:none;">
           <button type="button" class="btn-ghost btn-small ricettario-row-cover-btn">📷 Copertina</button>
+          <button type="button" class="btn-ghost btn-small ricettario-row-print-btn" title="Stampa tutte le ricette di questo ricettario, una per pagina, in A4 orizzontale" ${count === 0 ? 'disabled' : ''}>🖨️ Stampa A4</button>
           <button type="button" class="btn-ghost btn-small ricettario-row-delete-btn" ${ricettari.length <= 1 ? 'disabled title="Deve restare almeno un ricettario"' : ''}>🗑 Elimina</button>
           <div class="ricettario-row-delete-panel" style="display:none;"></div>
         </div>`;
@@ -519,6 +520,15 @@
         saveRicettari();
         refreshRicettarioSelects();
         renderList(); renderToday();
+      });
+
+      row.querySelector('.ricettario-row-print-btn').addEventListener('click', ()=>{
+        const ordineCat = Object.keys(CATEGORY_COLORS);
+        const lista = recipes.filter(r => !r.archived && recipeRicettarioId(r) === id)
+          .sort((a, b) => (ordineCat.indexOf(a.category) - ordineCat.indexOf(b.category)) || a.name.localeCompare(b.name, 'it'));
+        if(!lista.length){ alert('Questo ricettario non ha ricette da stampare.'); return; }
+        ricettariOverlay.classList.remove('active');
+        stampaSchedeA4(lista, r => r.servings || 1);
       });
 
       const coverInput = row.querySelector('.ricettario-row-cover-input');
@@ -3729,6 +3739,102 @@
     downloadPdf(pdfStr, `${libro}_${safeName}.pdf`);
   });
 
+
+  // ---------- Stampa A4 orizzontale: una ricetta per pagina, con l'impianto della scheda ----------
+  function schedaStampaHtml(r, porzioni){
+    const scale = porzioni / (r.servings || 1);
+    const chipExtra = [];
+    if(recipeHasPressure(r)) chipExtra.push('🍲 Pentola a pressione');
+    if(recipeHasRobot(r)) chipExtra.push('🤖 Robot da cucina');
+    if(recipeHasAirFryer(r)) chipExtra.push('🌀 Friggitrice ad aria');
+    if(recipeIsTraditional(r)) chipExtra.push('🔥 Tradizionale');
+    if(r.cookerType) chipExtra.push((r.cookerType === 'Elettrica' ? '⚡ ' : '🔥 ') + r.cookerType);
+    const chips = (r.tags || []).concat(chipExtra).map(t => `<span class="ps-chip">${escapeHtml(t)}</span>`).join('');
+    const allerg = (r.allergens && r.allergens.length)
+      ? `<div class="ps-chips"><span class="lbl">Contiene:</span>${r.allergens.map(a => `<span class="ps-chip allergen">${escapeHtml(a)}</span>`).join('')}</div>` : '';
+    const steps = (r.steps || []).map((s, i) => {
+      const meta = [];
+      if(s.vel) meta.push('Vel. ' + s.vel);
+      if(s.temp) meta.push(s.temp + ' °C');
+      if(s.mode && s.mode !== 'Normale') meta.push(s.mode);
+      if(s.time) meta.push(s.time + ' min');
+      if(s.pressure) meta.push('🍲 ' + s.pressure + ' ' + ({bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar'));
+      if(s.pressureRelease) meta.push('Rilascio: ' + s.pressureRelease);
+      if(s.minLiquid) meta.push('Liquido min. ' + s.minLiquid + ' ml');
+      if(s.pressureReleaseMin) meta.push(s.pressureReleaseMin + ' min rilascio');
+      if(s.airFryerTemp) meta.push('🌀 ' + s.airFryerTemp + ' °C');
+      return `<div class="ps-step"><div class="ps-num">${i + 1}</div><div class="t">${escapeHtml(s.text)}${meta.length ? `<div class="m">${meta.map(escapeHtml).join(' · ')}</div>` : ''}</div></div>`;
+    }).join('');
+    const ing = (r.ingredients || []).map(i => `<li><span>${escapeHtml(i.name)}</span><span class="amt">${quantitaScalataHtml(i, scale)}</span></li>`).join('');
+    let nutri = '';
+    const n = r.nutrizioneUtente;
+    if(n){
+      const rows = NUTRITION_FIELDS.filter(f => n[f.key] !== null && n[f.key] !== undefined).map(f => `<div>${f.label}: <b>${roundNice(n[f.key])}</b>${f.unit}</div>`).join('');
+      if(rows) nutri = `<div class="ps-box"><h3>Valori nutrizionali (per porzione)</h3><div class="ps-nutri">${rows}</div></div>`;
+    }
+    const pills = `<span class="ps-pill">${escapeHtml(recipeCategoryLabel(r))}</span>` + (ricettari.length > 1 ? `<span class="ps-pill alt">${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : '');
+    return `<section class="ps-sheet">
+      <div class="ps-tags">${pills}</div>
+      <h1 class="ps-title">${escapeHtml(r.name)}</h1>
+      <div class="ps-meta">${r.time ? `<span>🕒 ${r.time} min</span>` : ''}<span>👤 Ricetta per ${porzioniLabel(porzioni)}</span></div>
+      ${chips ? `<div class="ps-chips">${chips}</div>` : ''}${allerg}
+      <div class="ps-body">
+        <div class="ps-main">
+          <h2 class="ps-h">Procedimento</h2>
+          ${steps || '<div class="ps-step"><div class="t">—</div></div>'}
+          ${r.notes ? `<div class="ps-notes"><b>Note personali —</b> ${escapeHtml(r.notes)}</div>` : ''}
+        </div>
+        <div class="ps-side">
+          ${r.photo ? `<img class="ps-photo" src="${escapeAttr(r.photo)}" alt="">` : ''}
+          <div class="ps-box"><h3>Ingredienti</h3><ul class="ps-ing">${ing}</ul></div>
+          ${nutri}
+        </div>
+      </div>
+    </section>`;
+  }
+  function preparaStampaSchede(lista, porzioniDi){
+    document.getElementById('print-root')?.remove();
+    document.getElementById('print-page-style')?.remove();
+    const root = document.createElement('div');
+    root.id = 'print-root';
+    root.innerHTML = lista.map(r => schedaStampaHtml(r, porzioniDi(r))).join('');
+    const st = document.createElement('style');
+    st.id = 'print-page-style';
+    st.textContent = '@page{size:A4 landscape;margin:10mm}';
+    document.head.appendChild(st);
+    document.body.appendChild(root);
+    document.body.classList.add('printing-sheets');
+    const pulisci = ()=>{
+      document.body.classList.remove('printing-sheets');
+      root.remove(); st.remove();
+      window.removeEventListener('afterprint', pulisci);
+    };
+    window.addEventListener('afterprint', pulisci);
+    return { root, pulisci };
+  }
+  function stampaSchedeA4(lista, porzioniDi){
+    const { root, pulisci } = preparaStampaSchede(lista, porzioniDi);
+    // le foto devono essere caricate prima di aprire la stampa
+    const imgs = Array.from(root.querySelectorAll('img'));
+    Promise.all(imgs.map(im => im.complete ? 0 : new Promise(ok => { im.onload = im.onerror = ok; })))
+      .then(()=> setTimeout(()=>{ try{ window.print(); }catch(e){ pulisci(); } }, 150));
+    return { root, pulisci };
+  }
+  // Stampa dal browser (Ctrl/Cmd+P o menu Stampa) con una scheda ricetta aperta: stesso risultato
+  // pulito della stampa A4 orizzontale, senza menu, pulsanti «Modifica», porzioni e simili.
+  window.addEventListener('beforeprint', ()=>{
+    if(document.body.classList.contains('printing-sheets')) return;
+    if(!viewOverlay.classList.contains('active')) return;
+    const r = recipes.find(x => x.id === currentViewId);
+    if(r) preparaStampaSchede([r], () => currentServings);
+  });
+  document.getElementById('print-recipe-a4-btn').addEventListener('click', ()=>{
+    const r = recipes.find(x=>x.id === currentViewId);
+    if(!r) return;
+    document.getElementById('view-export-menu-dropdown').classList.remove('open');
+    stampaSchedeA4([r], () => currentServings);
+  });
+
   // Esporta il ricettario (o una selezione di categorie/ricette) in un solo PDF: un indice
   // raggruppato per categoria, poi una pagina divisoria per ogni categoria e una ricetta per
   // pagina (alle sue porzioni base, dato che non si sta guardando una scheda precisa con
@@ -3943,6 +4049,15 @@
     exportPdfSelezionate.clear();
     aggiornaContatoreExportPdf();
     renderExportPdfList(exportPdfSearch.value);
+  });
+
+  document.getElementById('print-a4-confirm-btn').addEventListener('click', ()=>{
+    const selezionate = exportPdfRicetteAttive().filter(r => exportPdfSelezionate.has(r.id));
+    if(!selezionate.length){ alert('Seleziona almeno una ricetta da stampare.'); return; }
+    const ordineCat = Object.keys(CATEGORY_COLORS);
+    selezionate.sort((a, b) => (ordineCat.indexOf(a.category) - ordineCat.indexOf(b.category)) || a.name.localeCompare(b.name, 'it'));
+    exportPdfOverlay.classList.remove('active');
+    stampaSchedeA4(selezionate, r => r.servings || 1);
   });
 
   document.getElementById('export-pdf-confirm-btn').addEventListener('click', ()=>{

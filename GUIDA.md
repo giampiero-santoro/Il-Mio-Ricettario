@@ -146,6 +146,10 @@ Nel modulo di modifica trovi due sezioni distinte, perché rispondono a domande 
 
 Entrambi compaiono nella scheda della ricetta come etichette colorate (gli allergeni in rosso, sotto la scritta "⚠ Contiene:"). Nel pannello filtri avanzati puoi anche **escludere dalla lista le ricette che contengono uno o più allergeni** scelti, oltre a filtrare per tag dietetico.
 
+## Stampa A4 orizzontale
+
+Dal menu **Esporta ▾** della scheda, **"🖨️ Stampa A4 orizzontale"** produce un foglio con lo stesso impianto della scheda (titolo, procedimento a sinistra, ingredienti e foto a destra), **senza menu né pulsanti** come "Modifica" o "Modalità cucina". Lo stesso risultato si ottiene con la stampa del browser (Ctrl/Cmd+P) a scheda aperta. Per stampare un ricettario intero: in **Gestisci ricettari** usa **"🖨️ Stampa A4"** sulla riga del ricettario (una ricetta per pagina, escluse le archiviate), oppure scegli le ricette da **Esporta PDF → Stampa A4 orizzontale**. Nella finestra di stampa scegli "Salva come PDF" per ottenere un file.
+
 ## Visualizzare e scalare le porzioni
 
 **Ricetta precedente / successiva.** Aprendo una ricetta dall'elenco compaiono in alto **"‹ Precedente"** e **"Successiva ›"** con la posizione (es. "2 di 3"): scorri le ricette dell'elenco — con i filtri e l'ordine attivi — senza tornare indietro. Funziona anche con le frecce ← → della tastiera e, su telefono, trascinando il dito di lato. Aprendo la ricetta da altre pagine (Oggi, Statistiche, Pianificazione) i pulsanti non compaiono.

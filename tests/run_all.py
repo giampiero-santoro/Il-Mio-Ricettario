@@ -61,6 +61,7 @@ TEST_MODULES = [
     "test_34_importa_destinazione",
     "test_35_sottocategorie",
     "test_36_ricetta_successiva",
+    "test_37_stampa_ricettario",
 ]
 
 
