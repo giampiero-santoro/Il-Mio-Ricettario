@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.45.0] — Stampa: caratteri adattati e due colonne
+
+### Aggiunto
+- **Layout di stampa a due colonne**: più ricette per foglio A4 orizzontale, caratteri piccoli; le ricette brevi si impilano nella colonna e quelle lunghe continuano nella colonna successiva. Scelta chiesta quando si stampano più ricette e ricordata come predefinita.
+
+### Modificato
+- **Una ricetta per pagina**: il carattere si riduce da solo (da 13 a 7,5 pt) finché la ricetta sta in un foglio; se è lunghissima il procedimento passa su due colonne.
+- La stampa del browser (Ctrl/Cmd+P) dalla scheda usa lo stesso adattamento. Test 37 esteso; guida illustrata e GUIDA.md aggiornate.
+
 ## [5.44.0] — Stampa A4 orizzontale del ricettario
 
 ### Aggiunto

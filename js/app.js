@@ -528,7 +528,7 @@
           .sort((a, b) => (ordineCat.indexOf(a.category) - ordineCat.indexOf(b.category)) || a.name.localeCompare(b.name, 'it'));
         if(!lista.length){ alert('Questo ricettario non ha ricette da stampare.'); return; }
         ricettariOverlay.classList.remove('active');
-        stampaSchedeA4(lista, r => r.servings || 1);
+        stampaElencoA4(lista, r => r.servings || 1);
       });
 
       const coverInput = row.querySelector('.ricettario-row-cover-input');
@@ -3773,7 +3773,8 @@
       if(rows) nutri = `<div class="ps-box"><h3>Valori nutrizionali (per porzione)</h3><div class="ps-nutri">${rows}</div></div>`;
     }
     const pills = `<span class="ps-pill">${escapeHtml(recipeCategoryLabel(r))}</span>` + (ricettari.length > 1 ? `<span class="ps-pill alt">${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : '');
-    return `<section class="ps-sheet">
+    const corta = (r.steps || []).length <= 7 && (r.ingredients || []).length <= 10 && String(r.notes || '').length < 300;
+    return `<section class="ps-sheet${corta ? ' ps-short' : ''}">
       <div class="ps-tags">${pills}</div>
       <h1 class="ps-title">${escapeHtml(r.name)}</h1>
       <div class="ps-meta">${r.time ? `<span>🕒 ${r.time} min</span>` : ''}<span>👤 Ricetta per ${porzioniLabel(porzioni)}</span></div>
@@ -3781,7 +3782,7 @@
       <div class="ps-body">
         <div class="ps-main">
           <h2 class="ps-h">Procedimento</h2>
-          ${steps || '<div class="ps-step"><div class="t">—</div></div>'}
+          <div class="ps-steps">${steps || '<div class="ps-step"><div class="t">—</div></div>'}</div>
           ${r.notes ? `<div class="ps-notes"><b>Note personali —</b> ${escapeHtml(r.notes)}</div>` : ''}
         </div>
         <div class="ps-side">
@@ -3792,17 +3793,43 @@
       </div>
     </section>`;
   }
-  function preparaStampaSchede(lista, porzioniDi){
+  const LAYOUT_STAMPA_KEY = 'mc_ricettario_layout_stampa_v1';
+  function layoutStampaSalvato(){ try{ return localStorage.getItem(LAYOUT_STAMPA_KEY) === 'pagina' ? 'pagina' : 'colonne'; }catch(e){ return 'colonne'; } }
+  // Adatta ogni scheda al foglio: riduce il carattere finché la ricetta sta in una pagina A4 orizzontale.
+  function adattaSchedeAlFoglio(root){
+    const oldStyle = root.getAttribute('style');
+    root.style.cssText = 'display:block;position:absolute;left:-10000px;top:0;width:277mm;';
+    const altezzaMax = 189 * 96 / 25.4;
+    root.querySelectorAll('.ps-sheet').forEach(sh => {
+      let sta = false;
+      for(let pt = 13; pt >= 7.5 && !sta; pt -= 0.5){
+        sh.style.setProperty('--ps', pt + 'pt');
+        sta = sh.scrollHeight <= altezzaMax;
+      }
+      // ricetta lunghissima: il procedimento passa su due colonne
+      if(!sta){
+        sh.classList.add('ps-tight');
+        for(let pt = 11; pt >= 7 && !sta; pt -= 0.5){
+          sh.style.setProperty('--ps', pt + 'pt');
+          sta = sh.scrollHeight <= altezzaMax;
+        }
+      }
+    });
+    if(oldStyle === null) root.removeAttribute('style'); else root.setAttribute('style', oldStyle);
+  }
+  function preparaStampaSchede(lista, porzioniDi, layout){
     document.getElementById('print-root')?.remove();
     document.getElementById('print-page-style')?.remove();
     const root = document.createElement('div');
     root.id = 'print-root';
+    if(layout === 'colonne') root.classList.add('ps-colonne');
     root.innerHTML = lista.map(r => schedaStampaHtml(r, porzioniDi(r))).join('');
     const st = document.createElement('style');
     st.id = 'print-page-style';
-    st.textContent = '@page{size:A4 landscape;margin:10mm}';
+    st.textContent = layout === 'colonne' ? '@page{size:A4 landscape;margin:8mm}' : '@page{size:A4 landscape;margin:10mm}';
     document.head.appendChild(st);
     document.body.appendChild(root);
+    if(layout !== 'colonne') adattaSchedeAlFoglio(root);
     document.body.classList.add('printing-sheets');
     const pulisci = ()=>{
       document.body.classList.remove('printing-sheets');
@@ -3812,13 +3839,34 @@
     window.addEventListener('afterprint', pulisci);
     return { root, pulisci };
   }
-  function stampaSchedeA4(lista, porzioniDi){
-    const { root, pulisci } = preparaStampaSchede(lista, porzioniDi);
+  function stampaSchedeA4(lista, porzioniDi, layout){
+    layout = layout || 'pagina';
+    const { root, pulisci } = preparaStampaSchede(lista, porzioniDi, layout);
     // le foto devono essere caricate prima di aprire la stampa
     const imgs = Array.from(root.querySelectorAll('img'));
     Promise.all(imgs.map(im => im.complete ? 0 : new Promise(ok => { im.onload = im.onerror = ok; })))
-      .then(()=> setTimeout(()=>{ try{ window.print(); }catch(e){ pulisci(); } }, 150));
+      .then(()=> setTimeout(()=>{
+        if(layout !== 'colonne') adattaSchedeAlFoglio(root); // le foto caricate cambiano le altezze
+        try{ window.print(); }catch(e){ pulisci(); }
+      }, 150));
     return { root, pulisci };
+  }
+  // Più ricette: chiede se una per pagina oppure su due colonne (la scelta resta come predefinita).
+  function stampaElencoA4(lista, porzioniDi){
+    if(lista.length === 1){ stampaSchedeA4(lista, porzioniDi, 'pagina'); return; }
+    const ov = document.getElementById('layout-stampa-overlay');
+    document.getElementById('layout-stampa-intro').textContent = `Stai per stampare ${lista.length} ricette in A4 orizzontale.`;
+    ov.querySelector(`input[value="${layoutStampaSalvato()}"]`).checked = true;
+    const okB = document.getElementById('layout-stampa-ok'), cancB = document.getElementById('layout-stampa-cancel'), xB = document.getElementById('layout-stampa-close');
+    function fine(){ ov.classList.remove('active'); okB.removeEventListener('click', onOk); cancB.removeEventListener('click', fine); xB.removeEventListener('click', fine); }
+    function onOk(){
+      const layout = ov.querySelector('input[name="layout-stampa"]:checked').value;
+      try{ localStorage.setItem(LAYOUT_STAMPA_KEY, layout); }catch(e){}
+      fine();
+      stampaSchedeA4(lista, porzioniDi, layout);
+    }
+    okB.addEventListener('click', onOk); cancB.addEventListener('click', fine); xB.addEventListener('click', fine);
+    ov.classList.add('active');
   }
   // Stampa dal browser (Ctrl/Cmd+P o menu Stampa) con una scheda ricetta aperta: stesso risultato
   // pulito della stampa A4 orizzontale, senza menu, pulsanti «Modifica», porzioni e simili.
@@ -3826,7 +3874,7 @@
     if(document.body.classList.contains('printing-sheets')) return;
     if(!viewOverlay.classList.contains('active')) return;
     const r = recipes.find(x => x.id === currentViewId);
-    if(r) preparaStampaSchede([r], () => currentServings);
+    if(r) preparaStampaSchede([r], () => currentServings, 'pagina');
   });
   document.getElementById('print-recipe-a4-btn').addEventListener('click', ()=>{
     const r = recipes.find(x=>x.id === currentViewId);
@@ -4057,7 +4105,7 @@
     const ordineCat = Object.keys(CATEGORY_COLORS);
     selezionate.sort((a, b) => (ordineCat.indexOf(a.category) - ordineCat.indexOf(b.category)) || a.name.localeCompare(b.name, 'it'));
     exportPdfOverlay.classList.remove('active');
-    stampaSchedeA4(selezionate, r => r.servings || 1);
+    stampaElencoA4(selezionate, r => r.servings || 1);
   });
 
   document.getElementById('export-pdf-confirm-btn').addEventListener('click', ()=>{
