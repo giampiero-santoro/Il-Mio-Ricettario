@@ -2,6 +2,23 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.47.0] — Importazione sicura dei backup e gestione degli errori di salvataggio
+
+### Corretto
+- **Caricamento da file collegato incompleto**: prima ogni sezione (ricette, ricettari, raccolte, piano, pasti, dispensa, spesa, note) veniva scritta una alla volta, saltando quelle mancanti e lasciando dati vecchi mescolati ai nuovi; un errore a metà lasciava l'app a metà. Ora il file è letto e validato per intero e applicato **tutto o niente**, con «Annulla».
+- **Import backup non atomico**: l'unione scriveva a pezzi e un errore lasciava dati parziali. Ora c'è una fotografia iniziale e un ripristino automatico (memoria + dati salvati) se qualcosa fallisce.
+- **Salvataggi falliti ignorati**: il modulo ricetta si chiudeva comunque; ora resta aperto e nessun messaggio di successo compare se il salvataggio non è avvenuto. Gli avvisi di spazio esaurito non sono più una tantum (dopo il primo, un avviso non bloccante a ogni fallimento).
+- **Dati corrotti**: un JSON illeggibile non viene più sovrascritto in silenzio; ne viene conservata una copia (`mc_ricettario_corrotto_…`) e l'utente è avvisato.
+- **Stampa dal browser (Ctrl/Cmd+P dalla scheda)**: la foto ora è l'ultimo elemento della colonna di destra (gli ingredienti partono dal margine alto, come nel PDF) e, se la ricetta è lunga, si rimpicciolisce prima la foto e poi il testo, così la scheda resta in una pagina (verificato con una ricetta di 22 passaggi e 18 ingredienti).
+- Il ripristino «Annulla importazione» ora rimette anche note e stato esatto dei dati salvati (prima ricostruiva solo in parte).
+
+### Aggiunto
+- `js/backup-import.js`: validatore puro dei backup (tipi, strutture annidate dei piani, versione, vecchi formati: piano con una sola ricetta per giorno, `title` al posto di `name`), con distinzione **completo / parziale**, **assente / presente ma vuoto**.
+- Intestazione nei file esportati (`formato`, `versioneFormato`, `tipoBackup`, `versioneApp`); i vecchi backup restano importabili.
+- Opzione «Sostituisci tutti i miei dati con il backup» (con riepilogo e conferma) per i backup completi.
+- Se il file di salvataggio collegato non è leggibile all'avvio, i dati del browser restano intatti, il file non viene sovrascritto e compare un avviso.
+- Test 38 (backup completo/assente-vuoto/malformati/Annulla), 39 (spazio esaurito, ricetta non salvabile, dati corrotti), 40 (file collegato) e test del validatore in Node (`tests/unit_backup_import.js`).
+
 ## [5.46.0] — PDF A4 orizzontale scaricato direttamente
 
 ### Modificato

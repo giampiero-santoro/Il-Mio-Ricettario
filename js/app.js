@@ -183,15 +183,39 @@
   function recipeCategoryLabel(r){ return r.subcategory ? `${r.category} · ${r.subcategory}` : r.category; }
 
   // ---------- Storage ----------
+  // ---------- Lettura sicura dei dati salvati ----------
+  // Se un dato salvato nel browser non si legge (JSON rotto o tipo sbagliato) l'app riparte con un
+  // elenco vuoto, ma PRIMA mette da parte una copia del testo originale: così, anche se poi si
+  // salva qualcosa di nuovo, i dati originali non vanno persi e si possono recuperare.
+  const PREFISSO_CORROTTO = 'mc_ricettario_corrotto_';
+  let datiCorrottiSegnalati = [];
+  function parseSalvato(key, raw, tipo){
+    try{
+      const v = JSON.parse(raw);
+      const ok = tipo === 'array' ? Array.isArray(v) : (v !== null && typeof v === 'object' && !Array.isArray(v));
+      if(!ok) throw new Error('tipo non valido');
+      return v;
+    }catch(err){
+      try{
+        const chiaveCopia = PREFISSO_CORROTTO + key;
+        if(localStorage.getItem(chiaveCopia) === null) localStorage.setItem(chiaveCopia, raw);
+      }catch(_){ /* spazio esaurito: la copia resta almeno nel testo originale, che non viene toccato finché non si salva */ }
+      if(!datiCorrottiSegnalati.includes(key)){
+        datiCorrottiSegnalati.push(key);
+        setTimeout(() => alert('Alcuni dati salvati in questo browser non sono leggibili («' + key + '»).\n\nNon ho cancellato nulla: ne ho messo da parte una copia di sicurezza e per ora l\'app parte con quella sezione vuota. Se hai un backup o un file di salvataggio collegato, importalo da «Backup e CSV».'), 600);
+      }
+      throw err;
+    }
+  }
   function loadRecipes(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
-      recipes = raw ? JSON.parse(raw) : seedData();
+      recipes = raw ? parseSalvato(STORAGE_KEY, raw, 'array') : seedData();
       if(!raw) saveRecipes();
     }catch(e){ recipes = seedData(); }
     try{
       const rawRicettari = localStorage.getItem(RICETTARI_KEY);
-      ricettari = rawRicettari ? JSON.parse(rawRicettari) : [];
+      ricettari = rawRicettari ? parseSalvato(RICETTARI_KEY, rawRicettari, 'array') : [];
       if(!Array.isArray(ricettari)) ricettari = [];
     }catch(e){ ricettari = []; }
     // Chi aggiorna da una versione precedente (o chi parte da zero) deve sempre trovare
@@ -202,11 +226,11 @@
     }
     try{
       const rawWeek = localStorage.getItem(WEEK_KEY);
-      weekPlan = rawWeek ? JSON.parse(rawWeek) : {};
+      weekPlan = rawWeek ? parseSalvato(WEEK_KEY, rawWeek, 'object') : {};
     }catch(e){ weekPlan = {}; }
     try{
       const rawMeals = localStorage.getItem(MEALTYPES_KEY);
-      mealTypes = rawMeals ? JSON.parse(rawMeals) : DEFAULT_MEALTYPES.slice();
+      mealTypes = rawMeals ? parseSalvato(MEALTYPES_KEY, rawMeals, 'array') : DEFAULT_MEALTYPES.slice();
       if(!Array.isArray(mealTypes) || !mealTypes.length) mealTypes = DEFAULT_MEALTYPES.slice();
     }catch(e){ mealTypes = DEFAULT_MEALTYPES.slice(); }
     try{
@@ -227,12 +251,12 @@
     }catch(e){ previousWeekPlan = null; }
     try{
       const rawDispensa = localStorage.getItem(DISPENSA_ITEMS_KEY);
-      dispensaItems = rawDispensa ? JSON.parse(rawDispensa) : [];
+      dispensaItems = rawDispensa ? parseSalvato(DISPENSA_ITEMS_KEY, rawDispensa, 'array') : [];
       if(!Array.isArray(dispensaItems)) dispensaItems = [];
     }catch(e){ dispensaItems = []; }
     try{
       const rawShoppingExtra = localStorage.getItem(SHOPPING_EXTRA_KEY);
-      shoppingExtraItems = rawShoppingExtra ? JSON.parse(rawShoppingExtra) : [];
+      shoppingExtraItems = rawShoppingExtra ? parseSalvato(SHOPPING_EXTRA_KEY, rawShoppingExtra, 'array') : [];
       if(!Array.isArray(shoppingExtraItems)) shoppingExtraItems = [];
       // Ripulisce eventuali doppioni già accumulati (stesso nome e unità), rimasti da prima che
       // l'aggiunta controllasse i duplicati: altrimenti restano per sempre nella lista della spesa.
@@ -252,13 +276,13 @@
     }catch(e){ shoppingExtraItems = []; }
     try{
       const rawSpesa = localStorage.getItem(SPESA_LISTA_KEY);
-      spesaLista = rawSpesa ? JSON.parse(rawSpesa) : [];
+      spesaLista = rawSpesa ? parseSalvato(SPESA_LISTA_KEY, rawSpesa, 'array') : [];
       if(!Array.isArray(spesaLista)) spesaLista = [];
       spesaLista = spesaLista.filter(x => x && typeof x.name === 'string' && x.name.trim());
     }catch(e){ spesaLista = []; }
     try{
       const rawNotes = localStorage.getItem(WEEK_NOTES_KEY);
-      weekNotes = rawNotes ? JSON.parse(rawNotes) : {};
+      weekNotes = rawNotes ? parseSalvato(WEEK_NOTES_KEY, rawNotes, 'object') : {};
       if(!weekNotes || typeof weekNotes !== 'object') weekNotes = {};
     }catch(e){ weekNotes = {}; }
     inizializzaSettimane();
@@ -296,14 +320,31 @@
   // ma sparisce alla riapertura). Avvisa una sola volta a sessione, per non intasare di avvisi
   // se lo spazio resta esaurito per più azioni di fila.
   let storageQuotaWarned = false;
+  let storageFalliti = 0; // quante scritture sono fallite in questa sessione (serve a capire se un'operazione composta è andata a buon fine)
+  let avvisoTimer = null;
+  function avvisoNonSalvato(testo){
+    try{
+      const el = document.getElementById('undo-toast');
+      if(!el) return;
+      document.getElementById('undo-toast-text').textContent = testo;
+      document.getElementById('undo-toast-btn').onclick = () => { el.hidden = true; };
+      document.getElementById('undo-toast-btn').textContent = 'OK';
+      el.hidden = false;
+      clearTimeout(avvisoTimer);
+      avvisoTimer = setTimeout(() => { el.hidden = true; document.getElementById('undo-toast-btn').textContent = 'Annulla'; }, 12000);
+    }catch(_){}
+  }
   function safeStorageSet(key, value){
     try{
       localStorage.setItem(key, value);
       return true;
     }catch(err){
+      storageFalliti++;
       if(!storageQuotaWarned){
         storageQuotaWarned = true;
         alert('Spazio di salvataggio esaurito nel browser: questa modifica (e probabilmente altre recenti) NON è stata salvata.\n\nPer liberare spazio: riduci il numero o la qualità delle foto nelle ricette, oppure esporta subito un backup per mettere al sicuro quello che hai già, poi ricarica la pagina.');
+      }else{
+        avvisoNonSalvato('⚠️ Ultima modifica NON salvata: spazio del browser esaurito.');
       }
       return false;
     }
@@ -369,7 +410,7 @@
     // pulizia: foto di ricette che non esistono più
     const idsVivi = new Set(recipes.map(r => r.id).concat(cestino.map(e => e.recipe.id)));
     const orfane = keys.result.filter(k => !idsVivi.has(k));
-    if(orfane.length) fotoTx('readwrite', st=>{ orfane.forEach(k => st.delete(k)); });
+    if(orfane.length && !puliziaFotoSospesa) fotoTx('readwrite', st=>{ orfane.forEach(k => st.delete(k)); });
   }
   async function scriviFotoInCoda(){
     if(fotoFlushInCorso || !fotoInCoda.size) return;
@@ -410,7 +451,7 @@
   }
   function saveRaccolte(){ const ok = safeStorageSet(RACCOLTE_KEY, JSON.stringify(raccolte)); scriviSuFileCollegato(); return ok; }
   function caricaRaccolte(){
-    try{ const raw = localStorage.getItem(RACCOLTE_KEY); raccolte = raw ? JSON.parse(raw) : []; }catch(e){ raccolte = []; }
+    try{ const raw = localStorage.getItem(RACCOLTE_KEY); raccolte = raw ? parseSalvato(RACCOLTE_KEY, raw, 'array') : []; }catch(e){ raccolte = []; }
     if(!Array.isArray(raccolte)) raccolte = [];
     raccolte = raccolte.filter(x => x && x.id && x.name);
   }
@@ -644,7 +685,7 @@
   }
   function inizializzaSettimane(){
     let salvate = null;
-    try{ const raw = localStorage.getItem(PLAN_WEEKS_KEY); salvate = raw ? JSON.parse(raw) : null; }catch(e){ salvate = null; }
+    try{ const raw = localStorage.getItem(PLAN_WEEKS_KEY); salvate = raw ? parseSalvato(PLAN_WEEKS_KEY, raw, 'object') : null; }catch(e){ salvate = null; }
     planWeekStart = realMonday();
     if(salvate && typeof salvate === 'object'){
       planWeeks = salvate;
@@ -735,9 +776,113 @@
     });
   }
 
+  const VERSIONE_APP = '5.47.0';
   function datiCompletiPerFile(){
-    return { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista };
+    return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
+      { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
   }
+
+  // ---------- Stato dati: fotografia, applicazione atomica, ripristino ----------
+  // Un backup completo si applica "tutto o niente": prima si fotografa lo stato attuale (memoria e
+  // testo salvato nel browser), poi si scrive il nuovo; se anche una sola scrittura fallisce, si
+  // rimette tutto com'era e si dice chiaramente che nulla è cambiato.
+  const CHIAVI_DATI = [STORAGE_KEY, RICETTARI_KEY, RACCOLTE_KEY, WEEK_KEY, PLAN_WEEKS_KEY, MEALTYPES_KEY, DISPENSA_ITEMS_KEY, SHOPPING_EXTRA_KEY, WEEK_NOTES_KEY, SPESA_LISTA_KEY];
+  let puliziaFotoSospesa = false; // dopo una sostituzione/importazione non si cancellano foto "orfane" finché la pagina non viene riaperta: servono se si tocca «Annulla»
+  function clona(v){ return typeof structuredClone === 'function' ? structuredClone(v) : JSON.parse(JSON.stringify(v)); }
+  function opzioniBackup(){ return { idGen: cryptoId, pastoPredefinito: (mealTypes && mealTypes[0]) || 'Pranzo' }; }
+  function fotografiaStato(){
+    const raw = {};
+    CHIAVI_DATI.forEach(k => { try{ raw[k] = localStorage.getItem(k); }catch(_){ raw[k] = null; } });
+    return {
+      raw, planWeekStart,
+      mem: {
+        recipes: recipes.slice(), ricettari: clona(ricettari), raccolte: clona(raccolte), weekPlan: clona(weekPlan), weekNotes: clona(weekNotes),
+        planWeeks: clona(planWeeks), mealTypes: mealTypes.slice(), dispensaItems: clona(dispensaItems),
+        shoppingExtraItems: clona(shoppingExtraItems), spesaLista: clona(spesaLista)
+      }
+    };
+  }
+  /** Rimette memoria e testo salvato come nella fotografia. Restituisce true se tutto è tornato identico. */
+  function ripristinaFotografia(f){
+    ({ recipes, ricettari, raccolte, weekPlan, weekNotes, planWeeks, mealTypes, dispensaItems, shoppingExtraItems, spesaLista } = clona0(f.mem));
+    planWeekStart = f.planWeekStart;
+    fotoInCoda.clear();
+    for(let giro = 0; giro < 2; giro++){
+      CHIAVI_DATI.forEach(k => {
+        try{
+          const v = f.raw[k];
+          if(v === null) localStorage.removeItem(k);
+          else if(localStorage.getItem(k) !== v) localStorage.setItem(k, v);
+        }catch(_){ /* secondo giro */ }
+      });
+    }
+    let identico = true;
+    CHIAVI_DATI.forEach(k => { try{ if(localStorage.getItem(k) !== f.raw[k]) identico = false; }catch(_){ identico = false; } });
+    scriviSuFileCollegato();
+    return identico;
+  }
+  // La fotografia può servire più volte (Annulla dopo un errore): se ne usa sempre una copia.
+  function clona0(m){
+    return { recipes: m.recipes.slice(), ricettari: clona(m.ricettari), raccolte: clona(m.raccolte), weekPlan: clona(m.weekPlan), weekNotes: clona(m.weekNotes),
+      planWeeks: clona(m.planWeeks), mealTypes: m.mealTypes.slice(), dispensaItems: clona(m.dispensaItems), shoppingExtraItems: clona(m.shoppingExtraItems), spesaLista: clona(m.spesaLista) };
+  }
+  function riassuntoDatiAttuali(){
+    salvaSettimane();
+    return BackupImport.riassunto({ ricette: recipes.length, ricettari: ricettari.length, raccolte: raccolte.length, dispensa: dispensaItems.length,
+      settimane: Object.keys(planWeeks).length, spesa: spesaLista.length + shoppingExtraItems.length });
+  }
+  /** Sostituisce TUTTI i dati con quelli (già validati) di un backup completo. Tutto o niente. */
+  function applicaBackupCompleto(dati){
+    const foto = fotografiaStato();
+    try{
+      if(!Array.isArray(dati.recipes)) throw new Error('Il backup non contiene le ricette.');
+      const lunedi = planWeekStart || realMonday();
+      const nuoveRicette = dati.recipes.map(migrateRecipe);
+      let nuoviRicettari = Array.isArray(dati.ricettari) ? dati.ricettari.slice() : [];
+      if(!nuoviRicettari.some(rb => rb.id === DEFAULT_RICETTARIO_ID)) nuoviRicettari.unshift({ id: DEFAULT_RICETTARIO_ID, name: 'Il Mio Ricettario', cover: '' });
+      const nuoveSettimane = dati.planWeeks ? dati.planWeeks : {};
+      let nuovoPiano, nuoveNote;
+      if(dati.planWeeks){ const w = nuoveSettimane[lunedi] || {}; nuovoPiano = w.plan || {}; nuoveNote = w.notes || {}; }
+      else{ nuovoPiano = dati.weekPlan || {}; nuoveNote = dati.weekNotes || {}; }
+      DAYS.forEach(d => { if(!Array.isArray(nuovoPiano[d])) nuovoPiano[d] = []; });
+      nuoveSettimane[lunedi] = { plan: nuovoPiano, notes: nuoveNote };
+      Object.keys(nuoveSettimane).forEach(k => { if(!settimanaHaContenuto(nuoveSettimane[k])) delete nuoveSettimane[k]; });
+      const nuoviPasti = Array.isArray(dati.mealTypes) && dati.mealTypes.length ? dati.mealTypes : DEFAULT_MEALTYPES.slice();
+
+      recipes = nuoveRicette; ricettari = nuoviRicettari; raccolte = dati.raccolte || [];
+      weekPlan = nuovoPiano; weekNotes = nuoveNote; planWeeks = nuoveSettimane; planWeekStart = lunedi;
+      mealTypes = nuoviPasti; dispensaItems = dati.dispensaItems || []; shoppingExtraItems = dati.shoppingExtraItems || []; spesaLista = dati.spesaLista || [];
+
+      let stringaRicette;
+      try{ stringaRicette = JSON.stringify(recipesPerSalvataggio(false)); localStorage.setItem(STORAGE_KEY, stringaRicette); }
+      catch(_){ localStorage.setItem(STORAGE_KEY, JSON.stringify(recipesPerSalvataggio(true))); } // spazio scarso: le foto passano solo da IndexedDB
+      localStorage.setItem(RICETTARI_KEY, JSON.stringify(ricettari));
+      localStorage.setItem(RACCOLTE_KEY, JSON.stringify(raccolte));
+      localStorage.setItem(WEEK_KEY, JSON.stringify(weekPlan));
+      localStorage.setItem(PLAN_WEEKS_KEY, JSON.stringify(planWeeks));
+      localStorage.setItem(MEALTYPES_KEY, JSON.stringify(mealTypes));
+      localStorage.setItem(DISPENSA_ITEMS_KEY, JSON.stringify(dispensaItems));
+      localStorage.setItem(SHOPPING_EXTRA_KEY, JSON.stringify(shoppingExtraItems));
+      localStorage.setItem(WEEK_NOTES_KEY, JSON.stringify(weekNotes));
+      localStorage.setItem(SPESA_LISTA_KEY, JSON.stringify(spesaLista));
+    }catch(err){
+      console.error('Applicazione del backup non riuscita:', err);
+      const perfetto = ripristinaFotografia(foto);
+      return { ok:false, foto, errore: 'Non è stato possibile salvare i dati del backup (probabilmente lo spazio del browser è esaurito). ' +
+        (perfetto ? 'I tuoi dati sono rimasti esattamente come prima: non è cambiato nulla.' : 'Ho rimesso i dati com\'erano, ma ti consiglio di esportare subito un backup e ricaricare la pagina.') };
+    }
+    puliziaFotoSospesa = true;
+    fotoNonCaricate.clear();
+    if(fotoInCoda.size) scriviFotoInCoda();
+    scriviSuFileCollegato();
+    return { ok:true, foto };
+  }
+  /** Ridisegna l'interfaccia dopo che i dati sono cambiati senza ricaricare la pagina. */
+  function aggiornaInterfacciaDati(){
+    refreshRicettarioSelects(); refreshRaccolteUi(); renderList(); renderPlanningDays(); renderDispensaList(); renderSpesaLista(); renderToday();
+    try{ updatePantryPanelSub(); aggiornaTopbarAlerts(); }catch(_){}
+  }
+  function erroreUtente(m){ const e = new Error(m); e.messaggioUtente = m; return e; }
 
   function aggiornaControlliMenuStorage(){
     const statusEl = document.getElementById('file-storage-status-text');
@@ -770,22 +915,37 @@
     }, 600); // debounce: raggruppa più modifiche ravvicinate in un solo salvataggio su disco
   }
 
-  /** Applica il contenuto di un file collegato alle chiavi del browser
-   * corrispondenti (stesso formato del backup JSON già esistente). */
+  /** Legge un file di salvataggio/backup completo e lo applica TUTTO insieme (o niente).
+   * Non tocca nulla finché il file non è stato letto e verificato per intero. Se qualcosa non va
+   * lancia un errore con messaggioUtente e i dati attuali restano com'erano.
+   * Restituisce { foto, cambiato } per poter offrire «Annulla». */
   async function caricaDatiDaFileCollegato(handle){
-    const file = await handle.getFile();
-    const testo = await file.text();
-    const dati = JSON.parse(testo);
-    if (Array.isArray(dati.recipes)) safeStorageSet(STORAGE_KEY, JSON.stringify(dati.recipes));
-    if (Array.isArray(dati.ricettari) && dati.ricettari.length) safeStorageSet(RICETTARI_KEY, JSON.stringify(dati.ricettari));
-    if (Array.isArray(dati.raccolte)) safeStorageSet(RACCOLTE_KEY, JSON.stringify(dati.raccolte));
-    if (dati.weekPlan) safeStorageSet(WEEK_KEY, JSON.stringify(dati.weekPlan));
-    if (dati.planWeeks && typeof dati.planWeeks === 'object') safeStorageSet(PLAN_WEEKS_KEY, JSON.stringify(dati.planWeeks));
-    if (Array.isArray(dati.mealTypes)) safeStorageSet(MEALTYPES_KEY, JSON.stringify(dati.mealTypes));
-    if (Array.isArray(dati.dispensaItems)) safeStorageSet(DISPENSA_ITEMS_KEY, JSON.stringify(dati.dispensaItems));
-    if (Array.isArray(dati.shoppingExtraItems)) safeStorageSet(SHOPPING_EXTRA_KEY, JSON.stringify(dati.shoppingExtraItems));
-    if (dati.weekNotes && typeof dati.weekNotes === 'object') safeStorageSet(WEEK_NOTES_KEY, JSON.stringify(dati.weekNotes));
-    if (Array.isArray(dati.spesaLista)) safeStorageSet(SPESA_LISTA_KEY, JSON.stringify(dati.spesaLista));
+    let testo;
+    try{ testo = await (await handle.getFile()).text(); }
+    catch(err){ throw erroreUtente('Non riesco a leggere il file (forse è stato spostato, rinominato o è aperto altrove). I tuoi dati attuali non sono stati modificati.'); }
+    let parsed;
+    try{ parsed = JSON.parse(testo); }
+    catch(_){ throw erroreUtente('Il file non contiene un backup valido: è vuoto, incompleto o non è un file di questo ricettario. I tuoi dati attuali non sono stati modificati.'); }
+    const an = BackupImport.analizza(parsed, opzioniBackup());
+    if(!an.ok) throw erroreUtente(an.errore.includes('non sono stati toccati') ? an.errore : an.errore + ' I tuoi dati attuali non sono stati modificati.');
+    if(an.tipo !== 'completo') throw erroreUtente('Il file contiene solo una parte dei dati (non è un backup completo): non lo uso come file di salvataggio per non sovrascrivere i tuoi dati. Per aggiungere queste ricette usa «Importa backup». I tuoi dati attuali non sono stati modificati.');
+    const prima = fotografiaStato();
+    const r = applicaBackupCompleto(an.dati);
+    if(!r.ok) throw erroreUtente(r.errore);
+    let cambiato = false;
+    CHIAVI_DATI.forEach(k => { if(localStorage.getItem(k) !== prima.raw[k]) cambiato = true; });
+    return { foto: prima, cambiato, riassunto: BackupImport.riassunto(an.conteggi) };
+  }
+  /** Dopo un caricamento da file: ridisegna l'app e, se qualcosa è cambiato, offre «Annulla». */
+  async function dopoCaricamentoFile(esito, nomeFile){
+    await ricaricaDatiInMemoria();
+    if(esito && esito.cambiato){
+      mostraAnnulla(`Dati caricati dal file «${nomeFile}»`, async () => {
+        const ok = ripristinaFotografia(esito.foto);
+        await ricaricaDatiInMemoria();
+        if(!ok) alert('Ho rimesso i dati precedenti, ma non tutto è tornato identico: esporta un backup per sicurezza.');
+      }, 20000);
+    }
   }
 
   function mostraBannerRiconnessione(handle){
@@ -817,17 +977,18 @@
     try {
       const permesso = await fileCollegatoInAttesaDiPermesso.requestPermission({ mode: 'readwrite' });
       if (permesso === 'granted') {
-        await caricaDatiDaFileCollegato(fileCollegatoInAttesaDiPermesso);
+        const esito = await caricaDatiDaFileCollegato(fileCollegatoInAttesaDiPermesso);
         fileCollegatoHandle = fileCollegatoInAttesaDiPermesso;
         fileCollegatoInAttesaDiPermesso = null;
         document.getElementById('file-reconnect-banner').style.display = 'none';
         aggiornaControlliMenuStorage();
-        await ricaricaDatiInMemoria(); // niente ricarica della pagina: il permesso sul file vale solo finché la pagina resta aperta
+        await dopoCaricamentoFile(esito, fileCollegatoHandle.name); // niente ricarica della pagina: il permesso sul file vale solo finché la pagina resta aperta
       } else {
         alert('Permesso non concesso: il file resta scollegato per questa sessione. Puoi riprovare o collegarne un altro dal menu "Backup e CSV".');
       }
     } catch (err) {
       console.error('Errore nel richiedere il permesso sul file collegato:', err);
+      if(err && err.messaggioUtente){ alert(err.messaggioUtente); return; }
       alert('Non è stato possibile riconnettersi al file (forse è stato spostato, rinominato o il browser ha perso il collegamento). Usa "Scegli di nuovo il file" per indicare dove si trova adesso.');
     }
   });
@@ -841,14 +1002,15 @@
       });
       if (!(await assicuraPermessoScrittura(handle))) { alert(MSG_PERMESSO_SCRITTURA); return; }
       if (!confirm('I dati salvati in questo file sostituiranno quelli che vedi ora. Continuare?')) return;
-      await caricaDatiDaFileCollegato(handle);
+      const esito = await caricaDatiDaFileCollegato(handle);
       try { await salvaHandleFileSalvato(handle); } catch (err) { console.error(err); }
       fileCollegatoHandle = handle; fileCollegatoInAttesaDiPermesso = null;
       document.getElementById('file-reconnect-banner').style.display = 'none';
-      await ricaricaDatiInMemoria();
+      await dopoCaricamentoFile(esito, handle.name);
     } catch (err) {
       if (err && err.name === 'AbortError') return;
       console.error('Errore scegliendo di nuovo il file:', err);
+      if(err && err.messaggioUtente){ alert(err.messaggioUtente); return; }
       alert(messaggioErroreFileSystem(err) || 'Non è stato possibile aprire il file: verifica che sia un file dati valido di questo sito.');
     }
   });
@@ -893,15 +1055,19 @@
     try {
       const permesso = await handle.queryPermission({ mode: 'readwrite' });
       if (permesso === 'granted') {
-        await caricaDatiDaFileCollegato(handle);
+        const esito = await caricaDatiDaFileCollegato(handle);
         fileCollegatoHandle = handle;
+        if(esito.cambiato) fileCaricatoAllAvvio = { esito, nome: handle.name };
       } else {
         mostraBannerRiconnessione(handle);
       }
     } catch (err) {
       console.error('Errore nel controllare il permesso sul file collegato:', err);
+      // Il file collegato non si può usare: i dati del browser restano intatti e il file NON viene sovrascritto.
+      fileNonUsabileAllAvvio = (err && err.messaggioUtente) || 'Il file di salvataggio collegato non si può leggere in questo momento: uso i dati salvati nel browser.';
     }
   }
+  let fileCaricatoAllAvvio = null, fileNonUsabileAllAvvio = '';
 
   /** Mostra la scelta iniziale "dove vuoi salvare i dati?" solo se: l'API è
    * disponibile, non c'è già un file collegato, e l'utente non l'ha già
@@ -1005,7 +1171,7 @@
       if (!(await assicuraPermessoScrittura(handle))) { statusEl.textContent = MSG_PERMESSO_SCRITTURA; return; }
       const confermato = confirm('Aprire questo file sostituirà quello che vedi ora (ricette, dispensa, pianificazione) con il contenuto salvato nel file. Continuare?');
       if (!confermato) return;
-      await caricaDatiDaFileCollegato(handle);
+      const esito = await caricaDatiDaFileCollegato(handle);
       safeStorageSet(STORAGE_CHOICE_DISMISSED_KEY, '1');
       try {
         await salvaHandleFileSalvato(handle);
@@ -1015,10 +1181,11 @@
       fileCollegatoHandle = handle; fileCollegatoInAttesaDiPermesso = null;
       document.getElementById('file-reconnect-banner').style.display = 'none';
       chiudiSceltaStorage();
-      await ricaricaDatiInMemoria();
+      await dopoCaricamentoFile(esito, handle.name);
     } catch (err) {
       if (err && err.name === 'AbortError') return;
       console.error('Errore aprendo il file di salvataggio:', err);
+      if (err && err.messaggioUtente) { statusEl.textContent = err.messaggioUtente; return; }
       statusEl.textContent = messaggioErroreFileSystem(err) || 'Non è stato possibile aprire il file: verifica che sia un file dati valido di questo sito.';
     }
   });
@@ -2966,13 +3133,20 @@
       nutrizioneUtente, archived: existingExtra.archived
     };
 
+    const ricettePrima = recipes.slice();
     if(editingId){
       const idx = recipes.findIndex(r=>r.id === editingId);
       if(idx > -1) recipes[idx] = recipeData;
     }else{
       recipes.push(recipeData);
     }
-    saveRecipes(); renderList(); renderPlanningDays(); closeEdit();
+    if(!saveRecipes()){
+      // Non salvata: si torna all'elenco di prima e il modulo resta aperto, così nulla di ciò che hai scritto va perso.
+      recipes = ricettePrima;
+      alert('La ricetta NON è stata salvata (spazio del browser esaurito). Il modulo resta aperto: prova a togliere o ridurre la foto, oppure esporta un backup e libera spazio.');
+      return;
+    }
+    renderList(); renderPlanningDays(); closeEdit();
   });
 
   deleteBtn.addEventListener('click', async ()=>{
@@ -3065,7 +3239,9 @@
   function mostraAnnulla(testo, onUndo, durataMs){
     const el = document.getElementById('undo-toast');
     document.getElementById('undo-toast-text').textContent = testo;
+    document.getElementById('undo-toast-btn').textContent = 'Annulla';
     el.hidden = false;
+    clearTimeout(avvisoTimer);
     clearTimeout(undoTimer);
     const chiudi = ()=>{ el.hidden = true; };
     document.getElementById('undo-toast-btn').onclick = async ()=>{ chiudi(); clearTimeout(undoTimer); await onUndo(); };
@@ -3786,9 +3962,9 @@
           ${r.notes ? `<div class="ps-notes"><b>Note personali —</b> ${escapeHtml(r.notes)}</div>` : ''}
         </div>
         <div class="ps-side">
-          ${r.photo ? `<img class="ps-photo" src="${escapeAttr(r.photo)}" alt="">` : ''}
           <div class="ps-box"><h3>Ingredienti</h3><ul class="ps-ing">${ing}</ul></div>
           ${nutri}
+          ${r.photo ? `<img class="ps-photo" src="${escapeAttr(r.photo)}" alt="">` : ''}
         </div>
       </div>
     </section>`;
@@ -4122,18 +4298,28 @@
     const altezzaMax = 189 * 96 / 25.4;
     root.querySelectorAll('.ps-sheet').forEach(sh => {
       let sta = false;
+      const foto = sh.querySelector('.ps-photo');
+      // la foto è l'ultima cosa della colonna di destra: prima si rimpicciolisce lei, poi il testo
+      const provaFoto = () => {
+        for(const mm of [70, 45, 28]){
+          if(foto) foto.style.maxHeight = mm + 'mm';
+          if(sh.scrollHeight <= altezzaMax) return true;
+        }
+        return false;
+      };
       for(let pt = 13; pt >= 7.5 && !sta; pt -= 0.5){
         sh.style.setProperty('--ps', pt + 'pt');
-        sta = sh.scrollHeight <= altezzaMax;
+        sta = provaFoto();
       }
       // ricetta lunghissima: il procedimento passa su due colonne
       if(!sta){
         sh.classList.add('ps-tight');
         for(let pt = 11; pt >= 7 && !sta; pt -= 0.5){
           sh.style.setProperty('--ps', pt + 'pt');
-          sta = sh.scrollHeight <= altezzaMax;
+          sta = provaFoto();
         }
       }
+      if(!sta && foto){ foto.style.maxHeight = '18mm'; sta = sh.scrollHeight <= altezzaMax; }
     });
     if(oldStyle === null) root.removeAttribute('style'); else root.setAttribute('style', oldStyle);
   }
@@ -5013,22 +5199,13 @@
     aggiornaBannerBackup();
   });
 
-  // ---------- Annulla importazione: fotografia dei dati prima dell'importazione ----------
-  async function ripristinaSnapshotDati(json){
-    const d = JSON.parse(json);
-    recipes = (d.recipes || []).map(migrateRecipe);
-    ricettari = Array.isArray(d.ricettari) && d.ricettari.length ? d.ricettari : ricettari;
-    raccolte = Array.isArray(d.raccolte) ? d.raccolte : [];
-    dispensaItems = d.dispensaItems || [];
-    shoppingExtraItems = d.shoppingExtraItems || [];
-    spesaLista = d.spesaLista || [];
-    if(Array.isArray(d.mealTypes) && d.mealTypes.length) mealTypes = d.mealTypes;
-    planWeeks = d.planWeeks && typeof d.planWeeks === 'object' ? d.planWeeks : {};
-    const w = planWeeks[planWeekStart] || {};
-    weekPlan = w.plan || {}; weekNotes = w.notes || {};
-    saveRecipes(); saveRicettari(); saveRaccolte(); saveDispensaItems(); saveShoppingExtra(); saveSpesaLista(); saveMealTypes();
-    saveWeek(); saveWeekNotes();
-    refreshRicettarioSelects(); refreshRaccolteUi(); renderList(); renderPlanningDays(); renderDispensaList(); renderSpesaLista(); renderToday();
+  // ---------- Annulla importazione ----------
+  // «Annulla» rimette memoria e dati salvati esattamente com'erano prima dell'operazione
+  // (fotografia presa prima di toccare qualsiasi cosa).
+  function annullaConFotografia(foto){
+    const perfetto = ripristinaFotografia(foto);
+    aggiornaInterfacciaDati();
+    if(!perfetto) alert('Ho rimesso i dati precedenti, ma non tutto è tornato identico (spazio del browser?). Per sicurezza esporta subito un backup.');
   }
 
   // ---------- Cambio dispositivo ----------
@@ -5071,7 +5248,7 @@
 
   // ---------- Export / Import backup ----------
   document.getElementById('export-btn').addEventListener('click', async ()=>{
-    const data = JSON.stringify({ recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista }, null, 2);
+    const data = JSON.stringify(datiCompletiPerFile(), null, 2);
     const blob = new Blob([data], {type:'application/json'});
     const saved = await saveFileSmart(blob, `ricettario-backup-${new Date().toISOString().slice(0,10)}.json`, 'application/json', '.json', 'Backup JSON');
     if(!saved) return;
@@ -5083,15 +5260,19 @@
   const importBtn = document.getElementById('import-btn');
   // Sceglie dove vanno le ricette di un backup: come nel backup, in un ricettario esistente o in uno nuovo.
   // Restituisce { mode, id?, name? } oppure null se l'utente annulla.
-  function chiediDestinazioneImport(numRicette, nomeFile){
+  function chiediDestinazioneImport(numRicette, nomeFile, extra){
+    extra = extra || {};
     return new Promise(resolve=>{
       const ov = document.getElementById('import-dest-overlay');
       const sel = document.getElementById('import-dest-existing');
       const nome = document.getElementById('import-dest-new-name');
-      document.getElementById('import-dest-intro').textContent = `Il file contiene ${numRicette} ricett${numRicette === 1 ? 'a' : 'e'}.`;
+      document.getElementById('import-dest-intro').textContent = extra.completo
+        ? `Backup completo: ${extra.riepilogo}.`
+        : `Il file contiene ${numRicette} ricett${numRicette === 1 ? 'a' : 'e'}.`;
+      document.getElementById('import-dest-sostituisci-row').style.display = extra.completo ? 'flex' : 'none';
       sel.innerHTML = ricettari.map(rb => `<option value="${escapeAttr(rb.id)}">${escapeHtml(rb.name)}</option>`).join('');
       nome.value = String(nomeFile || '').replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
-      ov.querySelector('input[value="originale"]').checked = true;
+      ov.querySelector(extra.completo ? 'input[value="sostituisci"]' : 'input[value="originale"]').checked = true;
       function fine(r){
         ov.classList.remove('active');
         okB.removeEventListener('click', onOk); cancB.removeEventListener('click', onCanc); xB.removeEventListener('click', onCanc);
@@ -5107,7 +5288,7 @@
           if(!n){ alert('Dai un nome al nuovo ricettario.'); nome.focus(); return; }
           return fine({ mode, name: n });
         }
-        fine({ mode: 'originale' });
+        fine({ mode });
       }
       sel.onfocus = () => { ov.querySelector('input[value="esistente"]').checked = true; };
       nome.onfocus = () => { ov.querySelector('input[value="nuovo"]').checked = true; };
@@ -5122,23 +5303,61 @@
     const file = importFileInput.files[0];
     if(!file) return;
     const reader = new FileReader();
+    reader.onerror = ()=>{ alert('Non è stato possibile leggere il file. I tuoi dati non sono stati modificati.'); importFileInput.value = ''; };
     reader.onload = async (e)=>{
-      try{
-        let parsed = JSON.parse(e.target.result);
-        const prima = JSON.stringify(datiCompletiPerFile()); // per «Annulla importazione»
-        let incoming = Array.isArray(parsed) ? parsed : (parsed.recipes || []);
-        if(!Array.isArray(incoming)) throw new Error('Formato non valido');
-        if(incoming.length){
-          const dest = await chiediDestinazioneImport(incoming.length, file.name);
-          if(!dest){ importFileInput.value = ''; return; }
-          if(dest.mode !== 'originale'){
-            let destId = dest.id;
-            if(dest.mode === 'nuovo'){ destId = cryptoId(); ricettari.push({ id: destId, name: dest.name, cover: '' }); saveRicettari(); refreshRicettarioSelects(); }
-            incoming = incoming.map(r => r ? Object.assign({}, r, { ricettarioId: destId }) : r);
-            // ogni ricetta va nel ricettario scelto: i ricettari del backup non servono
-            if(!Array.isArray(parsed)) parsed = Object.assign({}, parsed, { ricettari: [] });
-          }
-        }
+      try{ await importaDaTesto(String(e.target.result || ''), file.name); }
+      catch(err){
+        console.error('Importazione non riuscita:', err);
+        alert('Importazione non riuscita' + (err && err.messaggioUtente ? ': ' + err.messaggioUtente : '.') + '\nI tuoi dati non sono stati modificati.');
+      }
+      importFileInput.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  /** Importa un backup: prima legge e verifica TUTTO senza toccare nulla, poi applica tutto insieme
+   * (o niente). Backup completo → può sostituire i dati; file parziale → si unisce a quelli esistenti. */
+  async function importaDaTesto(testo, nomeFile){
+    let parsed;
+    try{ parsed = JSON.parse(testo); }
+    catch(_){ alert('Il file non è un backup valido: non è un file di dati leggibile (è vuoto, incompleto o di un altro tipo). I tuoi dati non sono stati modificati.'); return; }
+    const an = BackupImport.analizza(parsed, opzioniBackup());
+    if(!an.ok){ alert(an.errore + (an.errore.includes('non sono stati toccati') ? '' : '\nI tuoi dati non sono stati modificati.')); return; }
+    parsed = an.dati;
+    const completo = an.tipo === 'completo';
+    let incoming = parsed.recipes || [];
+    let dest = { mode: 'originale' };
+    if(incoming.length || completo){
+      dest = await chiediDestinazioneImport(incoming.length, nomeFile, { completo, riepilogo: BackupImport.riassunto(an.conteggi) });
+      if(!dest) return;
+    }
+
+    if(dest.mode === 'sostituisci'){
+      const ok = await confirmDialog({
+        title: 'Sostituire tutti i dati?',
+        message: `Adesso hai: ${riassuntoDatiAttuali()}.\nIl backup contiene: ${BackupImport.riassunto(an.conteggi)}.\n\nTutti i tuoi dati attuali verranno sostituiti da quelli del backup. Subito dopo potrai toccare «Annulla».`,
+        confirmText: 'Sostituisci tutto', danger: true
+      });
+      if(!ok) return;
+      const r = applicaBackupCompleto(parsed);
+      if(!r.ok){ alert(r.errore); return; }
+      aggiornaInterfacciaDati();
+      alert(`Backup caricato: ${BackupImport.riassunto(an.conteggi)}.`);
+      mostraAnnulla('Dati sostituiti dal backup', () => annullaConFotografia(r.foto), 20000);
+      return;
+    }
+
+    // ----- Unione con i dati esistenti (file parziale, o backup completo importato "in aggiunta") -----
+    const foto = fotografiaStato();
+    const falliti0 = storageFalliti;
+    try{
+      if(incoming.length && dest.mode !== 'originale'){
+        let destId = dest.id;
+        if(dest.mode === 'nuovo'){ destId = cryptoId(); ricettari.push({ id: destId, name: dest.name, cover: '' }); saveRicettari(); refreshRicettarioSelects(); }
+        incoming = incoming.map(r => r ? Object.assign({}, r, { ricettarioId: destId }) : r);
+        // ogni ricetta va nel ricettario scelto: i ricettari del backup non servono
+        parsed = Object.assign({}, parsed, { ricettari: [] });
+      }
         const incomingDispensa = Array.isArray(parsed.dispensaItems) ? parsed.dispensaItems : [];
 
         const existingRecipeIds = new Set(recipes.map(r=>r.id));
@@ -5256,15 +5475,17 @@
           if(matchingDispensa.length && !overwrite) msg += `, ${matchingDispensa.length} già ${plural(matchingDispensa.length,'presente','presenti')} (non modificat${plural(matchingDispensa.length,'o','i')})`;
           msg += '.';
         }
+        if(storageFalliti > falliti0) throw erroreUtente('Salvataggio non riuscito: spazio del browser esaurito.');
+        puliziaFotoSospesa = true;
         alert(msg);
-        mostraAnnulla('Importazione completata', ()=> ripristinaSnapshotDati(prima), 20000);
-      }catch(err){
-        alert('File non valido. Assicurati di selezionare un backup esportato da questo ricettario.');
-      }
-      importFileInput.value = '';
-    };
-    reader.readAsText(file);
-  });
+        mostraAnnulla('Importazione completata', ()=> annullaConFotografia(foto), 20000);
+    }catch(err){
+      console.error('Importazione annullata:', err);
+      const perfetto = ripristinaFotografia(foto);
+      aggiornaInterfacciaDati();
+      alert('Importazione NON riuscita' + (err && err.messaggioUtente ? ': ' + err.messaggioUtente : '.') + '\n' + (perfetto ? 'I tuoi dati sono rimasti esattamente come prima.' : 'Ho rimesso i dati com\'erano, ma esporta un backup per sicurezza.'));
+    }
+  }
 
   // ---------- Export / Import CSV ----------
   function csvEscape(val){
@@ -8405,5 +8626,14 @@
     aggiornaControlliMenuStorage();
     aggiornaBannerBackup();
     mostraSceltaStorageSeNecessario();
+    if(fileNonUsabileAllAvvio) avvisoNonSalvato('⚠️ ' + fileNonUsabileAllAvvio);
+    else if(fileCaricatoAllAvvio){
+      const { esito, nome } = fileCaricatoAllAvvio;
+      mostraAnnulla(`Dati caricati dal file «${nome}»`, async () => {
+        const ok = ripristinaFotografia(esito.foto);
+        await ricaricaDatiInMemoria();
+        if(!ok) alert('Ho rimesso i dati precedenti, ma non tutto è tornato identico: esporta un backup per sicurezza.');
+      }, 20000);
+    }
   })();
 })();

@@ -1,0 +1,26 @@
+// Test del validatore dei backup (Node, senza browser): node tests/unit_backup_import.js
+const assert = require('assert');
+const B = require('../js/backup-import.js');
+let n = 0; const t = (nome, f) => { f(); n++; console.log('ok -', nome); };
+const r = (id, name) => ({ id, name });
+t('array di ricette → parziale', () => { const a = B.analizza([r('a','A')]); assert(a.ok && a.tipo === 'parziale'); });
+t('oggetto con solo ricette → parziale', () => assert.strictEqual(B.analizza({ recipes: [r('a','A')] }).tipo, 'parziale'));
+t('vecchio backup completo (senza marcatore) → completo', () => assert.strictEqual(B.analizza({ recipes: [], dispensaItems: [], weekPlan: {} }).tipo, 'completo'));
+t('marcato completo con sezione mancante → errore', () => { const a = B.analizza({ formato: 'il-mio-ricettario', recipes: [] }); assert(!a.ok && /mancano/.test(a.errore)); });
+t('formato di altra app → errore', () => assert(!B.analizza({ formato: 'x', recipes: [] }).ok));
+t('versione futura → errore', () => assert(!B.analizza({ formato: 'il-mio-ricettario', versioneFormato: 9, recipes: [] }).ok));
+t('null, stringa, numero → errore', () => [null, 'x', 5, true].forEach(v => assert(!B.analizza(v).ok)));
+t('oggetto vuoto → errore', () => assert(!B.analizza({}).ok));
+t('ricetta senza nome → errore', () => assert(!B.analizza({ recipes: [{ id: 'a' }] }).ok));
+t('title al posto di name → accettato', () => assert.strictEqual(B.analizza({ recipes: [{ id: 'a', title: 'T' }] }).dati.recipes[0].name, 'T'));
+t('ricetta senza id → id creato; duplicati → id nuovo', () => { const a = B.analizza({ recipes: [{ name: 'A' }, { id: 'x', name: 'B' }, { id: 'x', name: 'C' }] }); assert(a.ok); const ids = a.dati.recipes.map(x => x.id); assert.strictEqual(new Set(ids).size, 3); });
+t('ingredienti non elenco → errore', () => assert(!B.analizza({ recipes: [{ id: 'a', name: 'A', ingredients: 'x' }] }).ok));
+t('assente ≠ vuoto: presenti riporta solo le chiavi presenti', () => { const a = B.analizza({ recipes: [r('a','A')], dispensaItems: [] }); assert.deepStrictEqual(a.presenti.sort(), ['dispensaItems', 'recipes']); assert.deepStrictEqual(a.dati.dispensaItems, []); assert(!('raccolte' in a.dati)); });
+t('piano: stringa → voce convertita', () => { const a = B.analizza({ recipes: [], dispensaItems: [], weekPlan: { 'Lunedì': 'r1' } }, { idGen: () => 'ID', pastoPredefinito: 'Cena' }); assert.deepStrictEqual(a.dati.weekPlan['Lunedì'], [{ id: 'ID', recipeId: 'r1', mealType: 'Cena', time: '' }]); });
+t('piano: giorno non valido → errore', () => assert(!B.analizza({ recipes: [], dispensaItems: [], weekPlan: { 'Lunedì': 5 } }).ok));
+t('settimane: data errata → errore; annidamento errato → errore', () => { assert(!B.analizza({ planWeeks: { ieri: {} } }).ok); assert(!B.analizza({ planWeeks: { '2026-10-19': { plan: { 'Lunedì': [1] } } } }).ok); assert(!B.analizza({ planWeeks: { '2026-10-19': { notes: { 'Lunedì': 3 } } } }).ok); });
+t('dispensa con voce non oggetto → errore', () => assert(!B.analizza({ dispensaItems: [1] }).ok));
+t('raccolte senza nome ignorate con avviso', () => { const a = B.analizza({ raccolte: [{ id: '1', name: 'A' }, { id: '2' }] }); assert(a.ok && a.dati.raccolte.length === 1 && a.avvisi.length === 1); });
+t('mealTypes: dedup e valori non stringa → errore', () => { assert.deepStrictEqual(B.analizza({ mealTypes: ['A', ' A ', 'B'] }).dati.mealTypes, ['A', 'B']); assert(!B.analizza({ mealTypes: [1] }).ok); });
+t('riassunto e intestazione', () => { assert(/2 ricette/.test(B.riassunto({ ricette: 2 }))); assert.strictEqual(B.intestazione('completo', '5.47.0').formato, 'il-mio-ricettario'); });
+console.log(`\n${n} test del validatore superati`);

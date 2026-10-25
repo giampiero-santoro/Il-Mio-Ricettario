@@ -62,6 +62,9 @@ TEST_MODULES = [
     "test_35_sottocategorie",
     "test_36_ricetta_successiva",
     "test_37_stampa_ricettario",
+    "test_38_backup_atomico",
+    "test_39_errori_salvataggio",
+    "test_40_file_collegato_sicuro",
 ]
 
 

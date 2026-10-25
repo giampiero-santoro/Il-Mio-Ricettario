@@ -1609,7 +1609,7 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 .ps-ing li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid #d7e2d4;}
 .ps-ing li:first-child{border-top:0;}
 .ps-ing .amt{color:#5a645d;white-space:nowrap;}
-.ps-photo{width:100%;max-height:70mm;object-fit:cover;border-radius:10px;margin-bottom:10px;}
+.ps-photo{width:100%;max-height:70mm;object-fit:cover;border-radius:10px;margin-top:10px;}
 .ps-nutri{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:calc(var(--ps) * 0.8846);}
 .ps-foot{margin-top:10px;font-size:calc(var(--ps) * 0.6154);color:#8a938c;}
 
@@ -1629,7 +1629,7 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 #print-root.ps-colonne .ps-num{flex:0 0 16px;height:16px;font-size:calc(var(--ps) * .85);}
 #print-root.ps-colonne .ps-box{padding:7px 9px;margin-bottom:6px;border-radius:8px;}
 #print-root.ps-colonne .ps-ing li{padding:3px 0;}
-#print-root.ps-colonne .ps-photo{max-height:28mm;margin-bottom:5px;}
+#print-root.ps-colonne .ps-photo{max-height:28mm;margin-top:5px;}
 #print-root.ps-colonne .ps-notes{margin-top:5px;padding-top:4px;}
 @media print{
   body.printing-sheets{background:#fff !important;}
