@@ -486,7 +486,7 @@
           </span>
           <input type="file" class="ricettario-row-cover-input" accept="image/*" style="display:none;">
           <button type="button" class="btn-ghost btn-small ricettario-row-cover-btn">📷 Copertina</button>
-          <button type="button" class="btn-ghost btn-small ricettario-row-print-btn" title="Stampa tutte le ricette di questo ricettario, una per pagina, in A4 orizzontale" ${count === 0 ? 'disabled' : ''}>🖨️ Stampa A4</button>
+          <button type="button" class="btn-ghost btn-small ricettario-row-print-btn" title="Crea un PDF A4 orizzontale con tutte le ricette di questo ricettario" ${count === 0 ? 'disabled' : ''}>📄 PDF A4</button>
           <button type="button" class="btn-ghost btn-small ricettario-row-delete-btn" ${ricettari.length <= 1 ? 'disabled title="Deve restare almeno un ricettario"' : ''}>🗑 Elimina</button>
           <div class="ricettario-row-delete-panel" style="display:none;"></div>
         </div>`;
@@ -528,7 +528,7 @@
           .sort((a, b) => (ordineCat.indexOf(a.category) - ordineCat.indexOf(b.category)) || a.name.localeCompare(b.name, 'it'));
         if(!lista.length){ alert('Questo ricettario non ha ricette da stampare.'); return; }
         ricettariOverlay.classList.remove('active');
-        stampaElencoA4(lista, r => r.servings || 1);
+        stampaElencoA4(lista, r => r.servings || 1, nomeFilePdf(ricettarioName(id)));
       });
 
       const coverInput = row.querySelector('.ricettario-row-cover-input');
@@ -3775,12 +3775,12 @@
     const pills = `<span class="ps-pill">${escapeHtml(recipeCategoryLabel(r))}</span>` + (ricettari.length > 1 ? `<span class="ps-pill alt">${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : '');
     const corta = (r.steps || []).length <= 7 && (r.ingredients || []).length <= 10 && String(r.notes || '').length < 300;
     return `<section class="ps-sheet${corta ? ' ps-short' : ''}">
-      <div class="ps-tags">${pills}</div>
-      <h1 class="ps-title">${escapeHtml(r.name)}</h1>
-      <div class="ps-meta">${r.time ? `<span>🕒 ${r.time} min</span>` : ''}<span>👤 Ricetta per ${porzioniLabel(porzioni)}</span></div>
-      ${chips ? `<div class="ps-chips">${chips}</div>` : ''}${allerg}
       <div class="ps-body">
         <div class="ps-main">
+          <div class="ps-tags">${pills}</div>
+          <h1 class="ps-title">${escapeHtml(r.name)}</h1>
+          <div class="ps-meta">${r.time ? `<span>${r.time} min</span>` : ''}<span>Ricetta per ${porzioniLabel(porzioni)}</span></div>
+          ${chips ? `<div class="ps-chips">${chips}</div>` : ''}${allerg}
           <h2 class="ps-h">Procedimento</h2>
           <div class="ps-steps">${steps || '<div class="ps-step"><div class="t">—</div></div>'}</div>
           ${r.notes ? `<div class="ps-notes"><b>Note personali —</b> ${escapeHtml(r.notes)}</div>` : ''}
@@ -3792,6 +3792,326 @@
         </div>
       </div>
     </section>`;
+  }
+  // ---------- PDF A4 orizzontale vettoriale (nessuna stampante: il file si scarica direttamente) ----------
+  // Stesso impianto della scheda: titolo e procedimento a sinistra, ingredienti (e foto) in una colonna
+  // a destra che parte dal margine alto del foglio. Margini del foglio: 10 mm (8 mm su due colonne).
+  function pdfMisura(testo, size, bold){
+    if(!pdfMeasureCtx){ pdfMeasureCtx = document.createElement('canvas').getContext('2d'); }
+    pdfMeasureCtx.font = `${bold ? 'bold ' : ''}${size}px Helvetica, Arial, sans-serif`;
+    return pdfMeasureCtx.measureText(testo).width;
+  }
+  function pdfAvvolgi(testo, size, larghezza, bold){
+    const out = [];
+    String(testo || '').split('\n').forEach(par => {
+      const parole = par.split(/\s+/).filter(Boolean);
+      if(!parole.length){ out.push(''); return; }
+      let riga = '';
+      parole.forEach(p => {
+        const prova = riga ? riga + ' ' + p : p;
+        if(pdfMisura(prova, size, bold) <= larghezza || !riga){
+          if(!riga && pdfMisura(p, size, bold) > larghezza){
+            // parola più larga della colonna: spezzata
+            let pezzo = '';
+            for(const ch of p){ if(pdfMisura(pezzo + ch, size, bold) > larghezza && pezzo){ out.push(pezzo); pezzo = ch; } else pezzo += ch; }
+            riga = pezzo;
+          } else riga = prova;
+        } else { out.push(riga); riga = p; }
+      });
+      if(riga) out.push(riga);
+    });
+    return out.length ? out : [''];
+  }
+  function pdfColore(hex){
+    const n = parseInt(hex.replace('#',''), 16);
+    return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255].map(v => v.toFixed(3)).join(' ');
+  }
+  function pdfRettArrotondato(x, y, w, h, r){
+    // (x,y) = angolo in basso a sinistra
+    const k = 0.5523 * r;
+    return `${x + r} ${y} m ${x + w - r} ${y} l ${x + w - r + k} ${y} ${x + w} ${y + r - k} ${x + w} ${y + r} c ` +
+      `${x + w} ${y + h - r} l ${x + w} ${y + h - r + k} ${x + w - r + k} ${y + h} ${x + w - r} ${y + h} c ` +
+      `${x + r} ${y + h} l ${x + r - k} ${y + h} ${x} ${y + h - r + k} ${x} ${y + h - r} c ` +
+      `${x} ${y + r} l ${x} ${y + r - k} ${x + r - k} ${y} ${x + r} ${y} c h`;
+  }
+  async function pdfPreparaFoto(src){
+    // restituisce { w, h, data(binaria JPEG) } oppure null
+    try{
+      if(!src || typeof src !== 'string' || !src.startsWith('data:image')) return null;
+      const img = new Image(); img.src = src; await img.decode();
+      let b64 = null;
+      if(/^data:image\/jpeg/i.test(src)) b64 = src.split(',')[1];
+      else{
+        const cv = document.createElement('canvas'); cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+        const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(img, 0, 0);
+        b64 = cv.toDataURL('image/jpeg', 0.88).split(',')[1];
+      }
+      return { w: img.naturalWidth, h: img.naturalHeight, data: atob(b64) };
+    }catch(e){ return null; }
+  }
+
+  async function creaPdfSchedeA4(lista, porzioniDi, layout){
+    const PW = 841.89, PH = 595.28;
+    const colonne = layout === 'colonne';
+    const M = colonne ? 22.7 : 28.35;               // 8 mm / 10 mm
+    const GAP = colonne ? 25.5 : 34;                // spazio tra le due colonne di pagina / tra testo e ingredienti
+    const FW = colonne ? (PW - 2 * M - GAP) / 2 : PW - 2 * M;   // larghezza di un riquadro di impaginazione
+    const FH = PH - 2 * M;
+    const foto = new Map();
+    for(const r of lista){ if(r.photo) foto.set(r.id, await pdfPreparaFoto(r.photo)); }
+
+    const pagine = [];          // ogni pagina: array di comandi
+    const immagini = [];        // { w, h, data }
+    let fi = -1, y = 0;
+    const perPagina = colonne ? 2 : 1;
+    function nuovoRiquadro(){
+      fi++;
+      if(!pagine[Math.floor(fi / perPagina)]) pagine[Math.floor(fi / perPagina)] = [];
+      y = PH - M;
+    }
+    const xRiquadro = () => M + (fi % perPagina) * (FW + GAP);
+    const cmd = c => pagine[Math.floor(fi / perPagina)].push(c);
+
+    function testo(x, yTop, lh, size, str, opz){
+      opz = opz || {};
+      const base = yTop - (lh + size * 0.72) / 2;
+      cmd(`BT /${opz.bold ? 'F2' : 'F1'} ${size.toFixed(2)} Tf ${pdfColore(opz.col || '#1f2a22')} rg 1 0 0 1 ${x.toFixed(2)} ${base.toFixed(2)} Tm (${pdfSanitizeText(str)}) Tj ET`);
+    }
+    function riempi(path, fill, stroke){
+      let c = `${pdfColore(fill)} rg `;
+      if(stroke) c += `${pdfColore(stroke)} RG 0.6 w `;
+      cmd(`q ${c}${path} ${stroke ? 'B' : 'f'} Q`);
+    }
+
+    function costruisci(r, S){
+      const porz = porzioniDi(r);
+      const scala = porz / (r.servings || 1);
+      const wl = colonne ? FW * 0.64 - 6 : FW * 0.62 - GAP / 2;
+      const wr = FW - wl - (colonne ? 12 : GAP);
+      const sinistra = [], destra = [];
+      const nero = '#1f2a22', grigio = '#5a645d';
+
+      // etichette (categoria · sottocategoria, ricettario)
+      const pills = [recipeCategoryLabel(r)];
+      if(ricettari.length > 1) pills.push(ricettarioName(recipeRicettarioId(r)));
+      const sP = S * 0.77, hP = sP + 7;
+      sinistra.push({ h: hP + S * 0.4, draw(x, yt){
+        let cx = x;
+        pills.forEach((p, i) => {
+          const w = pdfMisura(p, sP, true) + 16;
+          riempi(pdfRettArrotondato(cx, yt - hP, w, hP, 4), i === 0 ? '#efe3d8' : '#dcecdc');
+          testo(cx + 8, yt, hP, sP, p, { bold: true, col: i === 0 ? '#7a4a35' : '#2f5a35' });
+          cx += w + 6;
+        });
+      }});
+      // titolo
+      const sT = S * (colonne ? 1.7 : 2.0), lhT = sT * 1.18;
+      const righeT = pdfAvvolgi(r.name, sT, wl, true);
+      sinistra.push({ h: righeT.length * lhT + S * 0.45, draw(x, yt){ righeT.forEach((t, i) => testo(x, yt - i * lhT, lhT, sT, t, { bold: true })); }});
+      // meta
+      const sM = S * 0.96;
+      const meta = [r.time ? `${r.time} min` : '', `Ricetta per ${porzioniLabel(porz)}`].filter(Boolean).join('     ');
+      sinistra.push({ h: sM * 1.4 + S * 0.45, draw(x, yt){ testo(x, yt, sM * 1.4, sM, meta, { col: grigio }); }});
+      // chip: tag, metodi, allergeni
+      const extra = [];
+      if(recipeHasPressure(r)) extra.push('Pentola a pressione');
+      if(recipeHasRobot(r)) extra.push('Robot da cucina');
+      if(recipeHasAirFryer(r)) extra.push('Friggitrice ad aria');
+      if(recipeIsTraditional(r)) extra.push('Tradizionale');
+      if(r.cookerType) extra.push(r.cookerType);
+      const chipTag = (r.tags || []).concat(extra);
+      const sC = S * 0.85, hC = sC + 7;
+      function righeChip(lbl, voci, fill, col){
+        if(!voci.length) return;
+        // distribuisce i chip su più righe se serve
+        const righe = []; let riga = [], larg = lbl ? pdfMisura(lbl, sC, true) + 8 : 0;
+        voci.forEach(v => {
+          const w = pdfMisura(v, sC, true) + 14;
+          if(larg + w > wl && riga.length){ righe.push(riga); riga = []; larg = 0; }
+          riga.push({ v, w }); larg += w + 5;
+        });
+        righe.push(riga);
+        righe.forEach((rg, ri) => sinistra.push({ h: hC + 4, draw(x, yt){
+          let cx = x;
+          if(lbl && ri === 0){ testo(cx, yt, hC, sC, lbl, { bold: true, col: grigio }); cx += pdfMisura(lbl, sC, true) + 8; }
+          else if(lbl) cx += pdfMisura(lbl, sC, true) + 8;
+          rg.forEach(c => { riempi(pdfRettArrotondato(cx, yt - hC, c.w, hC, hC / 2), fill); testo(cx + 7, yt, hC, sC, c.v, { bold: true, col }); cx += c.w + 5; });
+        }}));
+      }
+      righeChip('', chipTag, '#dcecdc', '#2f5a35');
+      righeChip('Contiene:', r.allergens || [], '#f7dcdc', '#8a2a2a');
+      sinistra[sinistra.length - 1].h += S * 0.5;
+
+      // procedimento
+      const sH = S * 1.46, rN = S * 0.62, sS = S, lhS = S * 1.38;
+      const wTesto = wl - (rN * 2 + 8);
+      const passi = (r.steps || []).map((s, i) => {
+        const meta = [];
+        if(s.vel) meta.push('Vel. ' + s.vel);
+        if(s.temp) meta.push(s.temp + ' °C');
+        if(s.mode && s.mode !== 'Normale') meta.push(s.mode);
+        if(s.time) meta.push(s.time + ' min');
+        if(s.pressure) meta.push(s.pressure + ' ' + ({bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar'));
+        if(s.pressureRelease) meta.push('Rilascio: ' + s.pressureRelease);
+        if(s.minLiquid) meta.push('Liquido min. ' + s.minLiquid + ' ml');
+        if(s.pressureReleaseMin) meta.push(s.pressureReleaseMin + ' min rilascio');
+        if(s.airFryerTemp) meta.push(s.airFryerTemp + ' °C (friggitrice)');
+        const righe = pdfAvvolgi(s.text, sS, wTesto, false);
+        const righeMeta = meta.length ? pdfAvvolgi(meta.join(' · '), S * 0.9, wTesto, false) : [];
+        const h = righe.length * lhS + righeMeta.length * S * 1.25 + S * 0.62;
+        return { h, draw(x, yt){
+          riempi(circoloPath(x + rN, yt - rN - 1, rN), '#2f6b3a');
+          const sn = rN * 1.05; const num = String(i + 1);
+          testo(x + rN - pdfMisura(num, sn, true) / 2, yt - 1, rN * 2, sn, num, { bold: true, col: '#ffffff' });
+          righe.forEach((t, k) => testo(x + rN * 2 + 8, yt - k * lhS, lhS, sS, t));
+          righeMeta.forEach((t, k) => testo(x + rN * 2 + 8, yt - righe.length * lhS - k * S * 1.25, S * 1.25, S * 0.9, t, { col: grigio }));
+        }};
+      });
+      function circoloPath(cx, cy, rr){
+        const k = 0.5523 * rr;
+        return `${cx + rr} ${cy} m ${cx + rr} ${cy + k} ${cx + k} ${cy + rr} ${cx} ${cy + rr} c ${cx - k} ${cy + rr} ${cx - rr} ${cy + k} ${cx - rr} ${cy} c ${cx - rr} ${cy - k} ${cx - k} ${cy - rr} ${cx} ${cy - rr} c ${cx + k} ${cy - rr} ${cx + rr} ${cy - k} ${cx + rr} ${cy} c h`;
+      }
+      if(passi.length){
+        passi[0].h += sH * 1.2 + S * 0.3;
+        const d0 = passi[0].draw;
+        passi[0].draw = (x, yt) => { testo(x, yt, sH * 1.2, sH, 'Procedimento', { bold: true }); d0(x, yt - sH * 1.2 - S * 0.3); };
+        passi.forEach(p => sinistra.push(p));
+      }
+      if(r.notes){
+        const sN = S * 0.88, lhN = sN * 1.4;
+        const righe = pdfAvvolgi('Note personali — ' + r.notes, sN, wl, false);
+        righe.forEach((t, i) => sinistra.push({ h: lhN + (i === 0 ? S * 0.9 : 0), draw(x, yt){
+          let yy = yt;
+          if(i === 0){ cmd(`q ${pdfColore('#cfd6cf')} RG 0.6 w ${x} ${yt - S * 0.3} m ${x + wl} ${yt - S * 0.3} l S Q`); yy = yt - S * 0.9; }
+          if(i === 0 && t.startsWith('Note personali —')){
+            testo(x, yy, lhN, sN, 'Note personali —', { bold: true, col: '#4a544d' });
+            testo(x + pdfMisura('Note personali — ', sN, true), yy, lhN, sN, t.slice('Note personali — '.length), { col: '#4a544d' });
+          } else testo(x, yy, lhN, sN, t, { col: '#4a544d' });
+        }}));
+      }
+
+      // colonna di destra: foto, ingredienti, valori nutrizionali (parte dal margine alto)
+      const f = foto.get(r.id);
+      if(f){
+        const wF = wr, hF = Math.min(wF * f.h / f.w, colonne ? 80 : 170);
+        const wFi = hF === wF * f.h / f.w ? wF : hF * f.w / f.h;
+        destra.push({ h: hF + 10, foto: true, draw(x, yt){
+          const idx = immagini.push(f) - 1;
+          cmd(`q ${wFi.toFixed(2)} 0 0 ${hF.toFixed(2)} ${(x + (wr - wFi) / 2).toFixed(2)} ${(yt - hF).toFixed(2)} cm /Im${idx} Do Q`);
+        }});
+      }
+      const pad = S * 0.95, sB = S * 1.12, sI = S * 0.95, lhI = S * 1.2;
+      const voci = (r.ingredients || []).map(i => {
+        const q = quantitaScalata(i, scala);
+        const am = `${q.approx ? '~' : ''}${q.q} ${q.unit}`.trim();
+        const wAm = pdfMisura(am, sI, false);
+        const righe = pdfAvvolgi(i.name, sI, Math.max(40, wr - pad * 2 - wAm - 10), false);
+        return { am, wAm, righe, h: Math.max(righe.length * lhI, lhI) + S * 0.55 };
+      });
+      const hBox = pad * 2 + sB * 1.5 + voci.reduce((a, v) => a + v.h, 0);
+      destra.push({ h: hBox + 8, draw(x, yt){
+        riempi(pdfRettArrotondato(x, yt - hBox, wr, hBox, 9), '#eef4ec', '#d7e2d4');
+        testo(x + pad, yt - pad, sB * 1.5, sB, 'Ingredienti', { bold: true });
+        let yy = yt - pad - sB * 1.5;
+        voci.forEach((v, k) => {
+          if(k > 0) cmd(`q ${pdfColore('#d7e2d4')} RG 0.5 w ${x + pad} ${yy + S * 0.14} m ${x + wr - pad} ${yy + S * 0.14} l S Q`);
+          v.righe.forEach((t, j) => testo(x + pad, yy - S * 0.2 - j * lhI, lhI, sI, t));
+          testo(x + wr - pad - v.wAm, yy - S * 0.2, lhI, sI, v.am, { col: grigio });
+          yy -= v.h;
+        });
+      }});
+      const n = r.nutrizioneUtente;
+      if(n){
+        const righeN = NUTRITION_FIELDS.filter(fd => n[fd.key] !== null && n[fd.key] !== undefined).map(fd => `${fd.label}: ${roundNice(n[fd.key])}${fd.unit}`);
+        if(righeN.length){
+          const sn = S * 0.9, lhn = sn * 1.35, hN = pad * 2 + sB * 1.5 + righeN.length * lhn;
+          destra.push({ h: hN + 8, draw(x, yt){
+            riempi(pdfRettArrotondato(x, yt - hN, wr, hN, 9), '#eef4ec', '#d7e2d4');
+            testo(x + pad, yt - pad, sB * 1.5, sB * 0.9, 'Valori nutrizionali (per porzione)', { bold: true });
+            righeN.forEach((t, k) => testo(x + pad, yt - pad - sB * 1.5 - k * lhn, lhn, sn, t));
+          }});
+        }
+      }
+      // gli ingredienti partono dal margine alto del foglio; la foto va sotto
+      destra.sort((p, q) => (p.foto ? 1 : 0) - (q.foto ? 1 : 0));
+      return { sinistra, destra, wl, wr, hS: sinistra.reduce((a, it) => a + it.h, 0), hD: destra.reduce((a, it) => a + it.h, 0) };
+    }
+
+    lista.forEach((r, ri) => {
+      // dimensione del carattere: fissa su due colonne, adattata al foglio nella ricetta singola per pagina
+      let S, b;
+      if(colonne){ S = 8.5; b = costruisci(r, S); }
+      else{
+        S = 13; b = costruisci(r, S);
+        while(Math.max(b.hS, b.hD) > FH && S > 7){ S -= 0.4; b = costruisci(r, S); }
+      }
+      const corta = b.sinistra.length <= 14 && b.hS < FH * 0.7;
+      if(!colonne || fi < 0) nuovoRiquadro();
+      else{
+        const resto = y - M;
+        const serve = Math.max(b.hS, b.hD);
+        if(serve > resto && (corta || resto < 110)) nuovoRiquadro();
+      }
+      let x0 = xRiquadro(), yInizio = y;
+      if(b.hD > y - M){ nuovoRiquadro(); x0 = xRiquadro(); yInizio = y; }
+      // colonna di destra dal margine alto del blocco
+      let yd = yInizio; const xd = x0 + FW - b.wr;
+      b.destra.forEach(it => { it.draw(xd, yd); yd -= it.h; });
+      const fineDestra = yd;
+      // colonna di sinistra, con continuazione sul riquadro successivo se serve
+      let xs = x0, ys = yInizio, primo = true;
+      const fiInizio = fi;
+      b.sinistra.forEach(it => {
+        if(ys - it.h < M && !primo){ nuovoRiquadro(); xs = xRiquadro(); ys = y; }
+        it.draw(xs, ys); ys -= it.h; primo = false;
+      });
+      y = (fi === fiInizio) ? Math.min(ys, fineDestra) : ys;
+      if(colonne){
+        y -= 7;
+        if(ri < lista.length - 1 && y > M + 20){
+          cmd(`q ${pdfColore('#b9c4b9')} RG 0.6 w [3 3] 0 d ${xRiquadro()} ${y + 3.5} m ${xRiquadro() + FW} ${y + 3.5} l S Q`);
+          y -= 7;
+        }
+      }
+    });
+
+    // assemblaggio del file PDF
+    const oggetti = [];
+    let id = 5;
+    const idImm = [];
+    const uniche = [...new Set(immagini)];
+    uniche.forEach(im => { idImm.push(id++); });
+    const idPag = [], idCont = [];
+    pagine.forEach(() => { idPag.push(id++); idCont.push(id++); });
+    oggetti[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    oggetti[2] = `<< /Type /Pages /Kids [${idPag.map(n => n + ' 0 R').join(' ')}] /Count ${pagine.length} >>`;
+    oggetti[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+    oggetti[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+    uniche.forEach((im, k) => {
+      oggetti[idImm[k]] = { isStream: true, extra: `/Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode`, data: im.data };
+    });
+    pagine.forEach((cmds, i) => {
+      // le immagini sono numerate per ordine di inserimento: /ImN → oggetto dell'immagine unica corrispondente
+      const xo = immagini.map((im, n) => `/Im${n} ${idImm[uniche.indexOf(im)]} 0 R`).join(' ');
+      oggetti[idPag[i]] = `<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << ${xo} >> >> /MediaBox [0 0 ${PW} ${PH}] /Contents ${idCont[i]} 0 R >>`;
+      oggetti[idCont[i]] = { isStream: true, data: cmds.join('\n') };
+    });
+    let out = '%PDF-1.4\n';
+    const off = [0];
+    for(let n = 1; n < id; n++){
+      off[n] = out.length;
+      const o = oggetti[n];
+      if(typeof o === 'string') out += `${n} 0 obj\n${o}\nendobj\n`;
+      else{
+        const dict = o.extra ? `<< ${o.extra} /Length ${o.data.length} >>` : `<< /Length ${o.data.length} >>`;
+        out += `${n} 0 obj\n${dict}\nstream\n${o.data}\nendstream\nendobj\n`;
+      }
+    }
+    const xref = out.length;
+    out += `xref\n0 ${id}\n0000000000 65535 f \n`;
+    for(let n = 1; n < id; n++) out += `${String(off[n]).padStart(10, '0')} 00000 n \n`;
+    out += `trailer\n<< /Size ${id} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    return out;
   }
   const LAYOUT_STAMPA_KEY = 'mc_ricettario_layout_stampa_v1';
   function layoutStampaSalvato(){ try{ return localStorage.getItem(LAYOUT_STAMPA_KEY) === 'pagina' ? 'pagina' : 'colonne'; }catch(e){ return 'colonne'; } }
@@ -3851,11 +4171,22 @@
       }, 150));
     return { root, pulisci };
   }
-  // Più ricette: chiede se una per pagina oppure su due colonne (la scelta resta come predefinita).
-  function stampaElencoA4(lista, porzioniDi){
-    if(lista.length === 1){ stampaSchedeA4(lista, porzioniDi, 'pagina'); return; }
+  function nomeFilePdf(base){ return (String(base || 'ricette').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'ricette') + '-a4.pdf'; }
+  async function esportaPdfSchede(lista, porzioniDi, layout, nomeFile){
+    try{
+      const pdf = await creaPdfSchedeA4(lista, porzioniDi, layout);
+      downloadPdf(pdf, nomeFile);
+    }catch(err){
+      console.error(err);
+      alert('Non è stato possibile creare il PDF.');
+    }
+  }
+  // Più ricette: chiede se una per pagina oppure su due colonne (la scelta resta come predefinita) e
+  // scarica direttamente il file PDF, senza passare dalla stampante.
+  function stampaElencoA4(lista, porzioniDi, nomeFile){
+    if(lista.length === 1){ esportaPdfSchede(lista, porzioniDi, 'pagina', nomeFile || nomeFilePdf(lista[0].name)); return; }
     const ov = document.getElementById('layout-stampa-overlay');
-    document.getElementById('layout-stampa-intro').textContent = `Stai per stampare ${lista.length} ricette in A4 orizzontale.`;
+    document.getElementById('layout-stampa-intro').textContent = `Stai per creare un PDF A4 orizzontale con ${lista.length} ricette.`;
     ov.querySelector(`input[value="${layoutStampaSalvato()}"]`).checked = true;
     const okB = document.getElementById('layout-stampa-ok'), cancB = document.getElementById('layout-stampa-cancel'), xB = document.getElementById('layout-stampa-close');
     function fine(){ ov.classList.remove('active'); okB.removeEventListener('click', onOk); cancB.removeEventListener('click', fine); xB.removeEventListener('click', fine); }
@@ -3863,7 +4194,7 @@
       const layout = ov.querySelector('input[name="layout-stampa"]:checked').value;
       try{ localStorage.setItem(LAYOUT_STAMPA_KEY, layout); }catch(e){}
       fine();
-      stampaSchedeA4(lista, porzioniDi, layout);
+      esportaPdfSchede(lista, porzioniDi, layout, nomeFile || 'ricettario-a4.pdf');
     }
     okB.addEventListener('click', onOk); cancB.addEventListener('click', fine); xB.addEventListener('click', fine);
     ov.classList.add('active');
@@ -3880,7 +4211,7 @@
     const r = recipes.find(x=>x.id === currentViewId);
     if(!r) return;
     document.getElementById('view-export-menu-dropdown').classList.remove('open');
-    stampaSchedeA4([r], () => currentServings);
+    esportaPdfSchede([r], () => currentServings, 'pagina', nomeFilePdf(r.name));
   });
 
   // Esporta il ricettario (o una selezione di categorie/ricette) in un solo PDF: un indice

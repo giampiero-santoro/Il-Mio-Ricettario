@@ -146,9 +146,13 @@ Nel modulo di modifica trovi due sezioni distinte, perché rispondono a domande 
 
 Entrambi compaiono nella scheda della ricetta come etichette colorate (gli allergeni in rosso, sotto la scritta "⚠ Contiene:"). Nel pannello filtri avanzati puoi anche **escludere dalla lista le ricette che contengono uno o più allergeni** scelti, oltre a filtrare per tag dietetico.
 
-## Stampa A4 orizzontale
+## PDF A4 orizzontale (senza stampante)
 
-Dal menu **Esporta ▾** della scheda, **"🖨️ Stampa A4 orizzontale"** produce un foglio con lo stesso impianto della scheda (titolo, procedimento a sinistra, ingredienti e foto a destra), **senza menu né pulsanti** come "Modifica" o "Modalità cucina". Lo stesso risultato si ottiene con la stampa del browser (Ctrl/Cmd+P) a scheda aperta. **Layout di stampa.** Quando stampi più ricette ti viene chiesto come: **una ricetta per pagina** (il carattere si riduce da solo finché la ricetta sta in un foglio; se è lunghissima il procedimento passa su due colonne) oppure **due colonne con più ricette per foglio** (caratteri piccoli, le ricette brevi si impilano nella colonna: risparmi carta). La scelta resta come predefinita. Per stampare un ricettario intero: in **Gestisci ricettari** usa **"🖨️ Stampa A4"** sulla riga del ricettario (una ricetta per pagina, escluse le archiviate), oppure scegli le ricette da **Esporta PDF → Stampa A4 orizzontale**. Nella finestra di stampa scegli "Salva come PDF" per ottenere un file.
+Dal menu **Esporta ▾** della scheda, **"📄 PDF A4 orizzontale"** scarica direttamente un file PDF, senza passare dalla stampante. La ricetta ha lo stesso impianto della scheda: titolo e procedimento a sinistra, **ingredienti in alto a destra a partire dal margine alto del foglio** (sotto, valori nutrizionali e foto), senza menu né pulsanti come "Modifica". I margini sono quelli predefiniti (10 mm; 8 mm nel layout a due colonne).
+
+**Layout del PDF.** Quando esporti più ricette ti viene chiesto come: **una ricetta per pagina** (il carattere si riduce da solo finché la ricetta sta in un foglio) oppure **due colonne con più ricette per foglio** (caratteri piccoli, le ricette brevi si impilano nella colonna). La scelta resta come predefinita.
+
+Per un ricettario intero: in **Gestisci ricettari** usa **"📄 PDF A4"** sulla riga del ricettario, oppure scegli le ricette da **Esporta PDF → PDF A4 orizzontale**. La stampa del browser (Ctrl/Cmd+P) a scheda aperta stampa comunque la scheda pulita. Il PDF usa caratteri standard (Helvetica) e non include le icone emoji.
 
 ## Visualizzare e scalare le porzioni
 

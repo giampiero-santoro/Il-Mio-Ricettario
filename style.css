@@ -1594,7 +1594,7 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 .ps-chip{padding:2px 9px;border-radius:999px;background:#dcecdc;color:#2f5a35;font-weight:600;}
 .ps-chip.allergen{background:#f7dcdc;color:#8a2a2a;}
 .ps-chips .lbl{color:#5a645d;font-weight:600;}
-.ps-body{display:flex;gap:12mm;align-items:flex-start;margin-top:12px;}
+.ps-body{display:flex;gap:12mm;align-items:flex-start;margin-top:0;}
 .ps-main{flex:1.55;min-width:0;}
 .ps-side{flex:1;min-width:0;}
 .ps-h{font-family:"Lora",Georgia,serif;font-size:calc(var(--ps) * 1.4615);margin:0 0 12px;font-weight:600;}

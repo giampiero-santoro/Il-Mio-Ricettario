@@ -2,6 +2,14 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.46.0] — PDF A4 orizzontale scaricato direttamente
+
+### Modificato
+- **Niente più stampante**: «PDF A4 orizzontale» (scheda ricetta, Gestisci ricettari, Esporta PDF) crea un vero file PDF vettoriale (testo selezionabile) e lo scarica subito. Layout a una ricetta per pagina (carattere adattato al foglio) o a due colonne con più ricette per foglio.
+- **Ingredienti in alto**: la colonna di destra (ingredienti, valori nutrizionali, poi foto) parte dal margine alto del foglio, con i margini predefiniti (10 mm; 8 mm su due colonne).
+- Il PDF usa Helvetica e non riporta le icone emoji. La stampa del browser (Ctrl/Cmd+P) dalla scheda resta disponibile.
+- Test 37 riscritto (download, pagine, foto); guida illustrata e GUIDA.md aggiornate.
+
 ## [5.45.0] — Stampa: caratteri adattati e due colonne
 
 ### Aggiunto

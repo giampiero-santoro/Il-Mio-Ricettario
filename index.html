@@ -886,7 +886,7 @@
 <div class="overlay" id="layout-stampa-overlay">
   <div class="modal" style="max-width:520px;">
     <button class="close-x" id="layout-stampa-close" aria-label="Chiudi">×</button>
-    <h2>Come stampare?</h2>
+    <h2>Come impaginare il PDF?</h2>
     <p style="font-size:13.5px;color:var(--ink-soft);margin-top:-6px;line-height:1.5;" id="layout-stampa-intro"></p>
     <div class="field">
       <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px;"><input type="radio" name="layout-stampa" value="pagina"> <span><b>Una ricetta per pagina</b><br><small>Il carattere si riduce da solo finché la ricetta sta in un foglio A4 orizzontale.</small></span></label>
@@ -895,7 +895,7 @@
     <div class="modal-actions">
       <button class="btn-ghost" id="layout-stampa-cancel">Annulla</button>
       <div style="flex:1;"></div>
-      <button class="btn-gold" id="layout-stampa-ok">🖨️ Stampa</button>
+      <button class="btn-gold" id="layout-stampa-ok">📄 Crea PDF</button>
     </div>
   </div>
 </div>
@@ -1016,7 +1016,7 @@
     </div>
     <div class="recipe-picker-list" id="export-pdf-list"></div>
     <div class="modal-actions">
-      <button type="button" class="btn-ghost" id="print-a4-confirm-btn" title="Una ricetta per pagina, con lo stesso impianto della scheda, pronta per la stampante o per «Salva come PDF»">🖨️ Stampa A4 orizzontale</button>
+      <button type="button" class="btn-ghost" id="print-a4-confirm-btn" title="Una ricetta per pagina, con lo stesso impianto della scheda, scaricato direttamente come file PDF">📄 PDF A4 orizzontale</button>
       <button type="button" class="btn-gold" id="export-pdf-confirm-btn">📖 Esporta PDF</button>
     </div>
   </div>
@@ -1239,7 +1239,7 @@
         <button class="btn-ghost btn-with-ico" id="view-export-menu-btn"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-download"/></svg> Esporta ▾</button>
         <div class="menu-dropdown" id="view-export-menu-dropdown">
           <button id="export-recipe-pdf-btn">Esporta PDF</button>
-          <button id="print-recipe-a4-btn">🖨️ Stampa A4 orizzontale</button>
+          <button id="print-recipe-a4-btn">📄 PDF A4 orizzontale</button>
           <button id="export-recipe-json-btn">Esporta ricetta (.json)</button>
         </div>
       </div>
