@@ -123,6 +123,16 @@ Nel modulo di modifica trovi anche, accanto a porzioni e tempo, un campo facolta
 
 Le ricette mostrano automaticamente un'etichetta del metodo di cottura, nella lista e nella scheda, dedotta dai passaggi — non serve spuntare nulla a mano: **🍲** se c'è almeno un passaggio a pressione, **🤖** se c'è almeno un passaggio con impostazioni robot, **🔥 Tradizionale** se non ne ha nessuno dei due. Una ricetta che usa entrambi i metodi mostra sia 🍲 sia 🤖.
 
+### Pentola a pressione elettrica (tipo Instant Pot) — dalla 5.48.0
+
+Il pulsante **"🍲 Pentola a pressione"** di ogni passaggio contiene ora la **Funzione**: Pressione manuale, Rosolatura/Sauté (basso/medio/alto), Cottura lenta (bassa/alta, in ore), Vapore, Mantenimento caldo, Yogurt e i programmi Riso, Zuppa/Brodo, Fagioli, Carne/Stufato, Porridge, Dolci. Scegliendola, il ricettario propone valori sensati (modificabili): per esempio *Pressione manuale* = alta, valvola chiusa, rilascio rapido. Si aggiungono liquido minimo, **valvola** (chiusa o sfiato), **riempimento massimo** (metà o due terzi), **rilascio** (rapido, naturale completo, misto: naturale per N minuti e poi rapido) e **accessori** (cestello/vaporiera, trepiede, stampo, pentola nella pentola, alluminio). Tutti i campi sono facoltativi.
+
+- **↑ ↓ ⧉** spostano o duplicano un passaggio; **"↺ Copia le impostazioni dal passaggio precedente"** riusa i valori; il ricettario ricorda gli ultimi usati per funzione.
+- **Avvisi non bloccanti**: liquido minimo mancante; riempimento (stima sui soli ingredienti liquidi in ml/cl/dl/l) oltre il massimo per la capacità scelta (3/6/8 L, predefinita 6); legumi, cereali, pasta, latte, panna o farine con rilascio rapido (il riso con cottura molto breve non genera l'avviso).
+- **Riepilogo leggibile** accanto al passaggio (scheda, PDF A4, stampa, cucina guidata): "(pressione alta 20 min, rilascio naturale 10 min, liquido min 250 ml, valvola chiusa)".
+- Usare una funzione imposta il metodo **Elettrica** se non è già indicato. I passaggi senza funzione e i vecchi campi (pressione in bar/PSI/kPa) funzionano come prima.
+- **Per scrivere ricette in blocco** (JSON): per ogni passaggio basta `text`; tutto il resto è facoltativo. Campi nuovi: `fn` (`saute`, `pressione`, `lenta`, `vapore`, `caldo`, `yogurt`, `riso`, `zuppa`, `fagioli`, `carne`, `porridge`, `dolci`), `level` (`bassa`/`media`/`alta`), `valve` (`chiusa`/`sfiato`), `fillMax` (`1/2`/`2/3`), `accessories` (`cestello`, `trepiede`, `stampo`, `pentola-nella-pentola`, `alluminio`); già esistenti: `time` (minuti), `pressureRelease` (`Naturale`/`Rapido`/`Misto`), `pressureReleaseMin`, `minLiquid`. Sulla ricetta, `potLiters` (3, 6 o 8). Esempio completo: `esempi/ricette-pentola-pressione-prova.json`.
+
 ## Valori nutrizionali della ricetta
 
 Il ricettario **non calcola** i valori nutrizionali di una ricetta sommando quelli dei singoli ingredienti crudi: la cottura altera acqua, grassi e altri valori in modo imprevedibile (la pasta assorbe acqua, un fritto assorbe olio...), quindi una somma "a crudo" darebbe un numero preciso ma sbagliato.

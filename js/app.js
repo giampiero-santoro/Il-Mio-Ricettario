@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.47.0';
+  const VERSIONE_APP = '5.48.0';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -1250,6 +1250,16 @@
     r.rating = Math.max(0, Math.min(5, parseInt(r.rating, 10) || 0));
     if(!Array.isArray(r.raccolte)) r.raccolte = [];
     if(r.photo === undefined) r.photo = '';
+    // Passaggi con impostazioni della pentola: tolleranti sulle maiuscole e sul tipo, così i JSON scritti a mano o in blocco funzionano
+    if(Array.isArray(r.steps)) r.steps.forEach(st => {
+      if(!st || typeof st !== 'object') return;
+      if(typeof st.fn === 'string') st.fn = st.fn.trim().toLowerCase();
+      if(typeof st.level === 'string') st.level = st.level.trim().toLowerCase();
+      if(typeof st.valve === 'string') st.valve = st.valve.trim().toLowerCase();
+      if(typeof st.pressureRelease === 'string' && st.pressureRelease){ const t = st.pressureRelease.trim().toLowerCase(); st.pressureRelease = t ? t[0].toUpperCase() + t.slice(1) : ''; }
+      if(st.fillMax !== undefined && st.fillMax !== null) st.fillMax = String(st.fillMax).trim();
+      if(st.accessories !== undefined && !Array.isArray(st.accessories)) st.accessories = st.accessories ? [String(st.accessories)] : [];
+    });
     if(r.lastMade === undefined) r.lastMade = null;
     if(!Array.isArray(r.tags)) r.tags = [];
     if(!Array.isArray(r.allergens)) r.allergens = [];
@@ -1721,8 +1731,10 @@
     renderPlanningDays();
   }
 
+  // Riepilogo leggibile di un passaggio con funzione della pentola elettrica ('' se non ne ha).
+  function potRiepilogo(s){ return (s && s.fn && typeof PotSettings !== 'undefined') ? PotSettings.riepilogo(s) : ''; }
   function recipeHasPressure(r){
-    return (r.steps || []).some(s => !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale')));
+    return (r.steps || []).some(s => !!(s.fn || s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale')));
   }
   function recipeHasRobot(r){
     return (r.steps || []).some(s => !!(s.vel || s.temp || (s.mode && s.mode !== 'Normale')));
@@ -2722,6 +2734,7 @@
     fServings.value = source ? (source.servings || 4) : 4;
     fTime.value = source ? (source.time || '') : '';
     fCookerType.value = source ? (source.cookerType || '') : '';
+    document.getElementById('f-pot-liters').value = source && source.potLiters ? String(source.potLiters) : '';
     fNotes.value = source ? (source.notes || '') : '';
     const sourceTags = source && source.tags ? source.tags : [];
     fTagsWrap.querySelectorAll('input[type="checkbox"]').forEach(cb=>{ cb.checked = sourceTags.includes(cb.value); });
@@ -2759,6 +2772,7 @@
 
     editOverlay.classList.add('active');
     formDirty = false;
+    aggiornaAvvisiPentola();
   }
 
   // Ridimensiona un canvas già pronto (foto ritagliata/ruotata) se supera la dimensione massima,
@@ -2952,11 +2966,63 @@
     ingredientsEditor.appendChild(wrap);
   }
 
-  function addStepRow(data){
+  // ---------- Passaggi: pentola a pressione elettrica ----------
+  const POT_ULTIMI_KEY = 'mc_ricettario_pentola_ultimi_v1'; // ultimi valori usati per funzione (solo comodità)
+  function potUltimi(){ try{ const v = JSON.parse(localStorage.getItem(POT_ULTIMI_KEY) || '{}'); return v && typeof v === 'object' ? v : {}; }catch(_){ return {}; } }
+  function potRicordaUltimi(steps){
+    try{
+      const u = potUltimi();
+      steps.forEach(st => { if(st.fn) u[st.fn] = { level: st.level, time: st.time, valve: st.valve, pressureRelease: st.pressureRelease, pressureReleaseMin: st.pressureReleaseMin, minLiquid: st.minLiquid, fillMax: st.fillMax }; });
+      localStorage.setItem(POT_ULTIMI_KEY, JSON.stringify(u));
+    }catch(_){}
+  }
+  const POT_ETICHETTA_LIVELLO = { bassa: 'Bassa', media: 'Media', alta: 'Alta' };
+  function potFnOptions(sel){
+    return '<option value="">— nessuna (solo testo) —</option>' + PotSettings.ORDINE_FUNZIONI.map(f =>
+      `<option value="${f}" ${sel === f ? 'selected' : ''}>${escapeHtml(PotSettings.FUNZIONI[f].label)}</option>`).join('');
+  }
+  // Legge un blocco passaggio del modulo come oggetto passaggio (usato per salvare e per duplicare).
+  function leggiPasso(block){
+    const q = sel => block.querySelector(sel);
+    const fn = q('.step-fn').value;
+    const oreVisibili = q('.step-hours-wrap').style.display !== 'none';
+    let time = q('.step-time').value;
+    if(oreVisibili){
+      const tot = (parseFloat(q('.step-hours').value) || 0) * 60 + (parseFloat(time) || 0);
+      time = tot ? String(Math.round(tot)) : '';
+    }
+    const st = {
+      text: q('.step-text').value.trim(),
+      vel: q('.step-vel').value,
+      temp: q('.step-temp').value,
+      time,
+      mode: q('.step-mode').value,
+      pressure: q('.step-pressure').value,
+      pressureUnit: q('.step-pressure-unit').value,
+      pressureRelease: q('.step-pressure-release').value,
+      pressureReleaseMin: q('.step-pressure-release-min').value,
+      minLiquid: q('.step-min-liquid').value,
+      airFryerTemp: q('.step-airfryer-temp').value,
+      airFryerPreheat: q('.step-airfryer-preheat').checked
+    };
+    if(fn){
+      st.fn = fn;
+      const lv = q('.step-level').value; if(lv) st.level = lv;
+      const vl = q('.step-valve').value; if(vl) st.valve = vl;
+      const fl = q('.step-fill').value; if(fl) st.fillMax = fl;
+      const acc = Array.from(block.querySelectorAll('.step-acc:checked')).map(c => c.value);
+      if(acc.length) st.accessories = acc;
+      if(!PotSettings.usaPressione(fn)){ st.pressureRelease = ''; st.pressureReleaseMin = ''; st.minLiquid = ''; } // campi che questa funzione non usa
+    }
+    return st;
+  }
+
+  function addStepRow(data, dopo){
     data = data || {text:'',vel:'',temp:'',time:'',mode:'Normale',pressure:'',pressureUnit:'bar',pressureRelease:'Naturale',pressureReleaseMin:'',minLiquid:'',airFryerTemp:'',airFryerPreheat:false};
     const hasRobotData = !!(data.vel || data.temp || (data.mode && data.mode !== 'Normale'));
-    const hasPressureData = !!(data.pressure || data.minLiquid || data.pressureReleaseMin || (data.pressureRelease && data.pressureRelease !== 'Naturale'));
+    const hasPressureData = !!(data.fn || data.pressure || data.minLiquid || data.pressureReleaseMin || (data.pressureRelease && data.pressureRelease !== 'Naturale'));
     const hasAirFryerData = !!(data.airFryerTemp || data.airFryerPreheat);
+    const accSel = Array.isArray(data.accessories) ? data.accessories : [];
     const block = document.createElement('div');
     block.className = 'step-block';
     block.innerHTML = `
@@ -2964,9 +3030,12 @@
       <div class="step-row-bottom">
         <div class="mini">Durata (min)<input type="number" class="step-time" min="0" value="${data.time ?? ''}"></div>
         <button type="button" class="robot-toggle-btn ${hasRobotData?'active':''}">🤖 Impostazioni robot</button>
-        <button type="button" class="pressure-toggle-btn ${hasPressureData?'active':''}">🍲 Impostazioni pentola a pressione</button>
-        <button type="button" class="airfryer-toggle-btn ${hasAirFryerData?'active':''}">🌀 Impostazioni friggitrice ad aria</button>
+        <button type="button" class="pressure-toggle-btn ${hasPressureData?'active':''}">🍲 Pentola a pressione</button>
+        <button type="button" class="airfryer-toggle-btn ${hasAirFryerData?'active':''}">🌀 Friggitrice ad aria</button>
         <div style="flex:1;"></div>
+        <button type="button" class="step-tool step-up" title="Sposta su" aria-label="Sposta il passaggio su">↑</button>
+        <button type="button" class="step-tool step-down" title="Sposta giù" aria-label="Sposta il passaggio giù">↓</button>
+        <button type="button" class="step-tool step-dup" title="Duplica passaggio" aria-label="Duplica il passaggio">⧉</button>
         <button class="remove-row" title="Rimuovi passaggio">×</button>
       </div>
       <div class="step-settings robot-settings" style="display:${hasRobotData?'flex':'none'};">
@@ -2982,23 +3051,45 @@
         </div>
       </div>
       <div class="step-settings pressure-settings" style="display:${hasPressureData?'flex':'none'};">
-        <div class="mini">Pressione<input type="number" class="step-pressure" min="0" step="0.1" value="${data.pressure ?? ''}"></div>
-        <div class="mini">Unità
+        <div class="mini pot-wide">Funzione<select class="step-fn" style="width:210px;">${potFnOptions(data.fn)}</select></div>
+        <div class="mini step-level-wrap">Livello<select class="step-level"></select></div>
+        <div class="mini step-hours-wrap" style="display:none;">Ore<input type="number" class="step-hours" min="0" max="48" value=""></div>
+        <div class="mini step-valve-wrap">Valvola
+          <select class="step-valve">
+            <option value="">—</option>
+            <option value="chiusa" ${data.valve==='chiusa'?'selected':''}>Chiusa</option>
+            <option value="sfiato" ${data.valve==='sfiato'?'selected':''}>Sfiato</option>
+          </select>
+        </div>
+        <div class="mini step-fill-wrap">Riempimento max
+          <select class="step-fill" style="width:92px;">
+            <option value="">—</option>
+            <option value="1/2" ${data.fillMax==='1/2'?'selected':''}>Metà</option>
+            <option value="2/3" ${data.fillMax==='2/3'?'selected':''}>Due terzi</option>
+          </select>
+        </div>
+        <div class="mini step-legacy-wrap" style="display:${data.pressure ? 'flex' : 'none'};">Pressione<input type="number" class="step-pressure" min="0" step="0.1" value="${data.pressure ?? ''}"></div>
+        <div class="mini step-legacy-wrap" style="display:${data.pressure ? 'flex' : 'none'};">Unità
           <select class="step-pressure-unit">
             <option value="bar" ${(!data.pressureUnit || data.pressureUnit==='bar')?'selected':''}>Bar</option>
             <option value="psi" ${data.pressureUnit==='psi'?'selected':''}>PSI</option>
             <option value="kpa" ${data.pressureUnit==='kpa'?'selected':''}>kPa</option>
           </select>
         </div>
-        <div class="mini">Rilascio
-          <select class="step-pressure-release">
+        <div class="mini step-release-wrap">Rilascio
+          <select class="step-pressure-release" style="width:96px;">
             <option ${(!data.pressureRelease || data.pressureRelease==='Naturale')?'selected':''}>Naturale</option>
             <option ${data.pressureRelease==='Rapido'?'selected':''}>Rapido</option>
             <option ${data.pressureRelease==='Misto'?'selected':''}>Misto</option>
           </select>
         </div>
-        <div class="mini step-release-min-wrap" style="display:${data.pressureRelease==='Rapido'?'none':'flex'};">Durata rilascio (min)<input type="number" class="step-pressure-release-min" min="0" value="${data.pressureReleaseMin ?? ''}"></div>
-        <div class="mini">Liquido minimo (ml)<input type="number" class="step-min-liquid" min="0" value="${data.minLiquid ?? ''}"></div>
+        <div class="mini step-release-min-wrap" style="display:${data.pressureRelease==='Rapido'?'none':'flex'};"><span class="step-release-min-label">Rilascio naturale (min)</span><input type="number" class="step-pressure-release-min" min="0" value="${data.pressureReleaseMin ?? ''}"></div>
+        <div class="mini step-liquid-wrap">Liquido minimo (ml)<input type="number" class="step-min-liquid" min="0" value="${data.minLiquid ?? ''}"></div>
+        <div class="step-acc-wrap pot-wide">
+          <span class="pot-acc-title">Accessori</span>
+          ${Object.keys(PotSettings.ACCESSORI).map(k => `<label class="pot-acc"><input type="checkbox" class="step-acc" value="${k}" ${accSel.includes(k)?'checked':''}> ${escapeHtml(PotSettings.ACCESSORI[k])}</label>`).join('')}
+        </div>
+        <div class="pot-wide pot-actions"><button type="button" class="btn-ghost btn-small step-reuse-btn">↺ Copia le impostazioni dal passaggio precedente</button></div>
       </div>
       <div class="step-settings airfryer-settings" style="display:${hasAirFryerData?'flex':'none'};">
         <div class="mini">Temp. °C<input type="number" class="step-airfryer-temp" min="0" max="230" value="${data.airFryerTemp ?? ''}"></div>
@@ -3007,31 +3098,133 @@
         </label>
       </div>
     `;
-    block.querySelector('.remove-row').addEventListener('click', ()=> block.remove());
-    block.querySelector('.robot-toggle-btn').addEventListener('click', (e)=>{
-      const panel = block.querySelector('.robot-settings');
+    const q = sel => block.querySelector(sel);
+    const fnSel = q('.step-fn'), lvSel = q('.step-level'), oreWrap = q('.step-hours-wrap'), oreIn = q('.step-hours'), timeIn = q('.step-time');
+    const mostra = (sel, on) => { block.querySelectorAll(sel).forEach(el => { el.style.display = on ? 'flex' : 'none'; }); };
+
+    // Mostra solo i campi che servono alla funzione scelta.
+    function adattaCampi(){
+      const fn = fnSel.value, inf = PotSettings.FUNZIONI[fn] || null;
+      const pres = !!inf && inf.gruppo === 'pressione';
+      const legacy = !!q('.step-pressure').value;
+      const livelli = inf ? inf.livelli : [];
+      const corrente = lvSel.value || data.level || '';
+      lvSel.innerHTML = '<option value="">—</option>' + livelli.map(l => `<option value="${l}" ${corrente === l ? 'selected' : ''}>${(inf.livelloEtichette || POT_ETICHETTA_LIVELLO)[l]}</option>`).join('');
+      mostra('.step-level-wrap', livelli.length > 0);
+      mostra('.step-valve-wrap', !!inf);
+      mostra('.step-fill-wrap', pres);
+      mostra('.step-acc-wrap', !!inf);
+      mostra('.step-release-wrap', pres || !inf);
+      mostra('.step-liquid-wrap', pres || !inf);
+      mostra('.step-legacy-wrap', !inf && legacy);
+      const rel = q('.step-pressure-release').value;
+      mostra('.step-release-min-wrap', (pres || !inf) && rel !== 'Rapido');
+      q('.step-release-min-label').textContent = rel === 'Misto' ? 'Naturale per (min), poi rapido' : 'Rilascio naturale (min)';
+      q('.pot-actions').style.display = inf ? 'flex' : 'none';
+    }
+    function oreVisibili(fn){ return fn === 'lenta' || fn === 'yogurt' || fn === 'caldo'; }
+    // Converte la durata fra «solo minuti» e «ore + minuti» quando si cambia funzione.
+    function impostaDurata(totale){
+      if(oreVisibili(fnSel.value)){
+        oreWrap.style.display = 'flex';
+        oreIn.value = totale >= 60 ? Math.floor(totale / 60) : '';
+        timeIn.value = totale ? (totale % 60 ? totale % 60 : (totale >= 60 ? '' : '')) : '';
+        q('.step-time').parentElement.firstChild.textContent = 'Minuti';
+      }else{
+        oreWrap.style.display = 'none';
+        oreIn.value = '';
+        timeIn.value = totale ? totale : '';
+        q('.step-time').parentElement.firstChild.textContent = 'Durata (min)';
+      }
+    }
+    function durataTotale(){ return Math.round((parseFloat(oreIn.value) || 0) * (oreWrap.style.display === 'none' ? 0 : 60) + (parseFloat(timeIn.value) || 0)); }
+    function applicaValori(v){
+      const tot = v.time !== undefined ? (parseFloat(v.time) || 0) : durataTotale();
+      if(v.level !== undefined) lvSel.value = v.level;
+      if(v.valve !== undefined) q('.step-valve').value = v.valve;
+      if(v.fillMax !== undefined) q('.step-fill').value = v.fillMax;
+      if(v.pressureRelease !== undefined) q('.step-pressure-release').value = v.pressureRelease;
+      if(v.pressureReleaseMin !== undefined) q('.step-pressure-release-min').value = v.pressureReleaseMin === null ? '' : v.pressureReleaseMin;
+      if(v.minLiquid !== undefined) q('.step-min-liquid').value = v.minLiquid;
+      impostaDurata(tot);
+      adattaCampi();
+    }
+
+    q('.remove-row').addEventListener('click', ()=>{ block.remove(); aggiornaAvvisiPentola(); });
+    q('.robot-toggle-btn').addEventListener('click', (e)=>{
+      const panel = q('.robot-settings');
       const showing = panel.style.display !== 'none';
       panel.style.display = showing ? 'none' : 'flex';
       e.currentTarget.classList.toggle('active', !showing);
     });
-    block.querySelector('.pressure-toggle-btn').addEventListener('click', (e)=>{
-      const panel = block.querySelector('.pressure-settings');
+    q('.pressure-toggle-btn').addEventListener('click', (e)=>{
+      const panel = q('.pressure-settings');
       const showing = panel.style.display !== 'none';
       panel.style.display = showing ? 'none' : 'flex';
       e.currentTarget.classList.toggle('active', !showing);
     });
-    block.querySelector('.airfryer-toggle-btn').addEventListener('click', (e)=>{
-      const panel = block.querySelector('.airfryer-settings');
+    q('.airfryer-toggle-btn').addEventListener('click', (e)=>{
+      const panel = q('.airfryer-settings');
       const showing = panel.style.display !== 'none';
       panel.style.display = showing ? 'none' : 'flex';
       e.currentTarget.classList.toggle('active', !showing);
     });
-    block.querySelector('.step-pressure-release').addEventListener('change', (e)=>{
-      const wrap = block.querySelector('.step-release-min-wrap');
-      wrap.style.display = e.target.value === 'Rapido' ? 'none' : 'flex';
+    q('.step-pressure-release').addEventListener('change', adattaCampi);
+    // Scelta rapida della funzione: propone valori sensati (o gli ultimi usati), sempre modificabili.
+    fnSel.addEventListener('change', ()=>{
+      const tot = durataTotale();
+      lvSel.value = '';
+      if(!fnSel.value){ impostaDurata(tot); adattaCampi(); aggiornaAvvisiPentola(); return; }
+      q('.pressure-toggle-btn').classList.add('active');
+      const v = PotSettings.valoriPredefiniti(fnSel.value, potUltimi()[fnSel.value]);
+      // i campi non previsti dalla funzione si svuotano, così non restano valori di una funzione precedente
+      const vuoti = { level: '', valve: '', fillMax: '', pressureRelease: 'Naturale', pressureReleaseMin: '', minLiquid: '' };
+      impostaDurata(tot);
+      adattaCampi();
+      applicaValori(Object.assign(vuoti, v));
+      aggiornaAvvisiPentola();
     });
-    stepsEditor.appendChild(block);
+    // Come l'ultimo passaggio con impostazioni: copia le impostazioni (non il testo).
+    q('.step-reuse-btn').addEventListener('click', ()=>{
+      let prev = block.previousElementSibling;
+      while(prev && !(prev.classList.contains('step-block') && prev.querySelector('.step-fn').value)) prev = prev.previousElementSibling;
+      if(!prev){ alert('Nessun passaggio precedente con impostazioni per la pentola.'); return; }
+      const st = leggiPasso(prev);
+      fnSel.value = st.fn;
+      impostaDurata(parseFloat(st.time) || 0);
+      adattaCampi();
+      applicaValori({ level: st.level || '', valve: st.valve || '', fillMax: st.fillMax || '', pressureRelease: st.pressureRelease || 'Naturale', pressureReleaseMin: st.pressureReleaseMin || '', minLiquid: st.minLiquid || '' });
+      block.querySelectorAll('.step-acc').forEach(c => { c.checked = (st.accessories || []).includes(c.value); });
+      formDirty = true; aggiornaAvvisiPentola();
+    });
+    q('.step-up').addEventListener('click', ()=>{ const p = block.previousElementSibling; if(p){ stepsEditor.insertBefore(block, p); formDirty = true; aggiornaAvvisiPentola(); } });
+    q('.step-down').addEventListener('click', ()=>{ const n = block.nextElementSibling; if(n){ stepsEditor.insertBefore(n, block); formDirty = true; aggiornaAvvisiPentola(); } });
+    q('.step-dup').addEventListener('click', ()=>{ const copia = addStepRow(leggiPasso(block), block); formDirty = true; copia.querySelector('.step-text').focus(); aggiornaAvvisiPentola(); });
+
+    if(dopo && dopo.nextSibling) stepsEditor.insertBefore(block, dopo.nextSibling); else stepsEditor.appendChild(block);
+    // stato iniziale (durata in ore + minuti per cottura lenta/yogurt/mantenimento)
+    adattaCampi();
+    if(oreVisibili(fnSel.value)) impostaDurata(parseFloat(data.time) || 0);
+    return block;
   }
+
+  // Avvisi non bloccanti sotto i passaggi (liquido minimo, riempimento, rilascio con legumi/cereali/latte…).
+  function aggiornaAvvisiPentola(){
+    const box = document.getElementById('pot-warnings');
+    if(!box) return;
+    const ricetta = {
+      potLiters: document.getElementById('f-pot-liters').value,
+      ingredients: Array.from(ingredientsEditor.querySelectorAll('.ingredient-block')).map(b => ({
+        name: b.querySelector('.ing-name').value.trim(), qty: parseFloat(b.querySelector('.ing-qty').value) || 0, unit: b.querySelector('.ing-unit').value.trim() })).filter(i => i.name),
+      steps: Array.from(stepsEditor.querySelectorAll('.step-block')).map(leggiPasso)
+    };
+    const lista = PotSettings.avvisi(ricetta);
+    box.innerHTML = lista.length ? lista.map(t => `<div class="pot-warning">⚠️ ${escapeHtml(t)}</div>`).join('') : '';
+    box.style.display = lista.length ? 'block' : 'none';
+  }
+  let avvisiTimer = null;
+  editOverlay.addEventListener('input', ()=>{ clearTimeout(avvisiTimer); avvisiTimer = setTimeout(aggiornaAvvisiPentola, 250); });
+  editOverlay.addEventListener('change', ()=>{ clearTimeout(avvisiTimer); avvisiTimer = setTimeout(aggiornaAvvisiPentola, 50); });
 
   document.getElementById('new-recipe-btn').addEventListener('click', ()=> openEdit(null));
   document.getElementById('add-ingredient').addEventListener('click', ()=> addIngredientRow());
@@ -3096,20 +3289,10 @@
       }
     }
 
-    const steps = Array.from(stepsEditor.querySelectorAll('.step-block')).map(block=>({
-      text: block.querySelector('.step-text').value.trim(),
-      vel: block.querySelector('.step-vel').value,
-      temp: block.querySelector('.step-temp').value,
-      time: block.querySelector('.step-time').value,
-      mode: block.querySelector('.step-mode').value,
-      pressure: block.querySelector('.step-pressure').value,
-      pressureUnit: block.querySelector('.step-pressure-unit').value,
-      pressureRelease: block.querySelector('.step-pressure-release').value,
-      pressureReleaseMin: block.querySelector('.step-pressure-release-min').value,
-      minLiquid: block.querySelector('.step-min-liquid').value,
-      airFryerTemp: block.querySelector('.step-airfryer-temp').value,
-      airFryerPreheat: block.querySelector('.step-airfryer-preheat').checked
-    })).filter(s=>s.text);
+    const steps = Array.from(stepsEditor.querySelectorAll('.step-block')).map(leggiPasso).filter(s=>s.text);
+    potRicordaUltimi(steps);
+    // usare una funzione della pentola elettrica implica il metodo «Elettrica», se non è già indicato
+    if(steps.some(s => s.fn) && !fCookerType.value) fCookerType.value = 'Elettrica';
 
     const tags = Array.from(fTagsWrap.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.value);
     const allergens = Array.from(fAllergensWrap.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.value);
@@ -3128,6 +3311,7 @@
       ricettarioId: document.getElementById('f-ricettario').value || DEFAULT_RICETTARIO_ID,
       servings: parseInt(fServings.value) || 1, time: parseInt(fTime.value) || 0,
       cookerType: fCookerType.value,
+      ...(document.getElementById('f-pot-liters').value ? { potLiters: Number(document.getElementById('f-pot-liters').value) } : {}),
       ingredients: finalIngredients, steps, tags, allergens, freezable, notes: fNotes.value.trim(),
       photo: currentPhotoData, favorite: existingExtra.favorite, lastMade: existingExtra.lastMade, timesMade: existingExtra.timesMade,
       nutrizioneUtente, archived: existingExtra.archived
@@ -3626,10 +3810,11 @@
 
     viewSteps.innerHTML = '';
     r.steps.forEach((s, idx)=>{
+      const potRiep = potRiepilogo(s); // passaggio con funzione della pentola elettrica
       const hasRobot = !!(s.vel || s.temp || (s.mode && s.mode !== 'Normale'));
-      const hasTime = !!s.time;
-      const hasPressure = !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale'));
-      const hasReleaseTimer = hasPressure && s.pressureRelease !== 'Rapido' && !!s.pressureReleaseMin;
+      const hasTime = !!s.time && !potRiep;
+      const hasPressure = !potRiep && !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale'));
+      const hasReleaseTimer = (hasPressure || (potRiep && PotSettings.usaPressione(s.fn))) && s.pressureRelease !== 'Rapido' && !!s.pressureReleaseMin;
       const unitLabel = {bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar';
       const div = document.createElement('div');
       div.className = 'view-step';
@@ -3642,6 +3827,11 @@
             ${s.temp?`<span>${escapeHtml(s.temp)}°C</span>`:''}
             ${s.mode && s.mode!=='Normale'?`<span>${escapeHtml(s.mode)}</span>`:''}
             ${hasTime?`<span><b>${escapeHtml(s.time)}</b> min</span><button class="step-timer-btn" data-minutes="${s.time}" data-display-key="${idx}-cook">▶ Timer</button><span class="step-timer-display" data-timer-display="${idx}-cook"></span>`:''}
+          </div>` : ''}
+          ${potRiep ? `<div class="step-meta pot-summary">
+            <span>🍲 (${escapeHtml(potRiep)})</span>
+            ${s.time?`<button class="step-timer-btn" data-minutes="${s.time}" data-display-key="${idx}-cook">▶ Timer ${escapeHtml(PotSettings.durata(s.time))}</button><span class="step-timer-display" data-timer-display="${idx}-cook"></span>`:''}
+            ${hasReleaseTimer?`<button class="step-timer-btn" data-minutes="${s.pressureReleaseMin}" data-display-key="${idx}-release">▶ Timer rilascio</button><span class="step-timer-display" data-timer-display="${idx}-release"></span>`:''}
           </div>` : ''}
           ${hasPressure ? `<div class="step-meta">
             ${s.pressure?`<span>🍲 <b>${escapeHtml(s.pressure)}</b> ${unitLabel}</span>`:''}
@@ -3930,14 +4120,16 @@
       ? `<div class="ps-chips"><span class="lbl">Contiene:</span>${r.allergens.map(a => `<span class="ps-chip allergen">${escapeHtml(a)}</span>`).join('')}</div>` : '';
     const steps = (r.steps || []).map((s, i) => {
       const meta = [];
+      const potR = potRiepilogo(s);
+      if(potR) meta.push('(' + potR + ')');
       if(s.vel) meta.push('Vel. ' + s.vel);
       if(s.temp) meta.push(s.temp + ' °C');
       if(s.mode && s.mode !== 'Normale') meta.push(s.mode);
-      if(s.time) meta.push(s.time + ' min');
-      if(s.pressure) meta.push('🍲 ' + s.pressure + ' ' + ({bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar'));
-      if(s.pressureRelease) meta.push('Rilascio: ' + s.pressureRelease);
-      if(s.minLiquid) meta.push('Liquido min. ' + s.minLiquid + ' ml');
-      if(s.pressureReleaseMin) meta.push(s.pressureReleaseMin + ' min rilascio');
+      if(s.time && !potR) meta.push(s.time + ' min');
+      if(!potR && s.pressure) meta.push('🍲 ' + s.pressure + ' ' + ({bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar'));
+      if(!potR && s.pressureRelease) meta.push('Rilascio: ' + s.pressureRelease);
+      if(!potR && s.minLiquid) meta.push('Liquido min. ' + s.minLiquid + ' ml');
+      if(!potR && s.pressureReleaseMin) meta.push(s.pressureReleaseMin + ' min rilascio');
       if(s.airFryerTemp) meta.push('🌀 ' + s.airFryerTemp + ' °C');
       return `<div class="ps-step"><div class="ps-num">${i + 1}</div><div class="t">${escapeHtml(s.text)}${meta.length ? `<div class="m">${meta.map(escapeHtml).join(' · ')}</div>` : ''}</div></div>`;
     }).join('');
@@ -4123,14 +4315,16 @@
       const wTesto = wl - (rN * 2 + 8);
       const passi = (r.steps || []).map((s, i) => {
         const meta = [];
+        const potR = potRiepilogo(s);
+        if(potR) meta.push('(' + potR + ')');
         if(s.vel) meta.push('Vel. ' + s.vel);
         if(s.temp) meta.push(s.temp + ' °C');
         if(s.mode && s.mode !== 'Normale') meta.push(s.mode);
-        if(s.time) meta.push(s.time + ' min');
-        if(s.pressure) meta.push(s.pressure + ' ' + ({bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar'));
-        if(s.pressureRelease) meta.push('Rilascio: ' + s.pressureRelease);
-        if(s.minLiquid) meta.push('Liquido min. ' + s.minLiquid + ' ml');
-        if(s.pressureReleaseMin) meta.push(s.pressureReleaseMin + ' min rilascio');
+        if(s.time && !potR) meta.push(s.time + ' min');
+        if(!potR && s.pressure) meta.push(s.pressure + ' ' + ({bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar'));
+        if(!potR && s.pressureRelease) meta.push('Rilascio: ' + s.pressureRelease);
+        if(!potR && s.minLiquid) meta.push('Liquido min. ' + s.minLiquid + ' ml');
+        if(!potR && s.pressureReleaseMin) meta.push(s.pressureReleaseMin + ' min rilascio');
         if(s.airFryerTemp) meta.push(s.airFryerTemp + ' °C (friggitrice)');
         const righe = pdfAvvolgi(s.text, sS, wTesto, false);
         const righeMeta = meta.length ? pdfAvvolgi(meta.join(' · '), S * 0.9, wTesto, false) : [];
@@ -6131,9 +6325,10 @@
     cookStepIngrEl.innerHTML = citati.map(i=>`<span>${escapeHtml(i.name)}<b>${escapeHtml(cookIngrLabel(i))}</b></span>`).join('');
     cookStepIngrEl.style.display = citati.length ? 'flex' : 'none';
     const hasRobot = s.vel || s.temp || (s.mode && s.mode !== 'Normale');
-    const hasPressure = !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale'));
+    const potR = potRiepilogo(s);
+    const hasPressure = potR ? PotSettings.usaPressione(s.fn) : !!(s.pressure || s.minLiquid || s.pressureReleaseMin || (s.pressureRelease && s.pressureRelease !== 'Naturale'));
     const unitLabel = {bar:'Bar', psi:'PSI', kpa:'kPa'}[s.pressureUnit] || 'Bar';
-    cookDial.innerHTML = (hasRobot || s.time || hasPressure) ? `
+    cookDial.innerHTML = potR ? `<span>🍲 ${escapeHtml(potR)}</span>` : (hasRobot || s.time || hasPressure) ? `
       ${s.vel?`<span>Velocità <b>${escapeHtml(s.vel)}</b></span>`:''}
       ${s.temp?`<span>${escapeHtml(s.temp)}°C</span>`:''}
       ${s.mode && s.mode!=='Normale'?`<span>${escapeHtml(s.mode)}</span>`:''}
@@ -6142,7 +6337,7 @@
       ${s.pressureRelease?`<span>Rilascio: ${escapeHtml(s.pressureRelease)}</span>`:''}
       ${s.minLiquid?`<span>Liquido min. <b>${escapeHtml(s.minLiquid)}</b> ml</span>`:''}
     ` : '';
-    cookDial.style.display = (hasRobot || s.time || hasPressure) ? 'flex' : 'none';
+    cookDial.style.display = (potR || hasRobot || s.time || hasPressure) ? 'flex' : 'none';
     cookTimerBtn.style.display = s.time ? 'inline-block' : 'none';
     cookTimerBtn.textContent = cookTimers.some(t => t.key === 'step-' + cookStepIndex && !t.done) ? 'Timer avviato ✓' : 'Avvia timer';
     cookTimerBtn.disabled = false;

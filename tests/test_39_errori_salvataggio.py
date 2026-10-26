@@ -29,7 +29,8 @@ async def run(page):
         prima = await snapshot(page)
         await page.evaluate(QUOTA, limite)
         msgs.clear()
-        await importa(page, backup_completo("N"))
+        grande = backup_completo("N"); grande["recipes"][0]["notes"] = "x" * 4000  # il backup deve occupare molto più dei margini simulati
+        await importa(page, grande)
         await page.locator("#import-dest-overlay.active").wait_for(timeout=5000)
         await page.click("#import-dest-ok")
         await page.locator("#confirm-ok-btn").wait_for(state="visible", timeout=4000)

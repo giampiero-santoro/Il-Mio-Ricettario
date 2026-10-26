@@ -1,0 +1,524 @@
+{
+  "raccolte": [
+    {
+      "id": "pp_raccolta_test",
+      "name": "Pentola a pressione - da testare"
+    }
+  ],
+  "recipes": [
+    {
+      "id": "pp_test_01",
+      "name": "Brodo di carne",
+      "category": "Zuppe & Vellutate",
+      "subcategory": "Zuppe di pesce e brodi",
+      "servings": 6,
+      "time": 300,
+      "cookerType": "Elettrica",
+      "potLiters": 6,
+      "ingredients": [
+        {
+          "name": "muscolo di manzo",
+          "qty": 600,
+          "unit": "g"
+        },
+        {
+          "name": "osso con midollo",
+          "qty": 400,
+          "unit": "g"
+        },
+        {
+          "name": "cipolla",
+          "qty": 1,
+          "unit": "pezzo"
+        },
+        {
+          "name": "carote",
+          "qty": 2,
+          "unit": "pezzo"
+        },
+        {
+          "name": "sedano (coste)",
+          "qty": 2,
+          "unit": "pezzo"
+        },
+        {
+          "name": "alloro",
+          "qty": 2,
+          "unit": "foglie"
+        },
+        {
+          "name": "pepe in grani",
+          "qty": 6,
+          "unit": "pezzo"
+        },
+        {
+          "name": "sale grosso",
+          "qty": 1,
+          "unit": "cucchiaino"
+        },
+        {
+          "name": "acqua",
+          "qty": 2,
+          "unit": "l"
+        }
+      ],
+      "steps": [
+        {
+          "text": "Metti nella pentola carne, ossa, cipolla tagliata a metà, carote, sedano, alloro, pepe e sale; versa l'acqua senza superare i due terzi della pentola."
+        },
+        {
+          "text": "Chiudi il coperchio con la valvola chiusa e cuoci in pressione; lascia sfiatare da sola fino alla fine.",
+          "fn": "zuppa",
+          "level": "alta",
+          "time": 60,
+          "valve": "chiusa",
+          "pressureRelease": "Naturale",
+          "minLiquid": 1500,
+          "fillMax": "2/3"
+        },
+        {
+          "text": "Apri, rimetti il coperchio con la valvola su sfiato e prosegui in cottura lenta bassa: il brodo diventa più limpido e saporito.",
+          "fn": "lenta",
+          "level": "bassa",
+          "time": 180,
+          "valve": "sfiato"
+        },
+        {
+          "text": "Filtra il brodo con un colino, sgrassalo quando è freddo e conservalo in frigo o in freezer. La carne si può servire con salsa verde."
+        }
+      ],
+      "tags": [],
+      "allergens": [
+        "Sedano"
+      ],
+      "freezable": true,
+      "notes": "Si può preparare anche in anticipo: dopo la cottura lenta si fredda, si sgrassa e si conserva.",
+      "raccolte": [
+        "pp_raccolta_test"
+      ]
+    },
+    {
+      "id": "pp_test_02",
+      "name": "Ceci senza ammollo",
+      "category": "Altro",
+      "subcategory": "Contorni e insalate",
+      "servings": 4,
+      "time": 100,
+      "cookerType": "Elettrica",
+      "potLiters": 6,
+      "ingredients": [
+        {
+          "name": "ceci secchi",
+          "qty": 400,
+          "unit": "g"
+        },
+        {
+          "name": "acqua",
+          "qty": 1200,
+          "unit": "ml"
+        },
+        {
+          "name": "aglio",
+          "qty": 2,
+          "unit": "spicchi"
+        },
+        {
+          "name": "alloro",
+          "qty": 2,
+          "unit": "foglie"
+        },
+        {
+          "name": "rosmarino",
+          "qty": 1,
+          "unit": "rametto"
+        },
+        {
+          "name": "olio extravergine di oliva",
+          "qty": 3,
+          "unit": "cucchiai"
+        },
+        {
+          "name": "sale",
+          "qty": 1,
+          "unit": "cucchiaino"
+        }
+      ],
+      "steps": [
+        {
+          "text": "Sciacqua bene i ceci sotto l'acqua corrente e mettili nella pentola con l'acqua, l'aglio, l'alloro e il rosmarino. Non salare ora."
+        },
+        {
+          "text": "Chiudi con valvola chiusa e cuoci i ceci ancora secchi; lascia sfiatare da sola fino alla fine.",
+          "fn": "fagioli",
+          "level": "alta",
+          "time": 45,
+          "valve": "chiusa",
+          "pressureRelease": "Naturale",
+          "minLiquid": 1000,
+          "fillMax": "1/2"
+        },
+        {
+          "text": "Apri, elimina aglio e rametti, aggiungi sale e olio e fai insaporire senza chiudere la valvola.",
+          "fn": "lenta",
+          "level": "alta",
+          "time": 30,
+          "valve": "sfiato"
+        },
+        {
+          "text": "Servi i ceci con un filo d'olio e pepe, oppure usali per zuppe, insalate e hummus."
+        }
+      ],
+      "tags": [
+        "Vegano",
+        "Senza glutine",
+        "Senza lattosio"
+      ],
+      "allergens": [],
+      "freezable": true,
+      "notes": "I legumi gonfiano e fanno schiuma: non superare mai la metà della pentola.",
+      "raccolte": [
+        "pp_raccolta_test"
+      ]
+    },
+    {
+      "id": "pp_test_03",
+      "name": "Risotto ai funghi porcini",
+      "category": "Primi",
+      "subcategory": "Risi e risotti",
+      "servings": 4,
+      "time": 35,
+      "cookerType": "Elettrica",
+      "potLiters": 6,
+      "ingredients": [
+        {
+          "name": "riso Carnaroli",
+          "qty": 320,
+          "unit": "g"
+        },
+        {
+          "name": "funghi porcini freschi",
+          "qty": 300,
+          "unit": "g"
+        },
+        {
+          "name": "acqua (per il vapore)",
+          "qty": 250,
+          "unit": "ml"
+        },
+        {
+          "name": "brodo vegetale",
+          "qty": 500,
+          "unit": "ml"
+        },
+        {
+          "name": "cipolla",
+          "qty": 0.5,
+          "unit": "pezzo"
+        },
+        {
+          "name": "vino bianco secco",
+          "qty": 80,
+          "unit": "ml"
+        },
+        {
+          "name": "olio extravergine di oliva",
+          "qty": 2,
+          "unit": "cucchiai"
+        },
+        {
+          "name": "burro",
+          "qty": 40,
+          "unit": "g"
+        },
+        {
+          "name": "parmigiano reggiano grattugiato",
+          "qty": 50,
+          "unit": "g"
+        },
+        {
+          "name": "prezzemolo",
+          "qty": 1,
+          "unit": "ciuffo"
+        },
+        {
+          "name": "sale",
+          "qty": 1,
+          "unit": "cucchiaino"
+        }
+      ],
+      "steps": [
+        {
+          "text": "Pulisci i porcini e tagliali a fette spesse; mettili nel cestello sopra 250 ml di acqua e cuoci a vapore: l'acqua resterà nella pentola e darà sapore.",
+          "fn": "vapore",
+          "time": 3,
+          "valve": "chiusa",
+          "pressureRelease": "Rapido",
+          "minLiquid": 250,
+          "accessories": [
+            "cestello"
+          ]
+        },
+        {
+          "text": "Togli cestello e funghi. Fai appassire la cipolla tritata con l'olio, poi tosta il riso 2 minuti e sfuma con il vino.",
+          "fn": "saute",
+          "level": "media",
+          "time": 5
+        },
+        {
+          "text": "Aggiungi il brodo caldo e metà dei porcini, mescola, chiudi con valvola chiusa e cuoci in pressione; rilascia il vapore subito.",
+          "fn": "riso",
+          "level": "alta",
+          "time": 5,
+          "valve": "chiusa",
+          "pressureRelease": "Rapido",
+          "minLiquid": 500,
+          "fillMax": "1/2"
+        },
+        {
+          "text": "Apri, rimetti i porcini rimasti e manteca con burro e parmigiano a fuoco dolce, mescolando fino alla cremosità giusta. Completa con prezzemolo.",
+          "fn": "saute",
+          "level": "bassa",
+          "time": 3
+        }
+      ],
+      "tags": [
+        "Vegetariano",
+        "Senza glutine"
+      ],
+      "allergens": [
+        "Latte",
+        "Anidride solforosa e solfiti"
+      ],
+      "freezable": false,
+      "notes": "Il risotto finisce in 5 minuti di pressione: il riso è un cereale ma qui il rilascio rapido evita che si sfaldi.",
+      "raccolte": [
+        "pp_raccolta_test"
+      ]
+    },
+    {
+      "id": "pp_test_04",
+      "name": "Brasato al vino rosso",
+      "category": "Secondi",
+      "subcategory": "Carne rossa (manzo, vitello, maiale)",
+      "servings": 6,
+      "time": 140,
+      "cookerType": "Elettrica",
+      "potLiters": 6,
+      "ingredients": [
+        {
+          "name": "cappello del prete di manzo",
+          "qty": 1.2,
+          "unit": "kg"
+        },
+        {
+          "name": "vino rosso corposo",
+          "qty": 500,
+          "unit": "ml"
+        },
+        {
+          "name": "brodo di carne",
+          "qty": 200,
+          "unit": "ml"
+        },
+        {
+          "name": "cipolla",
+          "qty": 1,
+          "unit": "pezzo"
+        },
+        {
+          "name": "carota",
+          "qty": 1,
+          "unit": "pezzo"
+        },
+        {
+          "name": "sedano (costa)",
+          "qty": 1,
+          "unit": "pezzo"
+        },
+        {
+          "name": "concentrato di pomodoro",
+          "qty": 1,
+          "unit": "cucchiaio"
+        },
+        {
+          "name": "olio extravergine di oliva",
+          "qty": 3,
+          "unit": "cucchiai"
+        },
+        {
+          "name": "alloro",
+          "qty": 2,
+          "unit": "foglie"
+        },
+        {
+          "name": "rosmarino",
+          "qty": 1,
+          "unit": "rametto"
+        },
+        {
+          "name": "patate",
+          "qty": 600,
+          "unit": "g"
+        },
+        {
+          "name": "sale",
+          "qty": 1,
+          "unit": "cucchiaino"
+        }
+      ],
+      "steps": [
+        {
+          "text": "Rosola la carne su ogni lato con l'olio finché è ben dorata, poi tienila da parte.",
+          "fn": "saute",
+          "level": "alta",
+          "time": 8
+        },
+        {
+          "text": "Nello stesso fondo cuoci cipolla, carota e sedano tritati con il concentrato, poi sfuma con il vino e fai evaporare l'alcol raschiando il fondo.",
+          "fn": "saute",
+          "level": "media",
+          "time": 6
+        },
+        {
+          "text": "Rimetti la carne, aggiungi brodo, alloro e rosmarino, chiudi con valvola chiusa e cuoci in pressione. Lascia sfiatare da sola 15 minuti, poi apri la valvola.",
+          "fn": "carne",
+          "level": "alta",
+          "time": 50,
+          "valve": "chiusa",
+          "pressureRelease": "Misto",
+          "pressureReleaseMin": 15,
+          "minLiquid": 250,
+          "fillMax": "2/3"
+        },
+        {
+          "text": "Apri, aggiungi le patate a spicchi e cuocile con pressione bassa in modo che restino intere; rilascio rapido.",
+          "fn": "pressione",
+          "level": "bassa",
+          "time": 4,
+          "valve": "chiusa",
+          "pressureRelease": "Rapido",
+          "minLiquid": 250
+        },
+        {
+          "text": "Lascia la carne nel suo sugo in pentola con il coperchio appoggiato prima di affettarla e servirla.",
+          "fn": "caldo",
+          "time": 30,
+          "valve": "sfiato"
+        }
+      ],
+      "tags": [],
+      "allergens": [
+        "Sedano",
+        "Anidride solforosa e solfiti"
+      ],
+      "freezable": true,
+      "notes": "Il vino rosso fa parte del liquido di cottura: non sostituirlo con acqua senza assaggiare e correggere di sale.",
+      "raccolte": [
+        "pp_raccolta_test"
+      ]
+    },
+    {
+      "id": "pp_test_05",
+      "name": "Cheesecake in pentola nella pentola",
+      "category": "Dolci",
+      "subcategory": "Torte e ciambelle",
+      "servings": 8,
+      "time": 110,
+      "cookerType": "Elettrica",
+      "potLiters": 6,
+      "ingredients": [
+        {
+          "name": "biscotti secchi (digestive)",
+          "qty": 150,
+          "unit": "g"
+        },
+        {
+          "name": "burro fuso",
+          "qty": 60,
+          "unit": "g"
+        },
+        {
+          "name": "formaggio fresco spalmabile",
+          "qty": 500,
+          "unit": "g"
+        },
+        {
+          "name": "yogurt greco",
+          "qty": 100,
+          "unit": "g"
+        },
+        {
+          "name": "uova",
+          "qty": 2,
+          "unit": "pezzo"
+        },
+        {
+          "name": "zucchero",
+          "qty": 100,
+          "unit": "g"
+        },
+        {
+          "name": "amido di mais",
+          "qty": 1,
+          "unit": "cucchiaio"
+        },
+        {
+          "name": "estratto di vaniglia",
+          "qty": 1,
+          "unit": "cucchiaino"
+        },
+        {
+          "name": "acqua",
+          "qty": 250,
+          "unit": "ml"
+        }
+      ],
+      "steps": [
+        {
+          "text": "Trita i biscotti, uniscili al burro fuso e premi la base in uno stampo springform da 16-18 cm rivestito di carta forno; metti in freezer 10 minuti."
+        },
+        {
+          "text": "Intiepidisci formaggio e yogurt a calore dolce per una crema più liscia, senza grumi.",
+          "fn": "yogurt",
+          "time": 20,
+          "valve": "sfiato"
+        },
+        {
+          "text": "Frusta formaggio e yogurt con zucchero, amido e vaniglia, aggiungi le uova una alla volta senza montare. Versa nello stampo e copri con alluminio, ben chiuso."
+        },
+        {
+          "text": "Versa 250 ml di acqua nella pentola, metti il trepiede e poggia lo stampo sul trepiede. Chiudi e cuoci a pressione bassa; lascia sfiatare 10 minuti, poi rilascia il resto.",
+          "fn": "dolci",
+          "level": "bassa",
+          "time": 35,
+          "valve": "chiusa",
+          "pressureRelease": "Naturale",
+          "pressureReleaseMin": 10,
+          "minLiquid": 250,
+          "accessories": [
+            "pentola-nella-pentola",
+            "trepiede",
+            "stampo",
+            "alluminio"
+          ]
+        },
+        {
+          "text": "Togli l'alluminio, lascia raffreddare a temperatura ambiente, poi in frigo almeno 6 ore prima di sformare."
+        }
+      ],
+      "tags": [
+        "Vegetariano"
+      ],
+      "allergens": [
+        "Glutine",
+        "Uova",
+        "Latte"
+      ],
+      "freezable": true,
+      "notes": "Lo stampo deve stare comodo nella pentola (16-18 cm per 6 L). L'acqua serve sotto lo stampo, non dentro la crema.",
+      "raccolte": [
+        "pp_raccolta_test"
+      ]
+    }
+  ]
+}

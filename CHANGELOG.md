@@ -2,6 +2,17 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.48.0] — Pentola a pressione elettrica: inserimento rapido
+
+### Aggiunto
+- **Funzione per passaggio** (Instant Pot): Pressione manuale, Sauté (basso/medio/alto), Cottura lenta (ore), Vapore, Mantenimento caldo, Yogurt e programmi Riso, Zuppa/Brodo, Fagioli, Carne/Stufato, Porridge, Dolci, con valori suggeriti modificabili. Nuovi campi facoltativi del passaggio: `fn`, `level`, `valve`, `fillMax`, `accessories`; campo ricetta `potLiters`. Nuovo `js/pot-settings.js` (modulo puro, con test in Node).
+- Editor: duplica, sposta su/giù, «copia le impostazioni dal passaggio precedente», ultimi valori ricordati per funzione, avvisi non bloccanti (liquido minimo, riempimento stimato, rilascio naturale per legumi/cereali/pasta/latte/panna/farine), metodo «Elettrica» impostato in automatico.
+- Riepilogo leggibile del passaggio nella scheda, nel PDF A4, nella stampa e in cucina guidata, con timer di cottura e di rilascio.
+- `esempi/ricette-pentola-pressione-prova.json`: 5 ricette di prova nella raccolta «Pentola a pressione - da testare». Test 41.
+
+### Compatibilità
+- Nessun campo esistente cambia: i passaggi con `pressure`, `pressureRelease`, `minLiquid` si vedono come prima. I passaggi senza `fn` restano solo testo. Il CSV non porta le impostazioni della pentola (come prima).
+
 ## [5.47.0] — Importazione sicura dei backup e gestione degli errori di salvataggio
 
 ### Corretto

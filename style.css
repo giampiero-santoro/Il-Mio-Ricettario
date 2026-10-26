@@ -1641,3 +1641,20 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 
 .ps-sheet.ps-tight .ps-steps{column-count:2;column-gap:8mm;}
 .ps-sheet.ps-tight .ps-main{flex:2.4;}
+
+/* ---------- Pentola a pressione elettrica: editor passaggi e riepilogo ---------- */
+.step-tool{width:30px;height:30px;border-radius:8px;border:1px solid var(--line, #d9d4c7);background:var(--card, #fff);color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0;}
+.step-tool:hover{background:var(--sage-soft);}
+.pressure-settings .pot-wide{flex:1 1 100%;}
+.pressure-settings .step-acc-wrap{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;}
+.pot-acc-title{font-size:12px;font-weight:600;color:var(--ink-soft);margin-right:4px;}
+.pot-acc{display:inline-flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;}
+.pot-acc input{width:auto;margin:0;}
+.pot-warnings{margin:8px 0 2px;}
+.pot-warning{background:#fff4e0;border:1px solid #f0cf94;color:#6b4a0a;border-radius:8px;padding:6px 10px;font-size:13px;line-height:1.4;margin-bottom:5px;}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .pot-warning{background:#3a2e12;border-color:#6b5420;color:#f1d9a0;} }
+:root[data-theme="dark"] .pot-warning{background:#3a2e12;border-color:#6b5420;color:#f1d9a0;}
+.step-meta.pot-summary span{font-weight:500;}
+.pot-acc{font-weight:400;}
+.pressure-settings .step-valve{width:112px;}
+.pressure-settings .step-fill{width:112px !important;}
