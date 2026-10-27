@@ -2,6 +2,10 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.49.1] — Guida pentola: correzioni
+
+- Altitudine scritta per esteso («300 metri», «600 metri»); fonti con link; nota sul marchio «Instant Pot» (nessuna affiliazione).
+
 ## [5.49.0] — Guida alla pentola a pressione elettrica
 
 ### Aggiunto
