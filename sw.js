@@ -1,7 +1,7 @@
 /* Il Mio Ricettario - service worker (uso offline). Cambia VERSION ad ogni release. */
-const VERSION = 'ricettario-5.48.0';
+const VERSION = 'ricettario-5.49.0';
 const PRECACHE = ['./', 'index.html', 'style.css', 'css/bulma.css', 'js/app.js', 'js/off-integration.js', 'js/nutrition-import.js', 'js/backup-import.js', 'js/pot-settings.js', 'js/vendor/html5-qrcode.min.js', 'fonts/fonts.css',
-  'manifest.json', 'guida.html', 'img/icon-192.png', 'img/icon-512.png', 'img/apple-touch-icon.png', 'img/favicon-32.png'];
+  'manifest.json', 'guida.html', 'guida-pentola.html', 'img/icon-192.png', 'img/icon-512.png', 'img/apple-touch-icon.png', 'img/favicon-32.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => Promise.all(PRECACHE.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));

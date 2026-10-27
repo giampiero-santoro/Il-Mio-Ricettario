@@ -157,6 +157,12 @@
     return v > 0 ? v : 6;
   }
 
+  /** Liquido minimo indicato dal produttore (Instant Pot): 3 L = 250 ml, 6 L = 375 ml, 8 L = 500 ml. */
+  function liquidoMinimoMl(ricetta){
+    const c = capacitaLitri(ricetta);
+    return c <= 3.5 ? 250 : (c <= 6.5 ? 375 : 500);
+  }
+
   /** Elenco di avvisi (testi) per la ricetta o per il modulo in modifica. */
   function avvisi(ricetta){
     const out = [];
@@ -168,8 +174,11 @@
     passi.forEach((s, idx) => {
       const n = idx + 1;
       if(!info(s.fn) || !usaPressione(s.fn)) return;
+      const minProd = liquidoMinimoMl(ricetta);
       if(!(Number(s.minLiquid) > 0)){
-        out.push(`Passaggio ${n}: manca il liquido minimo (la pentola a pressione ne richiede, in genere almeno 250 ml).`);
+        out.push(`Passaggio ${n}: manca il liquido minimo (per una pentola da ${capacitaLitri(ricetta)} L il produttore indica almeno ${minProd} ml).`);
+      }else if(Number(s.minLiquid) < minProd){
+        out.push(`Passaggio ${n}: il liquido minimo indicato (${s.minLiquid} ml) è sotto quello del produttore per una pentola da ${capacitaLitri(ricetta)} L (${minProd} ml): con troppo poco liquido compare l'errore «Burn».`);
       }
       const max = s.fillMax === '1/2' ? 0.5 : (s.fillMax === '2/3' ? 2 / 3 : 0);
       if(max && stima > cap * max){
@@ -185,7 +194,7 @@
     return out;
   }
 
-  const API = { FUNZIONI, ORDINE_FUNZIONI, PREDEFINITI, ACCESSORI, VALVOLE, RIEMPIMENTO, usaPressione, valoriPredefiniti, durata, riepilogo, avvisi, stimaLiquidiMl, capacitaLitri, testoRilascio };
+  const API = { FUNZIONI, ORDINE_FUNZIONI, PREDEFINITI, ACCESSORI, VALVOLE, RIEMPIMENTO, usaPressione, valoriPredefiniti, durata, riepilogo, avvisi, stimaLiquidiMl, capacitaLitri, liquidoMinimoMl, testoRilascio };
   if(typeof module !== 'undefined' && module.exports) module.exports = API;
   root.PotSettings = API;
 })(typeof window !== 'undefined' ? window : globalThis);

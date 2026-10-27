@@ -2,7 +2,7 @@
 
 Elenco di tutti i file che devono essere caricati insieme su GitHub perché il sito funzioni correttamente. Non tiene uno storico delle versioni precedenti — la cronologia delle modifiche è già in [CHANGELOG.md](CHANGELOG.md); questo file mostra solo **la situazione attuale**, e va sovrascritto ogni volta che cambia l'elenco dei file coinvolti.
 
-**Versione corrente: 5.48.0**
+**Versione corrente: 5.49.0**
 
 ## File essenziali (senza uno di questi il sito non parte, o parte con funzioni mancanti)
 
@@ -10,6 +10,7 @@ Elenco di tutti i file che devono essere caricati insieme su GitHub perché il s
 |---|---|
 | `index.html` | La struttura delle pagine del sito |
 | `guida.html` | Guida illustrata con screenshot (aperta dall'icona ? e dalla scheda in «Oggi»; contiene le immagini al suo interno) |
+| `guida-pentola.html` | Guida approfondita alla pentola a pressione elettrica (tabelle, schemi, sicurezza; offline) |
 | `style.css` | Tutto lo stile grafico del sito (barra laterale, card, i sei temi di colore) |
 | `css/bulma.css`, `css/LICENSE-bulma-MIT.txt` | Parti del framework Bulma 1.0 (prefisso `bulma-`, licenza MIT) usate in locale per colori dei temi e alcuni componenti |
 | `js/app.js` | Tutta la logica dell'app (ricette, dispensa, pianificazione, lista spesa, backup, temi) |

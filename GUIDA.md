@@ -464,3 +464,7 @@ No: funziona meglio con pagine di ricette che includono dati strutturati (la mag
 
 **Posso aggiungere altre categorie o altri tag dietetici?**
 Le categorie e i tag disponibili sono fissi nel codice. Se vuoi personalizzarli, puoi modificare gli elenchi nel file `index.html` (cerca `CATEGORY_COLORS` per le categorie delle ricette, `PANTRY_CATEGORY_COLORS` per quelle della Dispensa, e `TAG_OPTIONS` per i tag dietetici). Le **fasce pasto** della pianificazione, invece, si possono già aggiungere e rimuovere direttamente dall'app, senza toccare il codice.
+
+
+## Guida alla pentola a pressione — dalla 5.49.0
+La pagina `guida-pentola.html` (menu «Guida pentola a pressione», o link nel modulo ricetta) raccoglie tabelle di cottura, regole per adattare le ricette, sicurezza e manutenzione e l'uso del ricettario con la pentola. I tempi sono indicativi: vale il manuale del tuo modello.

@@ -66,6 +66,7 @@ TEST_MODULES = [
     "test_39_errori_salvataggio",
     "test_40_file_collegato_sicuro",
     "test_41_pentola_pressione",
+    "test_42_guida_pentola",
 ]
 
 

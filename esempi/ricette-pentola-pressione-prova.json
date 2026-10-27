@@ -253,7 +253,7 @@
           "time": 3,
           "valve": "chiusa",
           "pressureRelease": "Rapido",
-          "minLiquid": 250,
+          "minLiquid": 375,
           "accessories": [
             "cestello"
           ]
@@ -387,7 +387,7 @@
           "valve": "chiusa",
           "pressureRelease": "Misto",
           "pressureReleaseMin": 15,
-          "minLiquid": 250,
+          "minLiquid": 375,
           "fillMax": "2/3"
         },
         {
@@ -397,7 +397,7 @@
           "time": 4,
           "valve": "chiusa",
           "pressureRelease": "Rapido",
-          "minLiquid": 250
+          "minLiquid": 375
         },
         {
           "text": "Lascia la carne nel suo sugo in pentola con il coperchio appoggiato prima di affettarla e servirla.",
@@ -494,7 +494,7 @@
           "valve": "chiusa",
           "pressureRelease": "Naturale",
           "pressureReleaseMin": 10,
-          "minLiquid": 250,
+          "minLiquid": 375,
           "accessories": [
             "pentola-nella-pentola",
             "trepiede",

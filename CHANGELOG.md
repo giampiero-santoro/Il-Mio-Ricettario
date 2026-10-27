@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.49.0] — Guida alla pentola a pressione elettrica
+
+### Aggiunto
+- Nuova pagina `guida-pentola.html`, offline e nello stesso stile della guida illustrata: funzioni, liquido e riempimento, rilascio, accessori, tabelle di cottura (legumi, cereali, carne, verdure, uova), come adattare le ricette, sicurezza e manutenzione, uso nel ricettario (campi JSON), fonti e avvertenze. Schemi in SVG.
+- Collegamenti: voce di menu «Guida pentola a pressione», link nel modulo ricetta (accanto alla capacità) e nella guida illustrata. Test 42.
+
+### Modificato
+- Avviso sul liquido minimo allineato al produttore: 3 L = 250 ml, 6 L = 375 ml, 8 L = 500 ml (avviso anche se il valore indicato è inferiore). Ricette di prova aggiornate a 375 ml.
+
 ## [5.48.0] — Pentola a pressione elettrica: inserimento rapido
 
 ### Aggiunto

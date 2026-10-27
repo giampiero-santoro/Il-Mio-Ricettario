@@ -1,0 +1,144 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guida alla pentola a pressione - Il Mio Ricettario</title>
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{--bg:#F4F8F2;--surface:#FFFFFF;--sage:#36723E;--sage-soft:#E2F4E4;--terra:#D84831;--terra-ink:#922B1C;--text:#1F281A;--text2:#5D6D55;--border:#DEE6DA}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:17px/1.65 "DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px 80px}
+header.hero{padding:56px 0 28px}
+header.hero .kicker{color:var(--terra-ink);font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:13px}
+h1,h2,h3{font-family:Lora,Georgia,serif;line-height:1.25;margin:0}
+h1{font-size:42px;margin:8px 0 12px}
+h2{font-size:30px;margin:0 0 16px;padding-top:6px}
+h3{font-size:21px;margin:28px 0 8px}
+.lead{color:var(--text2);font-size:19px;max-width:640px}
+nav.toc{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 26px;margin:20px 0 40px}
+nav.toc strong{font-family:Lora,serif;font-size:19px}
+nav.toc ol{columns:2;column-gap:32px;margin:10px 0 0;padding-left:20px;list-style:none}
+nav.toc li{margin:4px 0;break-inside:avoid}
+nav.toc a{color:var(--sage);text-decoration:none;font-weight:500}
+nav.toc a:hover{text-decoration:underline}
+section{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:30px 32px;margin:0 0 28px}
+p{margin:0 0 14px}
+ul{padding-left:22px} li{margin:6px 0}
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:16px 0}
+ol.steps li{counter-increment:s;position:relative;padding:4px 0 4px 44px;margin:8px 0}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:2px;width:30px;height:30px;border-radius:50%;background:var(--sage);color:#fff;font-weight:600;display:flex;align-items:center;justify-content:center;font-size:15px}
+figure{margin:20px 0}
+figure img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--border);box-shadow:0 6px 22px rgba(40,50,40,.10)}
+figcaption{text-align:center;color:var(--text2);font-size:14px;margin-top:8px}
+.phones{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.phones figure{flex:0 1 220px;margin:0}
+.phones figure img{border-radius:22px;border:6px solid #2d322d;box-shadow:0 8px 22px rgba(40,50,40,.2)}
+.tip,.note{border-radius:14px;padding:12px 16px;margin:18px 0;font-size:16px}
+.tip{background:var(--sage-soft);border-left:5px solid var(--sage)}
+.note{background:#F6E6DD;border-left:5px solid var(--terra)}
+.lbl{display:block;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.tip .lbl{color:var(--sage)} .note .lbl{color:var(--terra-ink)}
+footer{text-align:center;color:var(--text2);font-size:14px;padding-top:12px}
+@media (max-width:640px){h1{font-size:32px} h2{font-size:25px} section{padding:22px 18px} nav.toc ol{columns:1} .phones figure{flex-basis:46%}}
+@media print{body{background:#fff;font-size:12pt} section{border:none;padding:0;break-inside:auto;page-break-before:always} section:first-of-type{page-break-before:auto} figure,.tip,.note{break-inside:avoid} nav.toc{display:none} figure img{box-shadow:none}}
+
+.topnav{position:sticky;top:0;z-index:10;background:rgba(245,241,232,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--border)}
+.topnav .in{max-width:860px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.topnav a{color:var(--sage);font-weight:600;text-decoration:none;font-size:15px}
+.topnav a:hover{text-decoration:underline}
+.topnav .t{font-family:Lora,Georgia,serif;color:var(--text2);font-size:15px}
+@media print{.topnav{display:none}}
+
+table{width:100%;border-collapse:collapse;margin:14px 0 6px;font-size:15px}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--sage-soft);font-weight:700}
+.tw{overflow-x:auto;margin:6px 0 18px}
+.tw table{min-width:560px}
+td.n{white-space:nowrap}
+code,pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px}
+pre{background:#F1F5EE;border:1px solid var(--border);border-radius:12px;padding:12px 14px;overflow-x:auto;line-height:1.5}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+.src li{font-size:15px}
+@media print{.tw{overflow:visible}.tw table{min-width:0}}
+</style></head><body>
+<div class="topnav"><div class="in"><a href="index.html" id="back-link">← Torna al ricettario</a><span class="t">Guida alla pentola a pressione</span></div></div>
+<script>document.getElementById('back-link').addEventListener('click',function(e){if(location.protocol==='blob:'||window.opener){e.preventDefault();window.close();}});</script>
+<div class="wrap">
+<header class="hero"><div class="kicker">Guida approfondita</div><h1>La pentola a pressione elettrica</h1>
+<p class="lead">Come funziona una pentola tipo Instant Pot, con tabelle di cottura, regole per adattare le tue ricette, sicurezza e manutenzione, e come usarla al meglio nel ricettario. Funziona anche senza connessione.</p></header>
+<div class="note"><span class="lbl">Importante</span>I tempi sono <b>indicativi</b>: variano con modello, pezzatura, temperatura di partenza e altitudine. Controlla sempre il <b>manuale del tuo modello</b>: in caso di differenze, vale il manuale.</div>
+<nav class="toc"><strong>Cosa trovi qui</strong><ol><li><a href="#inizio">1. Per iniziare</a></li><li><a href="#funzioni">2. Funzioni e programmi</a></li><li><a href="#liquido">3. Liquido e riempimento</a></li><li><a href="#rilascio">4. Rilascio della pressione</a></li><li><a href="#accessori">5. Accessori e pentola nella pentola</a></li><li><a href="#tabelle">6. Tabelle di cottura</a></li><li><a href="#adattare">7. Adattare le ricette</a></li><li><a href="#sicurezza">8. Sicurezza e manutenzione</a></li><li><a href="#ricettario">9. Usarla nel ricettario</a></li><li><a href="#fonti">10. Fonti e avvertenze</a></li></ol></nav>
+<section id="inizio"><h2>1. Per iniziare</h2>
+<p>La pentola a pressione elettrica chiude ermeticamente il coperchio e scalda il liquido: il vapore non esce, la pressione sale e la temperatura supera i 100 °C. Per questo cuoce in circa <b>un terzo del tempo</b> di una pentola normale. Fa tutto da sola: rosola, cuoce a pressione, mantiene in caldo.</p>
+<ol class="steps"><li>Metti nella pentola interna ingredienti e <b>liquido</b> (mai sotto il minimo, vedi sezione 3).</li><li>Chiudi il coperchio e porta la <b>valvola in posizione «chiusa»</b>.</li><li>Scegli funzione, livello di pressione e minuti. Dopo qualche minuto la pentola raggiunge la pressione e <b>inizia il conto alla rovescia</b>.</li><li>A fine cottura scegli il <b>rilascio</b> (sezione 4).</li><li>Apri il coperchio solo quando il perno di sicurezza è sceso.</li></ol>
+<div class="tip"><span class="lbl">Suggerimento</span>Il tempo di avvio (da 5 a 20 minuti) dipende da quanto cibo e liquido c’è nella pentola: non è compreso nei minuti della ricetta.</div></section>
+<section id="funzioni"><h2>2. Funzioni e programmi</h2>
+<div class="tw"><table><thead><tr><th>Funzione</th><th>A cosa serve</th><th>Valori tipici</th></tr></thead><tbody><tr><td>Rosolatura (Sauté)</td><td>Soffritti, rosolare la carne, sfumare</td><td>bassa / media / alta, con coperchio aperto</td></tr><tr><td>Pressione manuale</td><td>Cottura a pressione scelta da te</td><td>alta o bassa, da 1 a 240 min</td></tr><tr><td>Cottura lenta</td><td>Come una slow cooker, valvola su sfiato</td><td>bassa o alta, 3–10 h</td></tr><tr><td>Vapore</td><td>Verdure, pesce, uova, con cestello</td><td>1–10 min, rilascio rapido</td></tr><tr><td>Mantenimento in caldo</td><td>Tiene in temperatura a fine cottura</td><td>fino a 10 h</td></tr><tr><td>Yogurt</td><td>Fermentazione a temperatura controllata</td><td>8–10 h</td></tr><tr><td>Riso, Zuppa/Brodo, Fagioli, Carne/Stufato, Porridge, Dolci</td><td>Programmi preimpostati con tempo e pressione suggeriti</td><td>modificabili</td></tr></tbody></table></div>
+<p>Il livello <b>alto</b> è quello normale per quasi tutto; il <b>basso</b> è per cibi delicati (uova, pesce, verdure molli, dolci a base di uova).</p>
+<figure><svg viewBox="0 0 520 170" role="img" aria-label="Posizioni della valvola: chiusa e sfiato"><title>Valvola</title>
+<g font-family="DM Sans,sans-serif" font-size="14" fill="#1F281A">
+<rect x="30" y="50" width="200" height="70" rx="12" fill="#fff" stroke="#36723E" stroke-width="3"/><circle cx="130" cy="42" r="14" fill="#36723E"/><text x="130" y="145" text-anchor="middle">Chiusa (Sealing)</text><text x="130" y="90" text-anchor="middle">pressione, vapore</text>
+<rect x="290" y="50" width="200" height="70" rx="12" fill="#fff" stroke="#D84831" stroke-width="3"/><circle cx="390" cy="42" r="14" fill="#fff" stroke="#D84831" stroke-width="3"/><path d="M382 34 q-8 -14 0 -22 M390 32 q-8 -14 0 -22 M398 34 q-8 -14 0 -22" stroke="#D84831" fill="none" stroke-width="2"/><text x="390" y="145" text-anchor="middle">Sfiato (Venting)</text><text x="390" y="90" text-anchor="middle">rosolatura, lenta, caldo</text></g></svg><figcaption>La valvola: chiusa per cuocere a pressione, in sfiato per rosolare o per la cottura lenta.</figcaption></figure></section>
+<section id="liquido"><h2>3. Liquido e riempimento</h2>
+<p>Il vapore si forma solo con del liquido sottile (acqua, brodo, vino, succo, sugo allungato). Con troppo poco liquido compare l’errore <b>«Burn»</b> e la cottura si ferma.</p>
+<div class="tw"><table><thead><tr><th>Capacità</th><th>Liquido minimo (produttore)</th><th>Riempimento massimo</th><th>Massimo per alimenti che si espandono</th></tr></thead><tbody><tr><td>3 L (3 Qt)</td><td>250 ml</td><td>2/3 ≈ 2 L</td><td>1/2 ≈ 1,5 L</td></tr><tr><td>6 L (6 Qt)</td><td>375 ml</td><td>2/3 ≈ 4 L</td><td>1/2 ≈ 3 L</td></tr><tr><td>8 L (8 Qt)</td><td>500 ml</td><td>2/3 ≈ 5,3 L</td><td>1/2 ≈ 4 L</td></tr></tbody></table></div>
+<p>Dalle indicazioni del produttore: <b>3 L = 250 ml, 6 L = 375 ml, 8 L = 500 ml</b>. Alcune guide di cucina riportano valori più piccoli (mezza tazza, una tazza, due tazze): per prudenza il ricettario usa quelli del produttore.</p>
+<figure><svg viewBox="0 0 560 260" role="img" aria-label="Livelli di riempimento della pentola: liquido minimo, metà, due terzi"><title>Livelli di riempimento</title>
+<rect x="20" y="20" width="220" height="220" rx="14" fill="#fff" stroke="#36723E" stroke-width="3"/>
+<rect x="22" y="130" width="216" height="108" rx="12" fill="#E2F4E4"/>
+<rect x="22" y="94" width="216" height="36" fill="#F6E6DD" opacity=".7"/>
+<line x1="20" y1="94" x2="240" y2="94" stroke="#D84831" stroke-width="2.5" stroke-dasharray="7 5"/>
+<line x1="20" y1="130" x2="240" y2="130" stroke="#36723E" stroke-width="2.5" stroke-dasharray="7 5"/>
+<line x1="20" y1="212" x2="240" y2="212" stroke="#5D6D55" stroke-width="2" stroke-dasharray="3 4"/>
+<g font-size="14" font-family="DM Sans,sans-serif"><text x="252" y="92" fill="#922B1C">2/3 – massimo in generale</text>
+<text x="252" y="128" fill="#36723E">1/2 – legumi, cereali, schiuma</text>
+<text x="252" y="216" fill="#5D6D55">liquido minimo</text>
+<text x="130" y="180" fill="#1F281A" text-anchor="middle" font-size="15">cibo + liquido</text>
+<text x="130" y="50" fill="#5D6D55" text-anchor="middle" font-size="13">spazio per il vapore</text></g></svg><figcaption>Mai oltre i 2/3 della pentola; 1/2 per ciò che si gonfia o fa schiuma.</figcaption></figure>
+<div class="note"><span class="lbl">Attenzione</span>Salse dense (pomodoro, panna, farina, amido) contano <b>poco come liquido</b> e tendono ad attaccarsi: mettile sopra senza mescolare, oppure aggiungile dopo la pressione.</div></section>
+<section id="rilascio"><h2>4. Rilascio della pressione</h2>
+<figure><svg viewBox="0 0 640 230" role="img" aria-label="Tre tipi di rilascio della pressione"><title>Rilascio della pressione</title>
+<g font-family="DM Sans,sans-serif" font-size="14" fill="#1F281A">
+<text x="10" y="40">Rapido</text><rect x="120" y="22" width="150" height="26" rx="6" fill="#36723E"/><text x="125" y="40" fill="#fff">cottura</text><rect x="270" y="22" width="22" height="26" rx="6" fill="#D84831"/><text x="300" y="40" fill="#5D6D55">sfiato subito</text>
+<text x="10" y="100">Naturale</text><rect x="120" y="82" width="150" height="26" rx="6" fill="#36723E"/><text x="125" y="100" fill="#fff">cottura</text><rect x="270" y="82" width="260" height="26" rx="6" fill="#E2F4E4" stroke="#36723E"/><text x="278" y="100" fill="#1F281A">la pressione scende da sola (10–20 min)</text>
+<text x="10" y="160">Misto</text><rect x="120" y="142" width="150" height="26" rx="6" fill="#36723E"/><text x="125" y="160" fill="#fff">cottura</text><rect x="270" y="142" width="90" height="26" rx="6" fill="#E2F4E4" stroke="#36723E"/><text x="278" y="160">N minuti</text><rect x="360" y="142" width="22" height="26" rx="6" fill="#D84831"/><text x="392" y="160" fill="#5D6D55">poi sfiato</text></g>
+<text x="120" y="205" font-size="13" fill="#5D6D55" font-family="DM Sans,sans-serif">Il tempo di cottura non comprende il tempo per arrivare in pressione, né il rilascio.</text></svg><figcaption>Rapido, naturale o misto: la scelta cambia il risultato.</figcaption></figure>
+<div class="tw"><table><thead><tr><th>Rilascio</th><th>Come</th><th>Quando</th></tr></thead><tbody><tr><td>Rapido</td><td>Porti la valvola su sfiato (con la mano lontana dal vapore)</td><td>Verdure, pesce, uova, riso al dente, cotture brevi</td></tr><tr><td>Naturale</td><td>Aspetti che la pressione scenda da sola</td><td>Legumi, cereali, brodi, carni grandi, tutto ciò che schiuma o è liquido e denso</td></tr><tr><td>Misto</td><td>Naturale per N minuti, poi rapido</td><td>Pasta, carni medie: carne succosa senza aspettare troppo</td></tr></tbody></table></div>
+<p>Con legumi, cereali, pasta, latte, panna e farina il rilascio rapido può far <b>schizzare schiuma</b> dalla valvola. Il ricettario te lo segnala con un avviso.</p></section>
+<section id="accessori"><h2>5. Accessori e pentola nella pentola</h2>
+<ul><li><b>Cestello / vaporiera</b>: tiene il cibo sopra l’acqua, per vapore e uova.</li><li><b>Trepiede</b>: rialza stampi e ciotole dal fondo.</li><li><b>Stampo (es. springform)</b>: per cheesecake e torte, 15–18 cm per pentole da 6 L.</li><li><b>Pentola nella pentola</b>: ciotola dentro la pentola, con acqua sul fondo; per riso, creme, dolci.</li><li><b>Alluminio</b>: copri lo stampo per evitare che goccioli condensa.</li></ul>
+<div class="tip"><span class="lbl">Suggerimento</span>Con il metodo pentola nella pentola serve comunque il liquido minimo sul fondo.</div></section>
+<section id="tabelle"><h2>6. Tabelle di cottura</h2>
+<p>Valori a <b>pressione alta</b> e <b>valvola chiusa</b>, salvo diversa indicazione. I minuti sono solo il tempo a pressione.</p>
+<h3>Legumi</h3><div class="tw"><table><thead><tr><th>Alimento</th><th>Ammollo / stato</th><th>Minuti (pressione alta)</th><th>Rilascio</th></tr></thead><tbody><tr><td>Ceci secchi</td><td>non ammollati</td><td>35–45</td><td>Naturale 15–20 min</td></tr><tr><td>Ceci secchi</td><td>ammollati 8–12 h</td><td>12–18</td><td>Naturale 15 min</td></tr><tr><td>Fagioli (cannellini, borlotti, neri, rossi)</td><td>non ammollati</td><td>25–30</td><td>Naturale 15–20 min</td></tr><tr><td>Fagioli</td><td>ammollati</td><td>8–12</td><td>Naturale 15 min</td></tr><tr><td>Lenticchie brune / verdi</td><td>non ammollate</td><td>8–15</td><td>Naturale 10 min</td></tr><tr><td>Lenticchie rosse decorticate</td><td>non ammollate</td><td>3–6</td><td>Naturale 10 min</td></tr><tr><td>Piselli secchi spezzati</td><td>non ammollati</td><td>6–10</td><td>Naturale 15 min</td></tr></tbody></table></div><h3>Cereali e pasta</h3><div class="tw"><table><thead><tr><th>Alimento</th><th>Rapporto cereale : acqua</th><th>Minuti</th><th>Rilascio</th></tr></thead><tbody><tr><td>Riso basmati / bianco</td><td>1 : 1</td><td>3–5 (bassa o alta)</td><td>Naturale 10 min</td></tr><tr><td>Riso integrale</td><td>1 : 1,25</td><td>22–25</td><td>Naturale 10 min</td></tr><tr><td>Farro perlato</td><td>1 : 2</td><td>10–12</td><td>Naturale 10 min</td></tr><tr><td>Orzo perlato</td><td>1 : 2,5</td><td>20–25</td><td>Naturale 10 min</td></tr><tr><td>Quinoa (sciacquata)</td><td>1 : 1,25</td><td>1–2</td><td>Naturale 10 min</td></tr><tr><td>Avena in fiocchi grossi / steel cut</td><td>1 : 3 / 1 : 3,5</td><td>3–4 / 10</td><td>Naturale 10 min</td></tr><tr><td>Pasta corta</td><td>liquido appena a filo</td><td>metà del tempo in confezione, meno 1–2</td><td>Misto: naturale 3–5 min, poi rapido</td></tr></tbody></table></div><h3>Carne, pollo e pesce</h3><div class="tw"><table><thead><tr><th>Alimento</th><th>Pezzatura</th><th>Minuti</th><th>Rilascio</th></tr></thead><tbody><tr><td>Spezzatino di manzo</td><td>cubetti 3–4 cm</td><td>30–40</td><td>Naturale 10–15 min</td></tr><tr><td>Brasato / arrosto di manzo</td><td>pezzo da 1–1,5 kg</td><td>60–75</td><td>Naturale 15–20 min</td></tr><tr><td>Pulled pork (spalla di maiale)</td><td>pezzi da 5–6 cm</td><td>60–75</td><td>Naturale 15–20 min</td></tr><tr><td>Costine di maiale</td><td>a sezioni</td><td>25–30</td><td>Naturale 10 min</td></tr><tr><td>Agnello stufato</td><td>cubetti</td><td>35–40</td><td>Naturale 15 min</td></tr><tr><td>Pollo intero</td><td>1,5 kg circa</td><td>25–30</td><td>Naturale 10–15 min</td></tr><tr><td>Cosce di pollo</td><td>con osso</td><td>10–12</td><td>Naturale 5–10 min</td></tr><tr><td>Petto di pollo</td><td>intero</td><td>8–10</td><td>Naturale 5–10 min</td></tr><tr><td>Brodo di carne / ossa</td><td>ossa e polpa</td><td>60–120</td><td>Naturale</td></tr><tr><td>Brodo di pollo</td><td>carcassa</td><td>30–45</td><td>Naturale</td></tr><tr><td>Filetti di pesce</td><td>su cestello</td><td>2–4</td><td>Rapido</td></tr><tr><td>Gamberi</td><td>con o senza guscio</td><td>1–2</td><td>Rapido</td></tr></tbody></table></div><h3>Verdure</h3><div class="tw"><table><thead><tr><th>Alimento</th><th>Pezzatura</th><th>Minuti</th><th>Rilascio</th></tr></thead><tbody><tr><td>Patate a cubetti</td><td>2–3 cm</td><td>4–5</td><td>Rapido</td></tr><tr><td>Patate intere medie</td><td>su cestello</td><td>12–15</td><td>Rapido</td></tr><tr><td>Carote a rondelle</td><td>1 cm</td><td>2–3</td><td>Rapido</td></tr><tr><td>Zucca a cubetti</td><td>3 cm</td><td>4–5</td><td>Rapido</td></tr><tr><td>Barbabietole intere</td><td>medie</td><td>20–25</td><td>Naturale 5–10 min</td></tr><tr><td>Pannocchie</td><td>intere</td><td>3–4</td><td>Rapido</td></tr><tr><td>Fagiolini, cavolfiore, broccoli</td><td>a pezzi, al vapore</td><td>0–3</td><td>Rapido</td></tr><tr><td>Asparagi</td><td>interi</td><td>0–1</td><td>Rapido</td></tr></tbody></table></div><h3>Uova</h3><div class="tw"><table><thead><tr><th>Cottura</th><th>Programma</th><th>Rilascio, poi bagno</th></tr></thead><tbody><tr><td>Uova sode «5‑5‑5»</td><td>5 min a pressione alta, su trepiede con una tazza d’acqua</td><td>5 min naturale, poi 5 min in acqua e ghiaccio</td></tr><tr><td>Uova alla coque</td><td>3 min</td><td>rapido, poi subito in acqua e ghiaccio</td></tr></tbody></table></div>
+<div class="note"><span class="lbl">Da sapere</span>In quota aggiungi circa il <b>5% di tempo ogni 300 m</b> sopra i 600 m di altitudine.</div></section>
+<section id="adattare"><h2>7. Adattare le ricette</h2>
+<ol class="steps"><li><b>Tempo</b>: parti da circa un terzo del tempo tradizionale, poi aggiusta.</li><li><b>Liquido</b>: poco, ma almeno il minimo. Non evapora, quindi riduci i liquidi della ricetta originale.</li><li><b>Sapori delicati dopo</b>: erbe fresche, latticini, panna e uova a fine cottura; la pressione li rovina.</li><li><b>Addensanti dopo</b>: farina, amido e salse dense si aggiungono dopo, con rosolatura.</li><li><b>Verdure tenere in due tempi</b>: carni e radici prima, verdure delicate dopo.</li><li><b>Quantità</b>: raddoppiare gli ingredienti non raddoppia il tempo, cambia solo l’avvio; il liquido minimo resta lo stesso, ma non superare 2/3.</li><li><b>Fondo pulito</b>: sfuma con liquido e stacca ogni residuo prima della pressione, per evitare «Burn».</li></ol><div class="tw"><table><thead><tr><th>Ricetta tradizionale</th><th>Pentola a pressione</th><th>Cosa cambia</th></tr></thead><tbody><tr><td>Brasato 2,5–3 h in casseruola</td><td>60–75 min + rilascio naturale</td><td>Liquido: solo 1–2 tazze, quasi non evapora</td></tr><tr><td>Stufato di manzo 1,5–2 h</td><td>30–40 min</td><td>Verdure tenere aggiunte dopo, con una seconda cottura breve</td></tr><tr><td>Ceci o fagioli ammollati 1–2 h</td><td>12–18 min (ammollati)</td><td>Niente sale all’inizio per i legumi con buccia dura; olio per ridurre la schiuma</td></tr><tr><td>Risotto 18–20 min</td><td>6–8 min + 1 min di mantecatura</td><td>Riso rosolato, brodo caldo, rilascio rapido</td></tr><tr><td>Brodo 3–4 h</td><td>60–90 min</td><td>Acqua appena sopra gli ingredienti, non oltre il livello massimo</td></tr></tbody></table></div></section>
+<section id="sicurezza"><h2>8. Sicurezza e manutenzione</h2>
+<h3>Sicurezza</h3>
+<ul><li>Non aprire mai il coperchio se il perno è alto: la pentola è in pressione.</li><li>Tieni mani e viso lontani dallo sfiato durante il rilascio rapido.</li><li>Rispetta <b>liquido minimo</b> e <b>riempimento massimo</b>.</li><li>Controlla che la <b>valvola</b> e lo <b>scudo antiblocco</b> siano puliti e liberi prima di ogni uso.</li><li>Non friggere con olio profondo e non usare il coperchio a pressione per friggere.</li><li>Con cibi schiumosi (legumi, cereali, mele, rabarbaro, pasta) usa il rilascio naturale e riempi al massimo a metà.</li><li>Se qualcosa non va (perdite di vapore dal coperchio, errore ripetuto), spegni e lascia scendere la pressione prima di intervenire.</li></ul>
+<h3>Manutenzione</h3>
+<ul><li><b>Anello di tenuta</b>: controlla che sia ben inserito; sostituiscilo quando è allentato, crepato o troppo impregnato di odori. Le indicazioni vanno da <b>12–18 a 18–24 mesi</b> a seconda della fonte: se noti perdite, cambialo prima.</li><li>Usa anelli separati per cibi salati e dolci, per evitare di trasferire gli odori.</li><li>Lava coperchio, anello e pentola interna dopo l’uso; smonta valvola e scudo antiblocco e sciacqua.</li><li>La pentola interna in acciaio va in lavastoviglie; <b>la base con la resistenza non si bagna mai</b>.</li><li>Asciuga tutto prima di rimontare.</li></ul></section>
+<section id="ricettario"><h2>9. Usarla nel ricettario</h2>
+<p>Sotto ogni passaggio c’è il pulsante <b>«🍲 Pentola a pressione»</b>. Scegli la funzione e il ricettario propone <b>valori predefiniti</b> modificabili: pressione, minuti, rilascio, valvola, liquido minimo, riempimento massimo e accessori.</p>
+<ul><li><b>Duplica</b> e <b>sposta</b> i passaggi con i pulsanti accanto ad ognuno; <b>«↺ Copia le impostazioni dal passaggio precedente»</b> riusa gli ultimi valori.</li><li><b>Capacità</b>: scegli 3, 6 o 8 litri nella ricetta; gli avvisi la usano.</li><li><b>Avvisi non bloccanti</b>: liquido minimo mancante o sotto il valore del produttore, riempimento stimato oltre il massimo, rilascio rapido con legumi, cereali, pasta, latte, panna o farina.</li><li><b>Riepilogo</b> leggibile in scheda, PDF, stampa e modalità cucina, per esempio «pressione alta 20 min, rilascio naturale 10 min, liquido min 375 ml».</li><li>Un passaggio senza impostazioni resta un normale testo.</li></ul>
+<h3>Ricette di prova</h3>
+<p>Il file <a href="esempi/ricette-pentola-pressione-prova.json" download>ricette-pentola-pressione-prova.json</a> contiene 5 ricette (brodo, ceci, risotto, brasato, cheesecake) nella raccolta «Pentola a pressione - da testare». Importalo da <b>Importa ricette → Da file</b>.</p>
+<h3>JSON in blocco</h3>
+<p>Per generare molte ricette, ogni passaggio può avere questi campi, tutti facoltativi:</p>
+<pre>{"text": "…",
+ "fn": "fagioli",          // saute|pressione|lenta|vapore|caldo|yogurt|riso|zuppa|fagioli|carne|porridge|dolci
+ "level": "alta",          // bassa|media|alta
+ "time": 25,               // minuti
+ "valve": "chiusa",        // chiusa|sfiato
+ "pressureRelease": "Naturale",   // Naturale|Rapido|Misto
+ "pressureReleaseMin": 10, // minuti di naturale nel Misto
+ "minLiquid": 375,         // ml
+ "fillMax": "1/2",         // 1/2|2/3
+ "accessories": ["trepiede"]}</pre>
+<p>Sulla ricetta, <code>potLiters</code> può essere 3, 6 o 8 e <code>cookerType</code> «Elettrica».</p>
+<div class="tip"><span class="lbl">Suggerimento</span>Metti le ricette in una <b>raccolta</b> (per esempio «Pentola a pressione») per ritrovarle con un filtro.</div></section>
+<section id="fonti"><h2>10. Fonti e avvertenze</h2>
+<p>Valori raccolti da guide di cucina a pressione e dalle FAQ del produttore, poi uniti in forma indicativa. Le fonti non sempre concordano (per esempio sul liquido minimo e sulla sostituzione dell’anello): per questo trovi i valori del produttore e un’avvertenza.</p>
+<ul class="src"><li>Instant Pot, FAQ sul liquido minimo e sull’uso (instantpot.com)</li><li>Hip Pressure Cooking, tempi di cottura per legumi, cereali e carni</li><li>Pressure Cook Recipes, guide ai tempi</li><li>Piping Pot Curry, guida alla pentola e alla manutenzione</li><li>ChefIQ, guide sul rilascio della pressione</li></ul>
+<p>Questa guida non sostituisce il manuale del tuo modello. Per la tua sicurezza, in dubbio segui sempre le istruzioni del produttore.</p></section>
+<footer>Il Mio Ricettario · Clan Destino · Giampiero Santoro</footer></div></body></html>

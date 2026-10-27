@@ -1658,3 +1658,7 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 .pot-acc{font-weight:400;}
 .pressure-settings .step-valve{width:112px;}
 .pressure-settings .step-fill{width:112px !important;}
+
+.field-hint{margin-top:6px;font-size:14px}
+.field-hint a{color:var(--sage,#36723E);font-weight:600;text-decoration:none}
+.field-hint a:hover{text-decoration:underline}
