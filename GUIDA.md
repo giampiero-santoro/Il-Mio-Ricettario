@@ -158,6 +158,8 @@ Entrambi compaiono nella scheda della ricetta come etichette colorate (gli aller
 
 ## PDF A4 orizzontale (senza stampante)
 
+Quando il PDF contiene più ricette, si apre con la **copertina**, poi l'**indice suddiviso per categoria** con i numeri di pagina; ogni pagina porta in alto, in un riquadro, la scritta **«pag. N»**.
+
 Dal menu **Esporta ▾** della scheda, **"📄 PDF A4 orizzontale"** scarica direttamente un file PDF, senza passare dalla stampante. La ricetta ha lo stesso impianto della scheda: titolo e procedimento a sinistra, **ingredienti in alto a destra a partire dal margine alto del foglio** (sotto, valori nutrizionali e foto), senza menu né pulsanti come "Modifica". I margini sono quelli predefiniti (10 mm; 8 mm nel layout a due colonne).
 
 **Layout del PDF.** Quando esporti più ricette ti viene chiesto come: **una ricetta per pagina** (il carattere si riduce da solo finché la ricetta sta in un foglio) oppure **due colonne con più ricette per foglio** (caratteri piccoli, le ricette brevi si impilano nella colonna). La scelta resta come predefinita.

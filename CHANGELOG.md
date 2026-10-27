@@ -2,6 +2,13 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.50.0] — PDF A4 orizzontale: copertina, indice e «pag. N» in carattere macchina da scrivere
+
+### Modificato
+- PDF di più ricette: **copertina** (titolo grande e firma a destra, timbro al centro), **indice all'inizio suddiviso per categoria** con i numeri di pagina, e in ogni pagina un riquadro in alto al centro con **«pag. N»** (mai «n°»).
+- Copertina, riquadro, titolo dell'indice e firma in **Special Elite** (Apache 2.0), incorporato nel PDF; timbro più grande in basso a destra e firma più grande, come nel foglio di riferimento. Spazio in basso aumentato per il timbro.
+- Credito e licenza di Special Elite in «Note legali e crediti». Nuova nota: progetto amatoriale creato con l'aiuto dell'intelligenza artificiale.
+
 ## [5.49.1] — Guida pentola: correzioni
 
 - Altitudine scritta per esteso («300 metri», «600 metri»); fonti con link; nota sul marchio «Instant Pot» (nessuna affiliazione).

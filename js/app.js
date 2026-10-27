@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.49.1';
+  const VERSIONE_APP = '5.50.0';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -4224,7 +4224,11 @@
     const M = colonne ? 22.7 : 28.35;               // 8 mm / 10 mm
     const GAP = colonne ? 25.5 : 34;                // spazio tra le due colonne di pagina / tra testo e ingredienti
     const FW = colonne ? (PW - 2 * M - GAP) / 2 : PW - 2 * M;   // larghezza di un riquadro di impaginazione
-    const FH = PH - 2 * M;
+    const libro = lista.length > 1;          // più ricette: copertina, indice per categoria e numeri di pagina
+    const MBOT = 62;                          // margine in basso: lascia posto al piè di pagina (firma e timbro)
+    const FH = PH - M - MBOT;
+    const AUTORE_PDF = 'Giampiero Santoro';
+    const inizioPag = [];
     const foto = new Map();
     for(const r of lista){ if(r.photo) foto.set(r.id, await pdfPreparaFoto(r.photo)); }
 
@@ -4418,12 +4422,13 @@
       const corta = b.sinistra.length <= 14 && b.hS < FH * 0.7;
       if(!colonne || fi < 0) nuovoRiquadro();
       else{
-        const resto = y - M;
+        const resto = y - MBOT;
         const serve = Math.max(b.hS, b.hD);
         if(serve > resto && (corta || resto < 110)) nuovoRiquadro();
       }
       let x0 = xRiquadro(), yInizio = y;
-      if(b.hD > y - M){ nuovoRiquadro(); x0 = xRiquadro(); yInizio = y; }
+      if(b.hD > y - MBOT){ nuovoRiquadro(); x0 = xRiquadro(); yInizio = y; }
+      inizioPag[ri] = Math.floor(fi / perPagina);
       // colonna di destra dal margine alto del blocco
       let yd = yInizio; const xd = x0 + FW - b.wr;
       b.destra.forEach(it => { it.draw(xd, yd); yd -= it.h; });
@@ -4432,38 +4437,140 @@
       let xs = x0, ys = yInizio, primo = true;
       const fiInizio = fi;
       b.sinistra.forEach(it => {
-        if(ys - it.h < M && !primo){ nuovoRiquadro(); xs = xRiquadro(); ys = y; }
+        if(ys - it.h < MBOT && !primo){ nuovoRiquadro(); xs = xRiquadro(); ys = y; }
         it.draw(xs, ys); ys -= it.h; primo = false;
       });
       y = (fi === fiInizio) ? Math.min(ys, fineDestra) : ys;
       if(colonne){
         y -= 7;
-        if(ri < lista.length - 1 && y > M + 20){
+        if(ri < lista.length - 1 && y > MBOT + 20){
           cmd(`q ${pdfColore('#b9c4b9')} RG 0.6 w [3 3] 0 d ${xRiquadro()} ${y + 3.5} m ${xRiquadro() + FW} ${y + 3.5} l S Q`);
           y -= 7;
         }
       }
     });
 
+    // ---------- copertina, indice per categoria, numeri di pagina e piè di pagina ----------
+    // Carattere «macchina da scrivere» (Special Elite) incorporato nel file; senza, ripiega su Courier.
+    const EL = window.PDF_FONT_ELITE || null;
+    const FE = EL ? 'F5' : 'F3';
+    const eMis = (str, size) => {
+      if(!EL) return String(str).length * 0.6 * size;
+      let w = 0;
+      for(const ch of String(str)){ const c = ch.codePointAt(0); w += (c >= 32 && c <= 255) ? EL.w[c - 32] : 556; }
+      return w * size / 1000;
+    };
+    // timbro: l'immagine del logo ad alta risoluzione (con ripiego sul piccolo JPEG incorporato)
+    let logoIm = { w: PDF_LOGO_W, h: PDF_LOGO_H, data: atob(PDF_LOGO_JPEG_B64) };
+    try{
+      const im = new Image(); im.src = 'img/logo-clan-destino.png'; await im.decode();
+      const cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+      const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(im, 0, 0);
+      logoIm = { w: cv.width, h: cv.height, data: atob(cv.toDataURL('image/jpeg', 0.92).split(',')[1]) };
+    }catch(e){ /* resta il logo piccolo */ }
+    const LOGO_IDX = immagini.push(logoIm) - 1;
+    const Tx = (arr, font, size, x, y, str, col) => arr.push(`BT /${font} ${size.toFixed(2)} Tf ${pdfColore(col || '#1f2a22')} rg 1 0 0 1 ${x.toFixed(2)} ${y.toFixed(2)} Tm (${pdfSanitizeText(str)}) Tj ET`);
+    const piede = arr => {
+      // firma e timbro in basso a destra (stesse misure del foglio di riferimento)
+      const sz = 12, lg = 43, xL = PW - 16 - lg;
+      Tx(arr, FE, sz, xL - 2 - eMis(AUTORE_PDF, sz), 21, AUTORE_PDF, '#000000');
+      arr.push(`q ${lg} 0 0 ${lg} ${xL.toFixed(2)} 16 cm /Im${LOGO_IDX} Do Q`);
+    };
+    let anteprima = [];
+    let nPagIndice = 0;
+    if(libro){
+      // copertina: titolo grande a destra, firma sotto, timbro al centro
+      const idLibri = [...new Set(lista.map(recipeRicettarioId))];
+      let titolo = idLibri.length === 1 ? ricettarioName(idLibri[0]) : 'Il mio ricettario';
+      if(titolo.trim().toLowerCase() === 'il mio ricettario') titolo = 'Il mio ricettario';
+      const cop = [];
+      const sT = Math.min(82, (PW - 2 * 54) / Math.max(eMis(titolo, 1), 1));
+      Tx(cop, FE, sT, PW - 53 - eMis(titolo, sT), PH - 155, titolo, '#000000');
+      Tx(cop, FE, 31.5, PW - 55 - eMis(AUTORE_PDF, 31.5), PH - 203, AUTORE_PDF, '#000000');
+      cop.push(`q 200 0 0 200 ${((PW - 200) / 2).toFixed(2)} 60 cm /Im${LOGO_IDX} Do Q`);
+      // indice all'inizio: per categoria, con le ricette e il numero di pagina
+      const gruppi = new Map();
+      lista.forEach((r, i) => { if(!gruppi.has(r.category)) gruppi.set(r.category, []); gruppi.get(r.category).push(i); });
+      const voci = [];
+      gruppi.forEach((idx, cat) => { voci.push({ cat: true, t: cat }); idx.forEach(i => voci.push({ t: lista[i].name, i, di: cat })); });
+      const GAPI = 40, CW = (PW - 2 * M - GAPI) / 2, Y0 = PH - M - 62;
+      let pg = 0, col = 0, yy = Y0;
+      const posizionate = [];
+      voci.forEach(v => {
+        const h = v.cat ? 28 : 16, serve = h + (v.cat ? 16 : 0);
+        if(yy - serve < MBOT){
+          col++; if(col === 2){ col = 0; pg++; } yy = Y0;
+          // categoria che continua nella colonna o pagina successiva: ripete l'intestazione
+          if(!v.cat){ const hc = { cat: true, t: v.di + ' (segue)', pg, col, y: yy }; yy -= 28; posizionate.push(hc); }
+        }
+        v.pg = pg; v.col = col; v.y = yy; yy -= h; posizionate.push(v);
+      });
+      voci.length = 0; posizionate.forEach(v => voci.push(v));
+      nPagIndice = pg + 1;
+      const numero = i => nPagIndice + 2 + i;      // copertina = pag. 1, indice da pag. 2
+      const indici = [];
+      for(let k = 0; k < nPagIndice; k++){
+        const arr = []; indici.push(arr);
+        Tx(arr, FE, 34, M, PH - M - 40, 'Indice', '#000000');
+        arr.push(`q ${pdfColore('#cfd6cf')} RG 0.8 w ${M} ${PH - M - 54} m ${PW - M} ${PH - M - 54} l S Q`);
+      }
+      voci.forEach(v => {
+        const arr = indici[v.pg], x = M + v.col * (CW + GAPI);
+        if(v.cat){ Tx(arr, 'F2', 14, x, v.y - 19, v.t, '#2f5a35'); return; }
+        const pgTxt = 'pag. ' + (inizioPag[v.i] + nPagIndice + 2);
+        const wP = pdfMisura(pgTxt, 11, false);
+        let nome = v.t;
+        while(nome.length > 3 && pdfMisura(nome, 11, false) > CW - 10 - wP - 16) nome = nome.slice(0, -1);
+        if(nome !== v.t) nome = nome.trimEnd() + '...';
+        const base = v.y - 12, wN = pdfMisura(nome, 11, false);
+        Tx(arr, 'F1', 11, x + 10, base, nome);
+        Tx(arr, 'F1', 11, x + CW - wP, base, pgTxt, '#5a645d');
+        arr.push(`q ${pdfColore('#9aa39b')} RG 0.7 w 1 J [0.1 3] 0 d ${(x + 10 + wN + 5).toFixed(2)} ${(base + 1.5).toFixed(2)} m ${(x + CW - wP - 5).toFixed(2)} ${(base + 1.5).toFixed(2)} l S Q`);
+      });
+      indici.forEach((arr, k) => { numeroPagina(arr, k + 2); piede(arr); });
+      anteprima = [cop, ...indici];
+      pagine.forEach((arr, i) => numeroPagina(arr, numero(i)));
+    }
+    // numero di pagina: «pag. N» in un riquadro in alto al centro, in carattere macchina da scrivere
+    function numeroPagina(arr, n){
+      const t = 'pag. ' + n;
+      const sz = colonne ? 11 : 20, h = colonne ? 17 : 29, top = colonne ? 3 : 5;
+      const w = eMis(t, sz), bw = Math.max(colonne ? 46 : 79, w + 16), x0 = (PW - bw) / 2;
+      arr.push(`q 0 0 0 RG 0.75 w ${x0.toFixed(2)} ${(PH - top - h).toFixed(2)} ${bw.toFixed(2)} ${h} re S Q`);
+      Tx(arr, FE, sz, (PW - w) / 2, PH - top - h + (colonne ? 5 : 6), t, '#000000');
+    }
+    pagine.forEach(arr => piede(arr));
+    const tuttePagine = anteprima.concat(pagine);
+
     // assemblaggio del file PDF
     const oggetti = [];
-    let id = 5;
+    let id = 7;
+    const idFE = EL ? id : 0;
+    if(EL) id += 3;
     const idImm = [];
     const uniche = [...new Set(immagini)];
     uniche.forEach(im => { idImm.push(id++); });
     const idPag = [], idCont = [];
-    pagine.forEach(() => { idPag.push(id++); idCont.push(id++); });
+    tuttePagine.forEach(() => { idPag.push(id++); idCont.push(id++); });
     oggetti[1] = '<< /Type /Catalog /Pages 2 0 R >>';
-    oggetti[2] = `<< /Type /Pages /Kids [${idPag.map(n => n + ' 0 R').join(' ')}] /Count ${pagine.length} >>`;
+    oggetti[2] = `<< /Type /Pages /Kids [${idPag.map(n => n + ' 0 R').join(' ')}] /Count ${tuttePagine.length} >>`;
     oggetti[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
     oggetti[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+    oggetti[5] = '<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>';
+    oggetti[6] = '<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold /Encoding /WinAnsiEncoding >>';
+    if(EL){
+      const bin = atob(EL.b64);
+      oggetti[idFE] = { isStream: true, extra: `/Length1 ${bin.length}`, data: bin };
+      oggetti[idFE + 1] = `<< /Type /FontDescriptor /FontName /SpecialElite /Flags 32 /FontBBox [${EL.bbox.join(' ')}] /ItalicAngle 0 /Ascent ${EL.asc} /Descent ${EL.desc} /CapHeight 700 /StemV 80 /FontFile2 ${idFE} 0 R >>`;
+      oggetti[idFE + 2] = `<< /Type /Font /Subtype /TrueType /BaseFont /SpecialElite /FirstChar 32 /LastChar 255 /Widths [${EL.w.join(' ')}] /FontDescriptor ${idFE + 1} 0 R /Encoding /WinAnsiEncoding >>`;
+    }
     uniche.forEach((im, k) => {
       oggetti[idImm[k]] = { isStream: true, extra: `/Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode`, data: im.data };
     });
-    pagine.forEach((cmds, i) => {
+    tuttePagine.forEach((cmds, i) => {
       // le immagini sono numerate per ordine di inserimento: /ImN → oggetto dell'immagine unica corrispondente
       const xo = immagini.map((im, n) => `/Im${n} ${idImm[uniche.indexOf(im)]} 0 R`).join(' ');
-      oggetti[idPag[i]] = `<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << ${xo} >> >> /MediaBox [0 0 ${PW} ${PH}] /Contents ${idCont[i]} 0 R >>`;
+      oggetti[idPag[i]] = `<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R /F5 ${EL ? idFE + 2 : 5} 0 R >> /XObject << ${xo} >> >> /MediaBox [0 0 ${PW} ${PH}] /Contents ${idCont[i]} 0 R >>`;
       oggetti[idCont[i]] = { isStream: true, data: cmds.join('\n') };
     });
     let out = '%PDF-1.4\n';
