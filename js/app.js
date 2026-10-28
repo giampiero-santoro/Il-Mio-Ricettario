@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.51.0';
+  const VERSIONE_APP = '5.52.0';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -4218,13 +4218,23 @@
     }catch(e){ return null; }
   }
 
-  async function creaPdfSchedeA4(lista, porzioniDi, layout){
+  async function creaPdfSchedeA4(lista, porzioniDi, layout, opz){
+    opz = opz || {};
     const PW = 841.89, PH = 595.28;
     const colonne = layout === 'colonne';
     const M = colonne ? 22.7 : 28.35;               // 8 mm / 10 mm
     const GAP = colonne ? 25.5 : 34;                // spazio tra le due colonne di pagina / tra testo e ingredienti
     const FW = colonne ? (PW - 2 * M - GAP) / 2 : PW - 2 * M;   // larghezza di un riquadro di impaginazione
     const libro = lista.length > 1;          // più ricette: copertina, indice per categoria e numeri di pagina
+    // «Ricettari separati»: ogni ricettario ha la sua pagina di titolo, il suo indice e le sue ricette, in un solo file
+    const separati = !!opz.separati && libro && new Set(lista.map(recipeRicettarioId)).size > 1;
+    if(separati){
+      const ordineRb = ricettari.map(x => x.id), posRb = k => ordineRb.indexOf(k) < 0 ? 999 : ordineRb.indexOf(k);
+      const perId = new Map();
+      lista.forEach(r => { const k = recipeRicettarioId(r); if(!perId.has(k)) perId.set(k, []); perId.get(k).push(r); });
+      const chiavi = [...perId.keys()].sort((a, b) => posRb(a) - posRb(b));
+      lista = chiavi.flatMap(k => perId.get(k));
+    }
     const MBOT = 62;                          // margine in basso: lascia posto al piè di pagina (firma e timbro)
     const FH = PH - M - MBOT;
     const AUTORE_PDF = 'Giampiero Santoro';
@@ -4420,7 +4430,9 @@
         while(Math.max(b.hS, b.hD) > FH && S > 7){ S -= 0.4; b = costruisci(r, S); }
       }
       const corta = b.sinistra.length <= 14 && b.hS < FH * 0.7;
-      if(!colonne || fi < 0) nuovoRiquadro();
+      const inizioGruppo = separati && ri > 0 && recipeRicettarioId(r) !== recipeRicettarioId(lista[ri - 1]);
+      if(inizioGruppo){ fi = (Math.floor(fi / perPagina) + 1) * perPagina - 1; nuovoRiquadro(); }   // il nuovo ricettario parte da un foglio nuovo
+      else if(!colonne || fi < 0) nuovoRiquadro();
       else{
         const resto = y - MBOT;
         const serve = Math.max(b.hS, b.hD);
@@ -4476,61 +4488,85 @@
       Tx(arr, FE, sz, xL - 2 - eMis(AUTORE_PDF, sz), 21, AUTORE_PDF, '#000000');
       arr.push(`q ${lg} 0 0 ${lg} ${xL.toFixed(2)} 16 cm /Im${LOGO_IDX} Do Q`);
     };
-    let anteprima = [];
-    let nPagIndice = 0;
+    let tuttePagine = pagine;
     if(libro){
       // copertina: titolo grande a destra, firma sotto, timbro al centro
       const idLibri = [...new Set(lista.map(recipeRicettarioId))];
-      let titolo = idLibri.length === 1 ? ricettarioName(idLibri[0]) : 'Il mio ricettario';
-      if(titolo.trim().toLowerCase() === 'il mio ricettario') titolo = 'Il mio ricettario';
+      let titolo = String(opz.titolo || '').trim() || (idLibri.length === 1 ? ricettarioName(idLibri[0]) : 'Il mio ricettario');
+      if(titolo.toLowerCase() === 'il mio ricettario') titolo = 'Il mio ricettario';
       const cop = [];
       const sT = Math.min(82, (PW - 2 * 54) / Math.max(eMis(titolo, 1), 1));
       Tx(cop, FE, sT, PW - 53 - eMis(titolo, sT), PH - 155, titolo, '#000000');
       Tx(cop, FE, 31.5, PW - 55 - eMis(AUTORE_PDF, 31.5), PH - 203, AUTORE_PDF, '#000000');
       cop.push(`q 200 0 0 200 ${((PW - 200) / 2).toFixed(2)} 60 cm /Im${LOGO_IDX} Do Q`);
-      // indice all'inizio: per categoria, con le ricette e il numero di pagina
-      const gruppi = new Map();
-      lista.forEach((r, i) => { if(!gruppi.has(r.category)) gruppi.set(r.category, []); gruppi.get(r.category).push(i); });
-      const voci = [];
-      gruppi.forEach((idx, cat) => { voci.push({ cat: true, t: cat }); idx.forEach(i => voci.push({ t: lista[i].name, i, di: cat })); });
+      // gruppi: un solo gruppo (tutto insieme) oppure uno per ricettario
+      const gruppi = [];
+      if(separati){
+        const mappa = new Map();
+        lista.forEach((r, i) => { const k = recipeRicettarioId(r); if(!mappa.has(k)){ const g = { nome: ricettarioName(k), idx: [] }; mappa.set(k, g); gruppi.push(g); } mappa.get(k).idx.push(i); });
+      } else gruppi.push({ nome: '', idx: lista.map((r, i) => i) });
+      // indice di ogni gruppo: per categoria, con le ricette e il numero di pagina (calcolato dopo)
       const GAPI = 40, CW = (PW - 2 * M - GAPI) / 2, Y0 = PH - M - 62;
-      let pg = 0, col = 0, yy = Y0;
-      const posizionate = [];
-      voci.forEach(v => {
-        const h = v.cat ? 28 : 16, serve = h + (v.cat ? 16 : 0);
-        if(yy - serve < MBOT){
-          col++; if(col === 2){ col = 0; pg++; } yy = Y0;
-          // categoria che continua nella colonna o pagina successiva: ripete l'intestazione
-          if(!v.cat){ const hc = { cat: true, t: v.di + ' (segue)', pg, col, y: yy }; yy -= 28; posizionate.push(hc); }
+      gruppi.forEach(g => {
+        const perCat = new Map();
+        g.idx.forEach(i => { const c = lista[i].category; if(!perCat.has(c)) perCat.set(c, []); perCat.get(c).push(i); });
+        const voci = [];
+        perCat.forEach((idx, cat) => { voci.push({ cat: true, t: cat }); idx.forEach(i => voci.push({ t: lista[i].name, i, di: cat })); });
+        let pg = 0, col = 0, yy = Y0;
+        g.voci = [];
+        voci.forEach(v => {
+          const h = v.cat ? 28 : 16, serve = h + (v.cat ? 16 : 0);
+          if(yy - serve < MBOT){
+            col++; if(col === 2){ col = 0; pg++; } yy = Y0;
+            // categoria che continua nella colonna o pagina successiva: ripete l'intestazione
+            if(!v.cat){ g.voci.push({ cat: true, t: v.di + ' (segue)', pg, col, y: yy }); yy -= 28; }
+          }
+          v.pg = pg; v.col = col; v.y = yy; yy -= h; g.voci.push(v);
+        });
+        g.nIdx = pg + 1;
+      });
+      // fogli (pagine di ricette) di ogni gruppo e posizione nel file: copertina = pag. 1
+      gruppi.forEach((g, k) => {
+        g.s0 = inizioPag[g.idx[0]];
+        g.s1 = k + 1 < gruppi.length ? inizioPag[gruppi[k + 1].idx[0]] - 1 : pagine.length - 1;
+      });
+      let pos = 2;
+      gruppi.forEach(g => { g.div = separati ? 1 : 0; g.pDiv = pos; pos += g.div; g.pIdx = pos; pos += g.nIdx; g.pFogli = pos; pos += g.s1 - g.s0 + 1; });
+      const ordinate = [cop];
+      gruppi.forEach(g => {
+        if(g.div){
+          const dv = [], n = g.idx.length;
+          const sD = Math.min(70, (PW - 2 * 54) / Math.max(eMis(g.nome, 1), 1));
+          Tx(dv, FE, sD, PW - 53 - eMis(g.nome, sD), PH - 175, g.nome, '#000000');
+          const sub = n + ' ricett' + (n === 1 ? 'a' : 'e');
+          Tx(dv, FE, 26, PW - 55 - eMis(sub, 26), PH - 215, sub, '#000000');
+          ordinate.push(dv);
         }
-        v.pg = pg; v.col = col; v.y = yy; yy -= h; posizionate.push(v);
+        const indici = [];
+        for(let k = 0; k < g.nIdx; k++){
+          const arr = []; indici.push(arr);
+          Tx(arr, FE, 34, M, PH - M - 40, 'Indice', '#000000');
+          if(g.nome) Tx(arr, 'F1', 13, PW - M - pdfMisura(g.nome, 13, false), PH - M - 40, g.nome, '#5a645d');
+          arr.push(`q ${pdfColore('#cfd6cf')} RG 0.8 w ${M} ${PH - M - 54} m ${PW - M} ${PH - M - 54} l S Q`);
+        }
+        g.voci.forEach(v => {
+          const arr = indici[v.pg], x = M + v.col * (CW + GAPI);
+          if(v.cat){ Tx(arr, 'F2', 14, x, v.y - 19, v.t, '#2f5a35'); return; }
+          const pgTxt = 'pag. ' + (g.pFogli + inizioPag[v.i] - g.s0);
+          const wP = pdfMisura(pgTxt, 11, false);
+          let nome = v.t;
+          while(nome.length > 3 && pdfMisura(nome, 11, false) > CW - 10 - wP - 16) nome = nome.slice(0, -1);
+          if(nome !== v.t) nome = nome.trimEnd() + '...';
+          const base = v.y - 12, wN = pdfMisura(nome, 11, false);
+          Tx(arr, 'F1', 11, x + 10, base, nome);
+          Tx(arr, 'F1', 11, x + CW - wP, base, pgTxt, '#5a645d');
+          arr.push(`q ${pdfColore('#9aa39b')} RG 0.7 w 1 J [0.1 3] 0 d ${(x + 10 + wN + 5).toFixed(2)} ${(base + 1.5).toFixed(2)} m ${(x + CW - wP - 5).toFixed(2)} ${(base + 1.5).toFixed(2)} l S Q`);
+        });
+        ordinate.push(...indici, ...pagine.slice(g.s0, g.s1 + 1));
       });
-      voci.length = 0; posizionate.forEach(v => voci.push(v));
-      nPagIndice = pg + 1;
-      const numero = i => nPagIndice + 2 + i;      // copertina = pag. 1, indice da pag. 2
-      const indici = [];
-      for(let k = 0; k < nPagIndice; k++){
-        const arr = []; indici.push(arr);
-        Tx(arr, FE, 34, M, PH - M - 40, 'Indice', '#000000');
-        arr.push(`q ${pdfColore('#cfd6cf')} RG 0.8 w ${M} ${PH - M - 54} m ${PW - M} ${PH - M - 54} l S Q`);
-      }
-      voci.forEach(v => {
-        const arr = indici[v.pg], x = M + v.col * (CW + GAPI);
-        if(v.cat){ Tx(arr, 'F2', 14, x, v.y - 19, v.t, '#2f5a35'); return; }
-        const pgTxt = 'pag. ' + (inizioPag[v.i] + nPagIndice + 2);
-        const wP = pdfMisura(pgTxt, 11, false);
-        let nome = v.t;
-        while(nome.length > 3 && pdfMisura(nome, 11, false) > CW - 10 - wP - 16) nome = nome.slice(0, -1);
-        if(nome !== v.t) nome = nome.trimEnd() + '...';
-        const base = v.y - 12, wN = pdfMisura(nome, 11, false);
-        Tx(arr, 'F1', 11, x + 10, base, nome);
-        Tx(arr, 'F1', 11, x + CW - wP, base, pgTxt, '#5a645d');
-        arr.push(`q ${pdfColore('#9aa39b')} RG 0.7 w 1 J [0.1 3] 0 d ${(x + 10 + wN + 5).toFixed(2)} ${(base + 1.5).toFixed(2)} m ${(x + CW - wP - 5).toFixed(2)} ${(base + 1.5).toFixed(2)} l S Q`);
-      });
-      indici.forEach((arr, k) => { numeroPagina(arr, k + 2); piede(arr); });
-      anteprima = [cop, ...indici];
-      pagine.forEach((arr, i) => numeroPagina(arr, numero(i)));
-    }
+      tuttePagine = ordinate;
+      ordinate.forEach((arr, k) => { if(k > 0){ numeroPagina(arr, k + 1); piede(arr); } });
+    } else pagine.forEach(arr => piede(arr));
     // numero di pagina: «pag. N» in un riquadro in alto al centro, in carattere macchina da scrivere
     function numeroPagina(arr, n){
       const t = 'pag. ' + n;
@@ -4539,8 +4575,6 @@
       arr.push(`q 0 0 0 RG 0.75 w ${x0.toFixed(2)} ${(PH - top - h).toFixed(2)} ${bw.toFixed(2)} ${h} re S Q`);
       Tx(arr, FE, sz, (PW - w) / 2, PH - top - h + (colonne ? 5 : 6), t, '#000000');
     }
-    pagine.forEach(arr => piede(arr));
-    const tuttePagine = anteprima.concat(pagine);
 
     // assemblaggio del file PDF
     const oggetti = [];
@@ -4659,9 +4693,25 @@
     return { root, pulisci };
   }
   function nomeFilePdf(base){ return (String(base || 'ricette').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'ricette') + '-a4.pdf'; }
-  async function esportaPdfSchede(lista, porzioniDi, layout, nomeFile){
+  // Un PDF A4 orizzontale per ogni ricettario della selezione (copertina = nome del ricettario).
+  async function esportaPdfPerRicettario(lista, porzioniDi, layout, opz){
     try{
-      const pdf = await creaPdfSchedeA4(lista, porzioniDi, layout);
+      const ids = [...new Set(lista.map(recipeRicettarioId))];
+      for(const id of ids){
+        const parte = lista.filter(r => recipeRicettarioId(r) === id);
+        const nome = ricettarioName(id);
+        const pdf = await creaPdfSchedeA4(parte, porzioniDi, layout, { titolo: nome });
+        scaricaPdfDiretto(pdf, opz.nomeFile ? `${opz.nomeFile} - ${nome}.pdf` : nomeFilePdf(nome));
+        await new Promise(ok => setTimeout(ok, 700));
+      }
+    }catch(err){
+      console.error(err);
+      alert('Non è stato possibile creare i PDF.');
+    }
+  }
+  async function esportaPdfSchede(lista, porzioniDi, layout, nomeFile, opzPdf){
+    try{
+      const pdf = await creaPdfSchedeA4(lista, porzioniDi, layout, opzPdf);
       downloadPdf(pdf, nomeFile);
     }catch(err){
       console.error(err);
@@ -4670,7 +4720,8 @@
   }
   // Più ricette: chiede se una per pagina oppure su due colonne (la scelta resta come predefinita) e
   // scarica direttamente il file PDF, senza passare dalla stampante.
-  function stampaElencoA4(lista, porzioniDi, nomeFile){
+  function stampaElencoA4(lista, porzioniDi, nomeFile, opz){
+    opz = opz || {};
     if(lista.length === 1){ esportaPdfSchede(lista, porzioniDi, 'pagina', nomeFile || nomeFilePdf(lista[0].name)); return; }
     const ov = document.getElementById('layout-stampa-overlay');
     document.getElementById('layout-stampa-intro').textContent = `Stai per creare un PDF A4 orizzontale con ${lista.length} ricette.`;
@@ -4681,7 +4732,8 @@
       const layout = ov.querySelector('input[name="layout-stampa"]:checked').value;
       try{ localStorage.setItem(LAYOUT_STAMPA_KEY, layout); }catch(e){}
       fine();
-      esportaPdfSchede(lista, porzioniDi, layout, nomeFile || 'ricettario-a4.pdf');
+      if(opz.modo === 'file') esportaPdfPerRicettario(lista, porzioniDi, layout, opz);
+      else esportaPdfSchede(lista, porzioniDi, layout, nomeFile || 'ricettario-a4.pdf', { titolo: opz.titolo, separati: opz.modo === 'separati' });
     }
     okB.addEventListener('click', onOk); cancB.addEventListener('click', fine); xB.addEventListener('click', fine);
     ov.classList.add('active');
@@ -4808,7 +4860,36 @@
     });
   }
 
+  // Nome scelto dall'utente per il file: toglie i caratteri non ammessi e l'estensione, che si aggiunge da sola.
+  function nomeFileUtente(testo){
+    const t = String(testo || '').replace(/\.pdf\s*$/i, '').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').replace(/\s+/g, ' ').replace(/^[\s.-]+|[\s.-]+$/g, '').trim();
+    return t;
+  }
+  function leggiOpzioniExportPdf(selezionate){
+    const piu = new Set(selezionate.map(r => recipeRicettarioId(r))).size > 1;
+    const radio = document.querySelector('input[name="export-pdf-modo"]:checked');
+    return {
+      titolo: document.getElementById('export-pdf-cover-name').value.trim(),
+      nomeFile: nomeFileUtente(document.getElementById('export-pdf-file-name').value),
+      modo: piu && radio ? radio.value : 'insieme'
+    };
+  }
+  // Un file PDF per ogni ricettario: scaricati uno dopo l'altro, senza finestre di «Salva con nome».
+  function scaricaPdfDiretto(pdfString, filename){
+    const bytes = new Uint8Array(pdfString.length);
+    for(let i = 0; i < pdfString.length; i++){ bytes[i] = pdfString.charCodeAt(i) & 0xFF; }
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+  function aggiornaOpzioniExportPdf(){
+    const sel = exportPdfRicetteAttive().filter(r => exportPdfSelezionate.has(r.id));
+    const piu = new Set(sel.map(r => recipeRicettarioId(r))).size > 1;
+    document.getElementById('export-pdf-sep-row').style.display = piu ? '' : 'none';
+    if(!piu){ const r0 = document.querySelector('input[name="export-pdf-modo"][value="insieme"]'); if(r0) r0.checked = true; }
+  }
   function aggiornaContatoreExportPdf(){
+    aggiornaOpzioniExportPdf();
     const n = exportPdfSelezionate.size;
     exportPdfCount.textContent = n === 0 ? 'Nessuna ricetta selezionata' : `${n} ricett${n === 1 ? 'a' : 'e'} selezionat${n === 1 ? 'a' : 'e'}`;
   }
@@ -4894,6 +4975,8 @@
     }
     exportPdfSelezionate = new Set(active.map(r=>r.id)); // di default parte con tutto selezionato
     exportPdfSearch.value = '';
+    document.getElementById('export-pdf-cover-name').value = '';
+    document.getElementById('export-pdf-file-name').value = '';
     renderExportPdfRicettarioRow();
     resetExportPdfFilters();
     exportPdfFiltersPanel.style.display = 'none';
@@ -4922,8 +5005,9 @@
     if(!selezionate.length){ alert('Seleziona almeno una ricetta da stampare.'); return; }
     const ordineCat = Object.keys(CATEGORY_COLORS);
     selezionate.sort((a, b) => (ordineCat.indexOf(a.category) - ordineCat.indexOf(b.category)) || a.name.localeCompare(b.name, 'it'));
+    const opz = leggiOpzioniExportPdf(selezionate);
     exportPdfOverlay.classList.remove('active');
-    stampaElencoA4(selezionate, r => r.servings || 1);
+    stampaElencoA4(selezionate, r => r.servings || 1, opz.nomeFile ? opz.nomeFile + '.pdf' : undefined, opz);
   });
 
   document.getElementById('export-pdf-confirm-btn').addEventListener('click', ()=>{
@@ -4933,47 +5017,70 @@
       alert('Seleziona almeno una ricetta da esportare.');
       return;
     }
-    const categorie = Object.keys(CATEGORY_COLORS).filter(cat => selezionate.some(r => r.category === cat));
-    // Se la selezione attraversa più ricettari, ogni ricetta riporta sotto il titolo da quale
-    // volume viene — superfluo (e quindi omesso) quando si esporta un solo ricettario alla volta.
-    const ricettariCoinvolti = new Set(selezionate.map(r => recipeRicettarioId(r)));
-    const mostraRicettarioInPdf = ricettariCoinvolti.size > 1;
-
-    const indiceLines = [];
-    categorie.forEach(cat=>{
-      indiceLines.push(cat);
-      selezionate.filter(r => r.category === cat).forEach(r => indiceLines.push(`- ${r.name}${mostraRicettarioInPdf ? ` (${ricettarioName(recipeRicettarioId(r))})` : ''}`));
-    });
-    const sections = [{ heading: 'Indice', lines: indiceLines }];
-
-    categorie.forEach(cat=>{
-      const ricetteCategoria = selezionate.filter(r => r.category === cat);
-      sections.push({
-        heading: cat,
-        headingSize: 20,
-        pageBreakBefore: true,
-        lines: [`${ricetteCategoria.length} ricett${ricetteCategoria.length === 1 ? 'a' : 'e'}`]
-      });
-      ricetteCategoria.forEach(r=>{
-        const recipeSections = recipePdfSections(r, r.servings || 1);
-        recipeSections[0] = { ...recipeSections[0], heading: r.name, headingSize: 16, pageBreakBefore: true };
-        if(mostraRicettarioInPdf){
-          recipeSections[0] = { ...recipeSections[0], lines: [`Ricettario: ${ricettarioName(recipeRicettarioId(r))}`, ...recipeSections[0].lines] };
-        }
-        sections.push(...recipeSections);
-      });
-    });
-
+    const opz = leggiOpzioniExportPdf(selezionate);
+    const idsTutti = [...new Set(selezionate.map(recipeRicettarioId))];
+    const oggi = new Date().toISOString().slice(0,10);
     const tutte = selezionate.length === active.length;
-    // Se tutte le ricette scelte stanno in un solo ricettario, il PDF ne porta il nome
-    // (titolo e nome file); altrimenti resta quello generico.
-    const idsLibri = [...new Set(selezionate.map(recipeRicettarioId))];
-    const libroUnico = idsLibri.length === 1 ? ricettarioName(idsLibri[0]) : '';
-    const pdfStr = buildPdfFromSections(libroUnico || 'Il Mio Ricettario', sections);
-    const prefisso = libroUnico ? pdfFileSlug(libroUnico, 'ricettario') : 'ricettario';
-    const filename = tutte
-      ? `${prefisso}-completo-${new Date().toISOString().slice(0,10)}.pdf`
-      : `${prefisso}-selezione-${new Date().toISOString().slice(0,10)}.pdf`;
+
+    // Costruisce le sezioni di un gruppo di ricette; nell'esportazione con più ricettari mescolati
+    // ogni ricetta riporta da quale volume viene.
+    function sezioniPer(lista, mostraRicettarioInPdf, intestazione){
+      const categorie = Object.keys(CATEGORY_COLORS).filter(cat => lista.some(r => r.category === cat));
+      const indiceLines = [];
+      categorie.forEach(cat=>{
+        indiceLines.push(cat);
+        lista.filter(r => r.category === cat).forEach(r => indiceLines.push(`- ${r.name}${mostraRicettarioInPdf ? ` (${ricettarioName(recipeRicettarioId(r))})` : ''}`));
+      });
+      const sections = [];
+      if(intestazione) sections.push({ heading: intestazione, headingSize: 24, pageBreakBefore: true, lines: [`${lista.length} ricett${lista.length === 1 ? 'a' : 'e'}`] });
+      sections.push({ heading: 'Indice', pageBreakBefore: !!intestazione, lines: indiceLines });
+      categorie.forEach(cat=>{
+        const ricetteCategoria = lista.filter(r => r.category === cat);
+        sections.push({ heading: cat, headingSize: 20, pageBreakBefore: true, lines: [`${ricetteCategoria.length} ricett${ricetteCategoria.length === 1 ? 'a' : 'e'}`] });
+        ricetteCategoria.forEach(r=>{
+          const recipeSections = recipePdfSections(r, r.servings || 1);
+          recipeSections[0] = { ...recipeSections[0], heading: r.name, headingSize: 16, pageBreakBefore: true };
+          if(mostraRicettarioInPdf){
+            recipeSections[0] = { ...recipeSections[0], lines: [`Ricettario: ${ricettarioName(recipeRicettarioId(r))}`, ...recipeSections[0].lines] };
+          }
+          sections.push(...recipeSections);
+        });
+      });
+      return sections;
+    }
+
+    if(opz.modo === 'file'){
+      // un PDF per ogni ricettario, scaricati uno dopo l'altro
+      exportPdfOverlay.classList.remove('active');
+      (async ()=>{
+        for(const id of idsTutti){
+          const parte = selezionate.filter(r => recipeRicettarioId(r) === id);
+          const nome = ricettarioName(id);
+          const pdfStr = buildPdfFromSections(nome, sezioniPer(parte, false, null));
+          scaricaPdfDiretto(pdfStr, opz.nomeFile ? `${opz.nomeFile} - ${nome}.pdf` : `${pdfFileSlug(nome, 'ricettario')}-${tutte ? 'completo' : 'selezione'}-${oggi}.pdf`);
+          await new Promise(ok => setTimeout(ok, 700));
+        }
+      })();
+      return;
+    }
+
+    let sections, titolo;
+    if(opz.modo === 'separati' && idsTutti.length > 1){
+      // ricettari separati nello stesso PDF: pagina di titolo e indice per ciascuno
+      const ordineRb = ricettari.map(x => x.id);
+      const ids = idsTutti.slice().sort((a, b) => (ordineRb.indexOf(a) < 0 ? 999 : ordineRb.indexOf(a)) - (ordineRb.indexOf(b) < 0 ? 999 : ordineRb.indexOf(b)));
+      sections = [];
+      ids.forEach(id => sections.push(...sezioniPer(selezionate.filter(r => recipeRicettarioId(r) === id), false, ricettarioName(id))));
+      titolo = opz.titolo || 'Il Mio Ricettario';
+    } else {
+      sections = sezioniPer(selezionate, idsTutti.length > 1, null);
+      // Se tutte le ricette scelte stanno in un solo ricettario, il PDF ne porta il nome (titolo e nome file).
+      const libroUnico = idsTutti.length === 1 ? ricettarioName(idsTutti[0]) : '';
+      titolo = opz.titolo || libroUnico || 'Il Mio Ricettario';
+    }
+    const prefisso = idsTutti.length === 1 ? pdfFileSlug(ricettarioName(idsTutti[0]), 'ricettario') : 'ricettario';
+    const pdfStr = buildPdfFromSections(titolo, sections);
+    const filename = opz.nomeFile ? `${opz.nomeFile}.pdf` : (tutte ? `${prefisso}-completo-${oggi}.pdf` : `${prefisso}-selezione-${oggi}.pdf`);
     downloadPdf(pdfStr, filename);
     exportPdfOverlay.classList.remove('active');
   });

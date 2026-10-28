@@ -156,6 +156,9 @@ Nel modulo di modifica trovi due sezioni distinte, perché rispondono a domande 
 
 Entrambi compaiono nella scheda della ricetta come etichette colorate (gli allergeni in rosso, sotto la scritta "⚠ Contiene:"). Nel pannello filtri avanzati puoi anche **escludere dalla lista le ricette che contengono uno o più allergeni** scelti, oltre a filtrare per tag dietetico.
 
+## Stampare tutti i ricettari, nome della copertina e del file
+In **Esporta ricettario in PDF…** (menu ⋯ del Ricettario) trovi, sopra l'elenco delle ricette, **Nome sulla copertina** e **Nome del file**. Se hai scelto ricette di più ricettari compare anche la scelta: **tutto insieme**, **ricettari separati in un solo PDF** (ognuno con la sua pagina di titolo e il suo indice) oppure **un file PDF per ogni ricettario**. Vale sia per **Esporta PDF** (verticale) sia per **PDF A4 orizzontale**.
+
 ## PDF A4 orizzontale (senza stampante)
 
 Quando il PDF contiene più ricette, si apre con la **copertina**, poi l'**indice suddiviso per categoria** con i numeri di pagina; ogni pagina porta in alto, in un riquadro, la scritta **«pag. N»**.

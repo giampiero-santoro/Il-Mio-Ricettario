@@ -68,6 +68,7 @@ TEST_MODULES = [
     "test_41_pentola_pressione",
     "test_42_guida_pentola",
     "test_43_libreria",
+    "test_44_stampa_ricettari_separati",
 ]
 
 

@@ -2,6 +2,12 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.52.0] — Stampa: ricettari separati, nome della copertina e del file
+
+### Aggiunto
+- In «Esporta o stampa il ricettario» (PDF verticale e PDF A4 orizzontale): campi **Nome sulla copertina** e **Nome del file** («.pdf» si aggiunge da solo, i caratteri non ammessi vengono sostituiti).
+- Quando la selezione comprende più ricettari, tre modi: **tutto insieme** (come prima), **ricettari separati in un solo PDF** (pagina di titolo, indice e ricette per ciascun ricettario; nell'orizzontale la numerazione «pag. N» è continua e ogni ricettario parte da un foglio nuovo, anche su due colonne) e **un file PDF per ogni ricettario** (copertina = nome del ricettario, il nome del file fa da prefisso). Test 44.
+
 ## [5.51.0] — Libreria a riquadri
 
 ### Modificato

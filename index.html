@@ -1025,6 +1025,23 @@
       <div class="panel-row" id="export-pdf-allergen-row" style="margin-bottom:10px;"></div>
       <button type="button" class="btn-ghost btn-small" id="export-pdf-filters-clear-btn">Cancella filtri</button>
     </div>
+    <div class="panel" id="export-pdf-opts" style="margin:0 0 12px;">
+      <div class="field" style="margin-bottom:10px;">
+        <label for="export-pdf-cover-name">Nome sulla copertina</label>
+        <input type="text" id="export-pdf-cover-name" maxlength="80" placeholder="Il mio ricettario" autocomplete="off">
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <label for="export-pdf-file-name">Nome del file</label>
+        <input type="text" id="export-pdf-file-name" maxlength="80" placeholder="Se lo lasci vuoto lo scelgo io" autocomplete="off">
+        <small style="color:var(--ink-soft);">«.pdf» si aggiunge da solo.</small>
+      </div>
+      <div class="field" id="export-pdf-sep-row" style="display:none;margin-bottom:0;">
+        <div class="filter-section-label">Più ricettari nella selezione</div>
+        <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;"><input type="radio" name="export-pdf-modo" value="insieme" checked> <span><b>Tutto insieme</b><br><small>Le ricette sono mescolate per categoria, come prima.</small></span></label>
+        <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;"><input type="radio" name="export-pdf-modo" value="separati"> <span><b>Ricettari separati, in un solo PDF</b><br><small>Ogni ricettario ha la sua pagina di titolo, il suo indice e le sue ricette.</small></span></label>
+        <label style="display:flex;gap:8px;align-items:flex-start;"><input type="radio" name="export-pdf-modo" value="file"> <span><b>Un file PDF per ogni ricettario</b><br><small>Il nome della copertina è quello di ciascun ricettario; il nome del file diventa il prefisso. Il browser può chiedere di consentire più download.</small></span></label>
+      </div>
+    </div>
     <div class="modal-actions" style="margin-bottom:4px;">
       <button type="button" class="btn-ghost btn-small" id="export-pdf-all-btn">Seleziona tutte (visibili)</button>
       <button type="button" class="btn-ghost btn-small" id="export-pdf-none-btn">Deseleziona tutte</button>
