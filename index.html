@@ -549,6 +549,7 @@
       </div>
       <p><b>Privacy.</b> Ricette, Dispensa, piani, foto e impostazioni restano sul tuo dispositivo: non c'è nessun account, nessuna statistica di utilizzo e nessun cookie di tracciamento. Fuori dal dispositivo esce solo una richiesta, e solo quando la usi: la ricerca o la scansione di un prodotto (Open Food Facts, dai suoi indirizzi world.openfoodfacts.org e search.openfoodfacts.org, riceve il codice a barre o il nome cercato). Come per ogni sito web, il server che ospita l'app (GitHub Pages) vede l'indirizzo IP di chi la apre. Caratteri e lettore di codici a barre sono inclusi nell'app e non vengono scaricati da altri siti.</p>
       <p><b>Valori nutrizionali e allergeni.</b> Sono indicativi: derivano da Open Food Facts o dai dati che inserisci tu e possono non corrispondere al prodotto che hai in casa. Controlla sempre l'etichetta, soprattutto in caso di allergie o intolleranze. Non sostituiscono il parere di un medico o di un dietista.</p>
+      <p><b>Fonti e ispirazioni.</b> I link che aggiungi a una ricetta sono solo collegamenti scelti da te: il ricettario non visita quei siti, non scarica e non copia i loro contenuti. Se ti ispiri a una ricetta altrui, riscrivila con parole tue e cita la fonte.</p>
       <p><b>Un progetto amatoriale.</b> Il Mio Ricettario è un progetto amatoriale, non commerciale, creato con l'aiuto dell'intelligenza artificiale. Non è un servizio professionale e viene offerto così com'è, senza garanzie.</p>
       <p><b>Le tue ricette.</b> Le ricette che aggiungi o importi restano tue e private. Se le copi da libri, siti o altre persone, rispetta i diritti dei rispettivi autori e non pubblicarle senza permesso.</p>
       <p><b>Un progetto amatoriale.</b> Il Mio Ricettario è un progetto amatoriale, senza scopo di lucro, creato con l'aiuto dell'intelligenza artificiale. Può contenere errori: tempi di cottura, quantità e indicazioni sono orientativi e vanno sempre verificati.</p>
@@ -661,6 +662,14 @@
     <div class="field">
       <label for="f-notes" class="visually-hidden">Note personali</label>
       <textarea id="f-notes" placeholder="es. usare carote al posto dei piselli…"></textarea>
+    </div>
+    </section>
+    <section class="form-section">
+      <h3 class="form-section-title">Fonti e ispirazioni</h3>
+    <div class="field">
+      <div style="font-size:12.5px;color:var(--ink-soft);font-style:italic;margin:-2px 0 10px;">I siti che ti hanno ispirato questa ricetta. Sono solo collegamenti: il ricettario non visita i siti e non ne copia i contenuti.</div>
+      <div id="sources-editor"></div>
+      <button type="button" class="add-row-btn" id="add-source">+ Aggiungi link</button>
     </div>
     </section>
     <details class="form-more" id="f-more">
@@ -1263,6 +1272,10 @@
         <div class="view-notes" id="view-notes-block" style="display:none;">
           <strong>Note personali —</strong>
           <span id="view-notes"></span>
+        </div>
+        <div class="view-notes view-sources" id="view-sources-block" style="display:none;">
+          <strong>Ispirata da</strong>
+          <ul id="view-sources"></ul>
         </div>
       </section>
     </div>

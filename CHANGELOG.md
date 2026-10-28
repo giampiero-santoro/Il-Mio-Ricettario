@@ -2,6 +2,12 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.53.0] — Fonti e ispirazioni
+
+### Aggiunto
+- Ogni ricetta può avere fino a **10 link** ai siti che l'hanno ispirata (nome facoltativo), nella sezione «Fonti e ispirazioni» del modulo. Nella scheda compaiono sotto le note («Ispirata da», apertura in nuova scheda con `noopener noreferrer`); nel PDF verticale, nel PDF A4 orizzontale e nella stampa compare il nome del sito.
+- Solo indirizzi http/https: «https://» si aggiunge da solo, `javascript:`, `ftp:` e testi senza dominio sono scartati; un link non valido nel modulo blocca il salvataggio e si evidenzia. Nel JSON il campo è `fonti` (elenco di testi o di `{url, titolo}`; accettato anche `sources`). Il ricettario non visita mai i siti. Test 45.
+
 ## [5.52.0] — Stampa: ricettari separati, nome della copertina e del file
 
 ### Aggiunto

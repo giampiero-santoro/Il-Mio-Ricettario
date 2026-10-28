@@ -1665,3 +1665,12 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 .field-hint{margin-top:6px;font-size:14px}
 .field-hint a{color:var(--sage,#36723E);font-weight:600;text-decoration:none}
 .field-hint a:hover{text-decoration:underline}
+
+/* Fonti e ispirazioni */
+.source-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:8px;margin-bottom:8px;align-items:center;}
+.source-row input.invalid{border-color:var(--danger,#c0392b);box-shadow:0 0 0 2px color-mix(in srgb,var(--danger,#c0392b) 22%,transparent);}
+.view-sources ul{list-style:none;margin:6px 0 0;padding:0;}
+.view-sources li{margin:3px 0;}
+.view-sources a{color:var(--sage,#36723E);font-weight:600;word-break:break-word;}
+.source-host{color:var(--text-2);font-size:var(--fs-xs);}
+@media (max-width:640px){.source-row{grid-template-columns:1fr auto;}.source-row .source-title{grid-column:1 / -1;}}

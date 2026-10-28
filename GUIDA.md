@@ -473,3 +473,7 @@ Le categorie e i tag disponibili sono fissi nel codice. Se vuoi personalizzarli,
 
 ## Guida alla pentola a pressione — dalla 5.49.0
 La pagina `guida-pentola.html` (menu «Guida pentola a pressione», o link nel modulo ricetta) raccoglie tabelle di cottura, regole per adattare le ricette, sicurezza e manutenzione e l'uso del ricettario con la pentola. I tempi sono indicativi: vale il manuale del tuo modello.
+
+
+## Fonti e ispirazioni — dalla 5.53.0
+Nel modulo di una ricetta, la sezione **Fonti e ispirazioni** (sotto le note) accetta fino a 10 link, ciascuno con un nome facoltativo. Nella scheda sono sotto «Ispirata da»; nei PDF e nella stampa compare il nome del sito. Sono solo collegamenti: il ricettario non visita i siti. Nel JSON: `"fonti": [{"url": "https://…", "titolo": "Nome"}]`.

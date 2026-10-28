@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.52.0';
+  const VERSIONE_APP = '5.53.0';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -1245,7 +1245,45 @@
   function seedData(){ return []; }
   function cryptoId(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
 
+  // ---------- Fonti e ispirazioni: link scelti dall'utente (mai visitati né scaricati dal ricettario) ----------
+  const MAX_FONTI = 10;
+  function normalizzaUrlFonte(u){
+    let t = String(u == null ? '' : u).trim();
+    if(!t) return '';
+    if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(t)){
+      if(/^(javascript|data|vbscript|file|blob|about):/i.test(t)) return '';
+      t = 'https://' + t.replace(/^\/+/, '');
+    }
+    try{
+      const x = new URL(t);
+      if(x.protocol !== 'http:' && x.protocol !== 'https:') return '';
+      if(!x.hostname || !x.hostname.includes('.')) return '';
+      return x.href;
+    }catch(e){ return ''; }
+  }
+  function nomeSitoFonte(url){ try{ return new URL(url).hostname.replace(/^www\./, ''); }catch(e){ return String(url || ''); } }
+  // Accetta elenchi di testi o di oggetti ({url, titolo | title | nome}); scarta i link non validi e i doppioni.
+  function fontiPulite(arr){
+    if(!Array.isArray(arr)) return [];
+    const out = [], visti = new Set();
+    arr.forEach(f => {
+      const url = normalizzaUrlFonte(typeof f === 'string' ? f : (f && (f.url || f.link || f.href)));
+      if(!url || visti.has(url) || out.length >= MAX_FONTI) return;
+      visti.add(url);
+      const titolo = typeof f === 'object' && f ? String(f.titolo || f.title || f.nome || '').trim().slice(0, 80) : '';
+      out.push({ url, titolo });
+    });
+    return out;
+  }
+  function fontiTesto(r){
+    return (r.fonti || []).map(f => f.titolo ? `${f.titolo} (${nomeSitoFonte(f.url)})` : nomeSitoFonte(f.url)).join(', ');
+  }
   function migrateRecipe(r){
+    if(r.fonti !== undefined || r.sources !== undefined){
+      const f = fontiPulite(Array.isArray(r.fonti) ? r.fonti : r.sources);
+      if(f.length) r.fonti = f; else delete r.fonti;
+      delete r.sources;
+    }
     if(r.favorite === undefined) r.favorite = false;
     r.rating = Math.max(0, Math.min(5, parseInt(r.rating, 10) || 0));
     if(!Array.isArray(r.raccolte)) r.raccolte = [];
@@ -2736,6 +2774,8 @@
     fCookerType.value = source ? (source.cookerType || '') : '';
     document.getElementById('f-pot-liters').value = source && source.potLiters ? String(source.potLiters) : '';
     fNotes.value = source ? (source.notes || '') : '';
+    sourcesEditor.innerHTML = '';
+    fontiPulite(source && source.fonti).forEach(f => addSourceRow(f));
     const sourceTags = source && source.tags ? source.tags : [];
     fTagsWrap.querySelectorAll('input[type="checkbox"]').forEach(cb=>{ cb.checked = sourceTags.includes(cb.value); });
     const sourceAllergens = source && source.allergens ? source.allergens : [];
@@ -2982,6 +3022,39 @@
       `<option value="${f}" ${sel === f ? 'selected' : ''}>${escapeHtml(PotSettings.FUNZIONI[f].label)}</option>`).join('');
   }
   // Legge un blocco passaggio del modulo come oggetto passaggio (usato per salvare e per duplicare).
+  const sourcesEditor = document.getElementById('sources-editor');
+  function addSourceRow(f){
+    f = f || {};
+    const row = document.createElement('div');
+    row.className = 'source-row';
+    row.innerHTML = `<input type="text" class="source-title" maxlength="80" placeholder="Nome (facoltativo)" aria-label="Nome del sito" value="${escapeAttr(f.titolo || '')}">
+      <input type="text" class="source-url" inputmode="url" placeholder="https://…" aria-label="Indirizzo del sito" autocomplete="off" value="${escapeAttr(f.url || '')}">
+      <button type="button" class="btn-ghost btn-small source-del" aria-label="Elimina link" title="Elimina link">×</button>`;
+    row.querySelector('.source-del').addEventListener('click', ()=>{ row.remove(); formDirty = true; });
+    row.querySelectorAll('input').forEach(i => i.addEventListener('input', ()=>{ formDirty = true; i.classList.remove('invalid'); }));
+    sourcesEditor.appendChild(row);
+    return row;
+  }
+  document.getElementById('add-source').addEventListener('click', ()=>{
+    if(sourcesEditor.children.length >= MAX_FONTI){ alert(`Puoi inserire al massimo ${MAX_FONTI} link.`); return; }
+    const r = addSourceRow(); r.querySelector('.source-url').focus(); formDirty = true;
+  });
+  // Legge le righe dei link: restituisce { fonti, errore } (errore = prima riga non valida, già evidenziata)
+  function leggiFonti(){
+    const fonti = [], visti = new Set();
+    let errore = null;
+    sourcesEditor.querySelectorAll('.source-row').forEach(row => {
+      const uEl = row.querySelector('.source-url'), tEl = row.querySelector('.source-title');
+      const grezzo = uEl.value.trim();
+      if(!grezzo && !tEl.value.trim()) return;
+      const url = normalizzaUrlFonte(grezzo);
+      if(!url){ uEl.classList.add('invalid'); if(!errore) errore = uEl; return; }
+      if(visti.has(url)) return;
+      visti.add(url);
+      fonti.push({ url, titolo: tEl.value.trim().slice(0, 80) });
+    });
+    return { fonti, errore };
+  }
   function leggiPasso(block){
     const q = sel => block.querySelector(sel);
     const fn = q('.step-fn').value;
@@ -3304,6 +3377,12 @@
       if(prev){ existingExtra = {favorite:prev.favorite, lastMade:prev.lastMade, timesMade:prev.timesMade||null, archived:!!prev.archived}; }
     }
 
+    const fontiLette = leggiFonti();
+    if(fontiLette.errore){
+      alert('Uno dei link non è valido: scrivi un indirizzo come https://www.esempio.it/ricetta, oppure cancella la riga.');
+      fontiLette.errore.focus();
+      return;
+    }
     const nutrizioneUtente = leggiNutrizioneUtenteForm();
 
     const recipeData = {
@@ -3313,6 +3392,7 @@
       cookerType: fCookerType.value,
       ...(document.getElementById('f-pot-liters').value ? { potLiters: Number(document.getElementById('f-pot-liters').value) } : {}),
       ingredients: finalIngredients, steps, tags, allergens, freezable, notes: fNotes.value.trim(),
+      ...(fontiLette.fonti.length ? { fonti: fontiLette.fonti } : {}),
       photo: currentPhotoData, favorite: existingExtra.favorite, lastMade: existingExtra.lastMade, timesMade: existingExtra.timesMade,
       nutrizioneUtente, archived: existingExtra.archived
     };
@@ -3849,6 +3929,11 @@
 
     if(r.notes){ viewNotesBlock.style.display = 'block'; viewNotes.textContent = r.notes; }
     else{ viewNotesBlock.style.display = 'none'; }
+    const viewSources = document.getElementById('view-sources-block');
+    if(r.fonti && r.fonti.length){
+      viewSources.style.display = 'block';
+      document.getElementById('view-sources').innerHTML = r.fonti.map(f => `<li><a href="${escapeAttr(f.url)}" target="_blank" rel="noopener noreferrer nofollow">${escapeHtml(f.titolo || nomeSitoFonte(f.url))}</a>${f.titolo ? ` <span class="source-host">${escapeHtml(nomeSitoFonte(f.url))}</span>` : ''}</li>`).join('');
+    } else { viewSources.style.display = 'none'; }
   }
 
   function startInlineTimer(btn){
@@ -4087,6 +4172,9 @@
     if(r.notes){
       sections.push({ heading: 'Note', lines: r.notes.split('\n') });
     }
+    if(r.fonti && r.fonti.length){
+      sections.push({ heading: 'Ispirata da', lines: r.fonti.map(f => `- ${f.titolo ? f.titolo + ' - ' : ''}${f.url}`) });
+    }
     return sections;
   }
 
@@ -4141,7 +4229,7 @@
       if(rows) nutri = `<div class="ps-box"><h3>Valori nutrizionali (per porzione)</h3><div class="ps-nutri">${rows}</div></div>`;
     }
     const pills = `<span class="ps-pill">${escapeHtml(recipeCategoryLabel(r))}</span>` + (ricettari.length > 1 ? `<span class="ps-pill alt">${escapeHtml(ricettarioName(recipeRicettarioId(r)))}</span>` : '');
-    const corta = (r.steps || []).length <= 7 && (r.ingredients || []).length <= 10 && String(r.notes || '').length < 300;
+    const corta = (r.steps || []).length <= 7 && (r.ingredients || []).length <= 10 && String(r.notes || '').length + fontiTesto(r).length < 300;
     return `<section class="ps-sheet${corta ? ' ps-short' : ''}">
       <div class="ps-body">
         <div class="ps-main">
@@ -4152,6 +4240,7 @@
           <h2 class="ps-h">Procedimento</h2>
           <div class="ps-steps">${steps || '<div class="ps-step"><div class="t">—</div></div>'}</div>
           ${r.notes ? `<div class="ps-notes"><b>Note personali —</b> ${escapeHtml(r.notes)}</div>` : ''}
+          ${(r.fonti && r.fonti.length) ? `<div class="ps-notes"><b>Ispirata da —</b> ${escapeHtml(fontiTesto(r))}</div>` : ''}
         </div>
         <div class="ps-side">
           <div class="ps-box"><h3>Ingredienti</h3><ul class="ps-ing">${ing}</ul></div>
@@ -4361,17 +4450,24 @@
         passi[0].draw = (x, yt) => { testo(x, yt, sH * 1.2, sH, 'Procedimento', { bold: true }); d0(x, yt - sH * 1.2 - S * 0.3); };
         passi.forEach(p => sinistra.push(p));
       }
-      if(r.notes){
+      {
         const sN = S * 0.88, lhN = sN * 1.4;
-        const righe = pdfAvvolgi('Note personali — ' + r.notes, sN, wl, false);
-        righe.forEach((t, i) => sinistra.push({ h: lhN + (i === 0 ? S * 0.9 : 0), draw(x, yt){
-          let yy = yt;
-          if(i === 0){ cmd(`q ${pdfColore('#cfd6cf')} RG 0.6 w ${x} ${yt - S * 0.3} m ${x + wl} ${yt - S * 0.3} l S Q`); yy = yt - S * 0.9; }
-          if(i === 0 && t.startsWith('Note personali —')){
-            testo(x, yy, lhN, sN, 'Note personali —', { bold: true, col: '#4a544d' });
-            testo(x + pdfMisura('Note personali — ', sN, true), yy, lhN, sN, t.slice('Note personali — '.length), { col: '#4a544d' });
-          } else testo(x, yy, lhN, sN, t, { col: '#4a544d' });
-        }}));
+        const blocchi = [];
+        if(r.notes) blocchi.push(['Note personali —', r.notes]);
+        if(r.fonti && r.fonti.length) blocchi.push(['Ispirata da —', fontiTesto(r)]);
+        blocchi.forEach((bl, bi) => {
+          const pref = bl[0] + ' ';
+          const righe = pdfAvvolgi(pref + bl[1], sN, wl, false);
+          righe.forEach((t, i) => sinistra.push({ h: lhN + (i === 0 ? (bi === 0 ? S * 0.9 : S * 0.3) : 0), draw(x, yt){
+            let yy = yt;
+            if(i === 0 && bi === 0){ cmd(`q ${pdfColore('#cfd6cf')} RG 0.6 w ${x} ${yt - S * 0.3} m ${x + wl} ${yt - S * 0.3} l S Q`); yy = yt - S * 0.9; }
+            else if(i === 0){ yy = yt - S * 0.3; }
+            if(i === 0 && t.startsWith(bl[0])){
+              testo(x, yy, lhN, sN, bl[0], { bold: true, col: '#4a544d' });
+              testo(x + pdfMisura(pref, sN, true), yy, lhN, sN, t.slice(pref.length), { col: '#4a544d' });
+            } else testo(x, yy, lhN, sN, t, { col: '#4a544d' });
+          }}));
+        });
       }
 
       // colonna di destra: foto, ingredienti, valori nutrizionali (parte dal margine alto)
