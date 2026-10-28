@@ -2,6 +2,13 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.54.0] — Indice dei ricettari e indici cliccabili
+
+### Aggiunto
+- **Indice dei ricettari**: con «Ricettari separati, in un solo PDF» (verticale e orizzontale) dopo la copertina c'è un indice con un riga per ricettario, il numero di ricette e la pagina.
+- **Collegamenti diretti** negli indici dei PDF: toccando una voce si salta alla pagina della ricetta o alla pagina di titolo del ricettario (PDF orizzontale e verticale, anche con «Tutto insieme» e «Un file per ricettario»).
+- PDF verticale con indici: le voci riportano «pag. N» e in calce a ogni pagina c'è il numero di pagina.
+
 ## [5.53.0] — Fonti e ispirazioni
 
 ### Aggiunto

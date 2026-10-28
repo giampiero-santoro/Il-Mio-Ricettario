@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.53.0';
+  const VERSIONE_APP = '5.54.0';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -4601,34 +4601,68 @@
         const mappa = new Map();
         lista.forEach((r, i) => { const k = recipeRicettarioId(r); if(!mappa.has(k)){ const g = { nome: ricettarioName(k), idx: [] }; mappa.set(k, g); gruppi.push(g); } mappa.get(k).idx.push(i); });
       } else gruppi.push({ nome: '', idx: lista.map((r, i) => i) });
-      // indice di ogni gruppo: per categoria, con le ricette e il numero di pagina (calcolato dopo)
+      // indice: voci su due colonne (le categorie hanno un'intestazione), su più pagine se serve
       const GAPI = 40, CW = (PW - 2 * M - GAPI) / 2, Y0 = PH - M - 62;
-      gruppi.forEach(g => {
-        const perCat = new Map();
-        g.idx.forEach(i => { const c = lista[i].category; if(!perCat.has(c)) perCat.set(c, []); perCat.get(c).push(i); });
-        const voci = [];
-        perCat.forEach((idx, cat) => { voci.push({ cat: true, t: cat }); idx.forEach(i => voci.push({ t: lista[i].name, i, di: cat })); });
+      const impagina = voci => {
         let pg = 0, col = 0, yy = Y0;
-        g.voci = [];
+        const fuori = [];
         voci.forEach(v => {
           const h = v.cat ? 28 : 16, serve = h + (v.cat ? 16 : 0);
           if(yy - serve < MBOT){
             col++; if(col === 2){ col = 0; pg++; } yy = Y0;
             // categoria che continua nella colonna o pagina successiva: ripete l'intestazione
-            if(!v.cat){ g.voci.push({ cat: true, t: v.di + ' (segue)', pg, col, y: yy }); yy -= 28; }
+            if(!v.cat && v.di){ fuori.push({ cat: true, t: v.di + ' (segue)', pg, col, y: yy }); yy -= 28; }
           }
-          v.pg = pg; v.col = col; v.y = yy; yy -= h; g.voci.push(v);
+          v.pg = pg; v.col = col; v.y = yy; yy -= h; fuori.push(v);
         });
-        g.nIdx = pg + 1;
+        return { voci: fuori, n: pg + 1 };
+      };
+      gruppi.forEach(g => {
+        const perCat = new Map();
+        g.idx.forEach(i => { const c = lista[i].category; if(!perCat.has(c)) perCat.set(c, []); perCat.get(c).push(i); });
+        const voci = [];
+        perCat.forEach((idx, cat) => { voci.push({ cat: true, t: cat }); idx.forEach(i => voci.push({ t: lista[i].name, i, di: cat })); });
+        const r = impagina(voci);
+        g.voci = r.voci; g.nIdx = r.n;
       });
+      // indice dei ricettari (solo con i ricettari separati): una voce per ricettario
+      let indiceRb = null;
+      if(separati){
+        indiceRb = impagina(gruppi.map(g => ({ t: g.nome, g })));
+      }
       // fogli (pagine di ricette) di ogni gruppo e posizione nel file: copertina = pag. 1
       gruppi.forEach((g, k) => {
         g.s0 = inizioPag[g.idx[0]];
         g.s1 = k + 1 < gruppi.length ? inizioPag[gruppi[k + 1].idx[0]] - 1 : pagine.length - 1;
       });
       let pos = 2;
+      const pIndiceRb = pos; if(indiceRb) pos += indiceRb.n;
       gruppi.forEach(g => { g.div = separati ? 1 : 0; g.pDiv = pos; pos += g.div; g.pIdx = pos; pos += g.nIdx; g.pFogli = pos; pos += g.s1 - g.s0 + 1; });
+      const disegnaVoce = (indici, v, pgTxt, paginaDest) => {
+        const arr = indici[v.pg], x = M + v.col * (CW + GAPI);
+        if(v.cat){ Tx(arr, 'F2', 14, x, v.y - 19, v.t, '#2f5a35'); return; }
+        const wP = pdfMisura(pgTxt, 11, false);
+        let nome = v.t;
+        while(nome.length > 3 && pdfMisura(nome, 11, false) > CW - 10 - wP - 16) nome = nome.slice(0, -1);
+        if(nome !== v.t) nome = nome.trimEnd() + '...';
+        const base = v.y - 12, wN = pdfMisura(nome, 11, false);
+        Tx(arr, 'F1', 11, x + 10, base, nome);
+        Tx(arr, 'F1', 11, x + CW - wP, base, pgTxt, '#5a645d');
+        arr.push(`q ${pdfColore('#9aa39b')} RG 0.7 w 1 J [0.1 3] 0 d ${(x + 10 + wN + 5).toFixed(2)} ${(base + 1.5).toFixed(2)} m ${(x + CW - wP - 5).toFixed(2)} ${(base + 1.5).toFixed(2)} l S Q`);
+        // collegamento cliccabile: tutta la riga porta alla pagina indicata
+        (arr.links = arr.links || []).push({ x1: x, y1: base - 3, x2: x + CW, y2: base + 11, pag: paginaDest - 1 });
+      };
       const ordinate = [cop];
+      if(indiceRb){
+        const pagine_rb = [];
+        for(let k = 0; k < indiceRb.n; k++){
+          const arr = []; pagine_rb.push(arr);
+          Tx(arr, FE, 34, M, PH - M - 40, 'Indice dei ricettari', '#000000');
+          arr.push(`q ${pdfColore('#cfd6cf')} RG 0.8 w ${M} ${PH - M - 54} m ${PW - M} ${PH - M - 54} l S Q`);
+        }
+        indiceRb.voci.forEach(v => disegnaVoce(pagine_rb, v, 'pag. ' + v.g.pDiv, v.g.pDiv));
+        ordinate.push(...pagine_rb);
+      }
       gruppi.forEach(g => {
         if(g.div){
           const dv = [], n = g.idx.length;
@@ -4645,19 +4679,7 @@
           if(g.nome) Tx(arr, 'F1', 13, PW - M - pdfMisura(g.nome, 13, false), PH - M - 40, g.nome, '#5a645d');
           arr.push(`q ${pdfColore('#cfd6cf')} RG 0.8 w ${M} ${PH - M - 54} m ${PW - M} ${PH - M - 54} l S Q`);
         }
-        g.voci.forEach(v => {
-          const arr = indici[v.pg], x = M + v.col * (CW + GAPI);
-          if(v.cat){ Tx(arr, 'F2', 14, x, v.y - 19, v.t, '#2f5a35'); return; }
-          const pgTxt = 'pag. ' + (g.pFogli + inizioPag[v.i] - g.s0);
-          const wP = pdfMisura(pgTxt, 11, false);
-          let nome = v.t;
-          while(nome.length > 3 && pdfMisura(nome, 11, false) > CW - 10 - wP - 16) nome = nome.slice(0, -1);
-          if(nome !== v.t) nome = nome.trimEnd() + '...';
-          const base = v.y - 12, wN = pdfMisura(nome, 11, false);
-          Tx(arr, 'F1', 11, x + 10, base, nome);
-          Tx(arr, 'F1', 11, x + CW - wP, base, pgTxt, '#5a645d');
-          arr.push(`q ${pdfColore('#9aa39b')} RG 0.7 w 1 J [0.1 3] 0 d ${(x + 10 + wN + 5).toFixed(2)} ${(base + 1.5).toFixed(2)} m ${(x + CW - wP - 5).toFixed(2)} ${(base + 1.5).toFixed(2)} l S Q`);
-        });
+        g.voci.forEach(v => disegnaVoce(indici, v, v.cat ? '' : 'pag. ' + (g.pFogli + inizioPag[v.i] - g.s0), v.cat ? 0 : g.pFogli + inizioPag[v.i] - g.s0));
         ordinate.push(...indici, ...pagine.slice(g.s0, g.s1 + 1));
       });
       tuttePagine = ordinate;
@@ -4682,6 +4704,8 @@
     uniche.forEach(im => { idImm.push(id++); });
     const idPag = [], idCont = [];
     tuttePagine.forEach(() => { idPag.push(id++); idCont.push(id++); });
+    // collegamenti interni degli indici: un'annotazione per ogni voce cliccabile
+    const annotPag = tuttePagine.map(arr => (arr.links || []).filter(l => idPag[l.pag] !== undefined).map(l => ({ l, id: id++ })));
     oggetti[1] = '<< /Type /Catalog /Pages 2 0 R >>';
     oggetti[2] = `<< /Type /Pages /Kids [${idPag.map(n => n + ' 0 R').join(' ')}] /Count ${tuttePagine.length} >>`;
     oggetti[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
@@ -4700,7 +4724,8 @@
     tuttePagine.forEach((cmds, i) => {
       // le immagini sono numerate per ordine di inserimento: /ImN → oggetto dell'immagine unica corrispondente
       const xo = immagini.map((im, n) => `/Im${n} ${idImm[uniche.indexOf(im)]} 0 R`).join(' ');
-      oggetti[idPag[i]] = `<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R /F5 ${EL ? idFE + 2 : 5} 0 R >> /XObject << ${xo} >> >> /MediaBox [0 0 ${PW} ${PH}] /Contents ${idCont[i]} 0 R >>`;
+      oggetti[idPag[i]] = `<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R /F5 ${EL ? idFE + 2 : 5} 0 R >> /XObject << ${xo} >> >> /MediaBox [0 0 ${PW} ${PH}] /Contents ${idCont[i]} 0 R${annotPag[i].length ? ` /Annots [${annotPag[i].map(a => a.id + ' 0 R').join(' ')}]` : ''} >>`;
+      annotPag[i].forEach(a => { oggetti[a.id] = `<< /Type /Annot /Subtype /Link /Rect [${a.l.x1.toFixed(2)} ${a.l.y1.toFixed(2)} ${a.l.x2.toFixed(2)} ${a.l.y2.toFixed(2)}] /Border [0 0 0] /Dest [${idPag[a.l.pag]} 0 R /Fit] >>`; });
       oggetti[idCont[i]] = { isStream: true, data: cmds.join('\n') };
     });
     let out = '%PDF-1.4\n';
@@ -5120,22 +5145,22 @@
 
     // Costruisce le sezioni di un gruppo di ricette; nell'esportazione con più ricettari mescolati
     // ogni ricetta riporta da quale volume viene.
-    function sezioniPer(lista, mostraRicettarioInPdf, intestazione){
+    function sezioniPer(lista, mostraRicettarioInPdf, intestazione, idRicettario){
       const categorie = Object.keys(CATEGORY_COLORS).filter(cat => lista.some(r => r.category === cat));
       const indiceLines = [];
       categorie.forEach(cat=>{
         indiceLines.push(cat);
-        lista.filter(r => r.category === cat).forEach(r => indiceLines.push(`- ${r.name}${mostraRicettarioInPdf ? ` (${ricettarioName(recipeRicettarioId(r))})` : ''}`));
+        lista.filter(r => r.category === cat).forEach(r => indiceLines.push({ text: `- ${r.name}${mostraRicettarioInPdf ? ` (${ricettarioName(recipeRicettarioId(r))})` : ''}`, goto: 'r:' + r.id }));
       });
       const sections = [];
-      if(intestazione) sections.push({ heading: intestazione, headingSize: 24, pageBreakBefore: true, lines: [`${lista.length} ricett${lista.length === 1 ? 'a' : 'e'}`] });
+      if(intestazione) sections.push({ heading: intestazione, headingSize: 24, pageBreakBefore: true, anchor: 'rb:' + idRicettario, lines: [`${lista.length} ricett${lista.length === 1 ? 'a' : 'e'}`] });
       sections.push({ heading: 'Indice', pageBreakBefore: !!intestazione, lines: indiceLines });
       categorie.forEach(cat=>{
         const ricetteCategoria = lista.filter(r => r.category === cat);
         sections.push({ heading: cat, headingSize: 20, pageBreakBefore: true, lines: [`${ricetteCategoria.length} ricett${ricetteCategoria.length === 1 ? 'a' : 'e'}`] });
         ricetteCategoria.forEach(r=>{
           const recipeSections = recipePdfSections(r, r.servings || 1);
-          recipeSections[0] = { ...recipeSections[0], heading: r.name, headingSize: 16, pageBreakBefore: true };
+          recipeSections[0] = { ...recipeSections[0], heading: r.name, headingSize: 16, pageBreakBefore: true, anchor: 'r:' + r.id };
           if(mostraRicettarioInPdf){
             recipeSections[0] = { ...recipeSections[0], lines: [`Ricettario: ${ricettarioName(recipeRicettarioId(r))}`, ...recipeSections[0].lines] };
           }
@@ -5152,7 +5177,7 @@
         for(const id of idsTutti){
           const parte = selezionate.filter(r => recipeRicettarioId(r) === id);
           const nome = ricettarioName(id);
-          const pdfStr = buildPdfFromSections(nome, sezioniPer(parte, false, null));
+          const pdfStr = buildPdfFromSections(nome, sezioniPer(parte, false, null), { numeri: true });
           scaricaPdfDiretto(pdfStr, opz.nomeFile ? `${opz.nomeFile} - ${nome}.pdf` : `${pdfFileSlug(nome, 'ricettario')}-${tutte ? 'completo' : 'selezione'}-${oggi}.pdf`);
           await new Promise(ok => setTimeout(ok, 700));
         }
@@ -5165,8 +5190,12 @@
       // ricettari separati nello stesso PDF: pagina di titolo e indice per ciascuno
       const ordineRb = ricettari.map(x => x.id);
       const ids = idsTutti.slice().sort((a, b) => (ordineRb.indexOf(a) < 0 ? 999 : ordineRb.indexOf(a)) - (ordineRb.indexOf(b) < 0 ? 999 : ordineRb.indexOf(b)));
-      sections = [];
-      ids.forEach(id => sections.push(...sezioniPer(selezionate.filter(r => recipeRicettarioId(r) === id), false, ricettarioName(id))));
+      // indice dei ricettari (ogni voce porta alla pagina di titolo del ricettario), poi un blocco per ricettario
+      sections = [{ heading: 'Indice dei ricettari', headingSize: 16, lines: ids.map(id => {
+        const n = selezionate.filter(r => recipeRicettarioId(r) === id).length;
+        return { text: `- ${ricettarioName(id)} (${n} ricett${n === 1 ? 'a' : 'e'})`, goto: 'rb:' + id };
+      }) }];
+      ids.forEach(id => sections.push(...sezioniPer(selezionate.filter(r => recipeRicettarioId(r) === id), false, ricettarioName(id), id)));
       titolo = opz.titolo || 'Il Mio Ricettario';
     } else {
       sections = sezioniPer(selezionate, idsTutti.length > 1, null);
@@ -5175,7 +5204,7 @@
       titolo = opz.titolo || libroUnico || 'Il Mio Ricettario';
     }
     const prefisso = idsTutti.length === 1 ? pdfFileSlug(ricettarioName(idsTutti[0]), 'ricettario') : 'ricettario';
-    const pdfStr = buildPdfFromSections(titolo, sections);
+    const pdfStr = buildPdfFromSections(titolo, sections, { numeri: true });
     const filename = opz.nomeFile ? `${opz.nomeFile}.pdf` : (tutte ? `${prefisso}-completo-${oggi}.pdf` : `${prefisso}-selezione-${oggi}.pdf`);
     downloadPdf(pdfStr, filename);
     exportPdfOverlay.classList.remove('active');
@@ -5456,57 +5485,80 @@
     return lines;
   }
 
-  function buildPdfFromSections(title, sections){
+  // sections: [{ heading, headingSize, pageBreakBefore, anchor, lines: [testo | { text, goto }] }].
+  // «anchor» dà un nome alla pagina in cui inizia la sezione; una riga con «goto» diventa un collegamento
+  // cliccabile verso quell'ancora (con «pag. N» a destra). opz.numeri stampa il numero di pagina in calce.
+  function buildPdfFromSections(title, sections, opz){
+    opz = opz || {};
     const PAGE_W = 595, PAGE_H = 842;
     const MARGIN_X = 50, TOP_Y = 792, BOTTOM_Y = 50;
     const MAX_WIDTH = PAGE_W - MARGIN_X * 2;
     const TITLE_SIZE = 18, HEAD_SIZE = 13, TEXT_SIZE = 10.5;
     const LINE_H = 15, HEAD_GAP = 20, TITLE_GAP = 30;
 
-    const pages = [];
-    let cmds = [];
-    let y = TOP_Y;
-    function ensureSpace(h){
-      if(y - h < BOTTOM_Y){ pages.push(cmds); cmds = []; y = TOP_Y; }
-    }
-    function pushWrapped(size, lineHeight, text, indentAfterFirst){
-      const indent = indentAfterFirst || 0;
-      const wrapped = wrapPdfLineHanging(text, size, MAX_WIDTH, MAX_WIDTH - indent);
-      wrapped.forEach((piece, idx)=>{
-        ensureSpace(lineHeight);
-        cmds.push({size, y, x: MARGIN_X + (idx > 0 ? indent : 0), text: piece || ' '});
-        y -= lineHeight;
-      });
-    }
-
-    if(title) pushWrapped(TITLE_SIZE, TITLE_GAP, title, 0);
-
-    sections.forEach(sec=>{
-      // Una sezione con "pageBreakBefore" inizia sempre su una pagina nuova (usata per separare
-      // ogni ricetta in un'esportazione con più ricette insieme), non solo quando il contenuto
-      // non entra più in quella corrente.
-      if(sec.pageBreakBefore && cmds.length){ pages.push(cmds); cmds = []; y = TOP_Y; }
-      if(sec.heading){
-        pushWrapped(sec.headingSize || HEAD_SIZE, HEAD_GAP, sec.heading, 0);
+    // Impaginazione; in due passate se ci sono collegamenti: la prima trova la pagina di ogni ancora,
+    // la seconda scrive «pag. N» accanto alle voci (la larghezza riservata al numero è la stessa nelle due).
+    function impagina(ancore){
+      const pages = [];
+      const trovate = {};
+      let cmds = [];
+      let y = TOP_Y;
+      function ensureSpace(h){
+        if(y - h < BOTTOM_Y){ pages.push(cmds); cmds = []; y = TOP_Y; }
       }
-      (sec.lines && sec.lines.length ? sec.lines : []).forEach(line=>{
-        const str = line || ' ';
-        // rientro delle righe di continuazione allineato al testo dopo un trattino puntato o un numero di passaggio
-        const bulletMatch = /^(-\s+)/.exec(str);
-        const numberMatch = /^(\d+\.\s+)/.exec(str);
-        const prefix = bulletMatch ? bulletMatch[1] : (numberMatch ? numberMatch[1] : '');
-        const indent = prefix ? pdfTextWidth(prefix, TEXT_SIZE) : 0;
-        pushWrapped(TEXT_SIZE, LINE_H, str, indent);
+      function pushWrapped(size, lineHeight, text, indentAfterFirst, goto){
+        const indent = indentAfterFirst || 0;
+        const maxW = goto ? MAX_WIDTH - 70 : MAX_WIDTH;
+        const wrapped = wrapPdfLineHanging(text, size, maxW, maxW - indent);
+        wrapped.forEach((piece, idx)=>{
+          ensureSpace(lineHeight);
+          cmds.push({size, y, x: MARGIN_X + (idx > 0 ? indent : 0), text: piece || ' ', ...(goto ? { goto } : {})});
+          if(goto && idx === 0 && ancore && ancore[goto] !== undefined){
+            const num = 'pag. ' + (ancore[goto] + 1);
+            cmds.push({size, y, x: PAGE_W - MARGIN_X - pdfTextWidth(num, size), text: num});
+          }
+          y -= lineHeight;
+        });
+      }
+
+      if(title) pushWrapped(TITLE_SIZE, TITLE_GAP, title, 0);
+
+      sections.forEach(sec=>{
+        // Una sezione con "pageBreakBefore" inizia sempre su una pagina nuova (usata per separare
+        // ogni ricetta in un'esportazione con più ricette insieme), non solo quando il contenuto
+        // non entra più in quella corrente.
+        if(sec.pageBreakBefore && cmds.length){ pages.push(cmds); cmds = []; y = TOP_Y; }
+        if(sec.heading){
+          ensureSpace(HEAD_GAP);
+          if(sec.anchor) trovate[sec.anchor] = pages.length;
+          pushWrapped(sec.headingSize || HEAD_SIZE, HEAD_GAP, sec.heading, 0);
+        }
+        (sec.lines && sec.lines.length ? sec.lines : []).forEach(line=>{
+          const voce = (line && typeof line === 'object') ? line : { text: line };
+          const str = voce.text || ' ';
+          // rientro delle righe di continuazione allineato al testo dopo un trattino puntato o un numero di passaggio
+          const bulletMatch = /^(-\s+)/.exec(str);
+          const numberMatch = /^(\d+\.\s+)/.exec(str);
+          const prefix = bulletMatch ? bulletMatch[1] : (numberMatch ? numberMatch[1] : '');
+          const indent = prefix ? pdfTextWidth(prefix, TEXT_SIZE) : 0;
+          pushWrapped(TEXT_SIZE, LINE_H, str, indent, voce.goto);
+        });
+        y -= 8;
       });
-      y -= 8;
-    });
-    pages.push(cmds);
+      pages.push(cmds);
+      return { pages, trovate };
+    }
+    let risultato = impagina(null);
+    if(Object.keys(risultato.trovate).length) risultato = impagina(risultato.trovate);
+    const pages = risultato.pages, trovate = risultato.trovate;
 
     const fontObjId = 3, pagesObjId = 2, catalogObjId = 1;
     let objId = 4;
     const logoObjId = objId++;
     const pageObjIds = [], contentObjIds = [];
     pages.forEach(()=>{ pageObjIds.push(objId++); contentObjIds.push(objId++); });
+    // collegamenti interni: un'annotazione per ogni voce con «goto» che punta a una pagina esistente
+    const annotPerPagina = pages.map(pc => pc.filter(c => c.goto && trovate[c.goto] !== undefined).map(c => ({ c, id: objId++ })));
 
     const objects = [];
     objects[catalogObjId] = `<< /Type /Catalog /Pages ${pagesObjId} 0 R >>`;
@@ -5523,7 +5575,10 @@
 
     pages.forEach((pageCmds, i)=>{
       const pageId = pageObjIds[i], contentId = contentObjIds[i];
-      objects[pageId] = `<< /Type /Page /Parent ${pagesObjId} 0 R /Resources << /Font << /F1 ${fontObjId} 0 R >> /XObject << /LogoCD ${logoObjId} 0 R >> >> /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Contents ${contentId} 0 R >>`;
+      objects[pageId] = `<< /Type /Page /Parent ${pagesObjId} 0 R /Resources << /Font << /F1 ${fontObjId} 0 R >> /XObject << /LogoCD ${logoObjId} 0 R >> >> /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Contents ${contentId} 0 R${annotPerPagina[i].length ? ` /Annots [${annotPerPagina[i].map(a => a.id + ' 0 R').join(' ')}]` : ''} >>`;
+      annotPerPagina[i].forEach(a => {
+        objects[a.id] = `<< /Type /Annot /Subtype /Link /Rect [${(MARGIN_X - 2).toFixed(2)} ${(a.c.y - 3).toFixed(2)} ${(MARGIN_X + MAX_WIDTH + 2).toFixed(2)} ${(a.c.y + a.c.size + 1).toFixed(2)}] /Border [0 0 0] /Dest [${pageObjIds[trovate[a.c.goto]]} 0 R /Fit] >>`;
+      });
       const streamLines = ['BT'];
       pageCmds.forEach(c=>{
         streamLines.push(`/F1 ${c.size} Tf`);
@@ -5543,6 +5598,10 @@
       streamLines.push(`1 0 0 1 ${(footerX + footerSize + 6).toFixed(2)} ${(footerY + footerSize / 2 - 3).toFixed(2)} Tm`);
       streamLines.push(`(${pdfSanitizeText('Clan Destino - Giampiero Santoro')}) Tj`);
       streamLines.push('ET');
+      if(opz.numeri){
+        const nTxt = 'pag. ' + (i + 1);
+        streamLines.push('BT', '/F1 8 Tf', `1 0 0 1 ${(PAGE_W - MARGIN_X - pdfTextWidth(nTxt, 8)).toFixed(2)} ${footerY + 6} Tm`, `(${nTxt}) Tj`, 'ET');
+      }
       objects[contentId] = { isStream:true, data: streamLines.join('\n') };
     });
 

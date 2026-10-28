@@ -45,12 +45,23 @@ async def run(page):
     nome, pdf = await scarica(page, lambda: page.click("#layout-stampa-ok"))
     check(nome == "famiglia-2026- prova.pdf", f"Nome file scelto e ripulito: {nome!r}")
     check(b"(Libro di famiglia)" in pdf, "Nome sulla copertina")
-    # copertina + 2 x (titolo + indice) + 4 ricette = 9
-    check(pagine(pdf) == 9, f"Pagine: copertina + 2 ricettari (titolo, indice, ricette): {pagine(pdf)}")
+    # copertina + indice dei ricettari + 2 x (titolo + indice) + 4 ricette = 10
+    check(pagine(pdf) == 10, f"Pagine: copertina, indice dei ricettari, 2 ricettari (titolo, indice, ricette): {pagine(pdf)}")
+    check(b"(Indice dei ricettari)" in pdf, "Indice dei ricettari")
     check(pdf.count(b"(Indice)") == 2, f"Un indice per ricettario: {pdf.count(b'(Indice)')}")
+    check(pdf.count(b"/Subtype /Link") == 6, f"Collegamenti: 2 ricettari + 4 ricette: {pdf.count(b'/Subtype /Link')}")
+    try:
+        import io, pypdf
+        r = pypdf.PdfReader(io.BytesIO(pdf))
+        num = {p.indirect_reference.idnum: i + 1 for i, p in enumerate(r.pages)}
+        dest = lambda n: [num[a.get_object()["/Dest"][0].idnum] for a in r.pages[n - 1].get("/Annots", [])]
+        check(dest(2) == [3, 7], f"L'indice dei ricettari porta alle pagine di titolo: {dest(2)}")
+        check(dest(4) == [5, 6] and dest(8) == [9, 10], f"Gli indici portano alle ricette: {dest(4)} {dest(8)}")
+    except ImportError:
+        pass
     check(b"(Il Mio Ricettario)" in pdf and b"(Zuppe)" in pdf, "Pagine di titolo dei due ricettari")
     check(b"(2 ricette)" in pdf, "Numero di ricette nel titolo")
-    check(all(f"(pag. {n})".encode() in pdf for n in range(2, 10)), "Numerazione continua da pag. 2 a pag. 9")
+    check(all(f"(pag. {n})".encode() in pdf for n in range(2, 11)), "Numerazione continua da pag. 2 a pag. 10")
 
     # ---- orizzontale, un file per ricettario ----
     await apri(page)
@@ -77,7 +88,8 @@ async def run(page):
     check(nome == "casa.pdf", f"Verticale: nome file {nome!r}")
     t = pdf.decode("latin-1")
     check("Il libro di casa" in t, "Verticale: nome sulla copertina")
-    check(t.count("Indice") == 2, f"Verticale: un indice per ricettario: {t.count('Indice')}")
+    check(t.count("(Indice)") == 2 and "(Indice dei ricettari)" in t, f"Verticale: indice dei ricettari + un indice per ricettario: {t.count('(Indice)')}")
+    check(t.count("/Subtype /Link") >= 6, f"Verticale: collegamenti negli indici: {t.count('/Subtype /Link')}")
     check(t.index("Il Mio Ricettario") < t.index("Zuppe") and "Minestrone" in t, "Verticale: ricettari in sequenza")
     # verticale: tutto insieme, nome automatico
     await apri(page)
