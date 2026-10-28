@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.50.0';
+  const VERSIONE_APP = '5.50.1';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });

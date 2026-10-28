@@ -2,6 +2,10 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.50.1] — Credito Special Elite
+
+- Nelle Note legali il credito di Special Elite riporta anche il copyright dell'autore.
+
 ## [5.50.0] — PDF A4 orizzontale: copertina, indice e «pag. N» in carattere macchina da scrivere
 
 ### Modificato
