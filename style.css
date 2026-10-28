@@ -892,16 +892,17 @@ footer{text-align:center;color:var(--text-2);font-size:var(--fs-sm);margin-top:2
 .mini-recipe .mr-sub{display:block;font-size:var(--fs-xs);color:var(--text-2);margin-top:2px;}
 
 /* Libreria dei ricettari */
-.library-shelf{display:flex;gap:14px;overflow-x:auto;padding:2px 2px 8px;}
-.library-book{
-  flex:0 0 auto;width:124px;height:156px;border-radius:12px;border:1px solid var(--border);
-  background:linear-gradient(155deg,var(--sage),var(--accent-hover)) center/cover no-repeat;
-  position:relative;display:flex;align-items:flex-end;padding:0;overflow:hidden;text-align:left;box-shadow:var(--shadow-card);
-}
-.library-book:hover{box-shadow:0 2px 4px rgba(60,50,30,.1), 0 10px 22px rgba(60,50,30,.14);}
-.library-book-icon{position:absolute;top:16px;left:0;right:0;text-align:center;font-size:28px;opacity:.9;}
-.library-book-label{display:block;width:100%;padding:28px 10px 10px;color:#fff;font-size:var(--fs-xs);line-height:1.35;font-weight:500;background:linear-gradient(0deg, rgba(0,0,0,.62), rgba(0,0,0,0));}
-.library-book-label b{display:block;font-size:var(--fs-sm);font-weight:700;margin-bottom:1px;}
+.library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.library-tile{display:flex;align-items:center;gap:14px;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px 12px 18px;position:relative;overflow:hidden;color:var(--text);font-weight:400;cursor:pointer;}
+.library-tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--c);}
+.library-tile:hover{border-color:var(--border-strong);box-shadow:var(--shadow-card);}
+.library-tile-ic{flex:0 0 auto;width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:23px;background:color-mix(in srgb,var(--c) 16%,var(--surface));}
+.library-tile-cover{background-size:cover;background-position:center;}
+.library-tile-body{flex:1;min-width:0;display:block;}
+.library-tile-body b{display:block;font-size:14.5px;font-weight:700;line-height:1.25;}
+.library-tile-body small{display:block;color:var(--text-2);font-size:var(--fs-xs);margin-top:1px;}
+.library-tile-bar{display:block;height:4px;border-radius:4px;background:color-mix(in srgb,var(--c) 14%,var(--surface));margin-top:6px;overflow:hidden;}
+.library-tile-bar u{display:block;height:100%;background:var(--c);text-decoration:none;}
 
 /* Gestisci ricettari */
 #ricettari-manage-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
@@ -1030,7 +1031,9 @@ footer{text-align:center;color:var(--text-2);font-size:var(--fs-sm);margin-top:2
   .shopping-pantry-note{margin-left:34px;}
   .cook-nav button{padding:14px 20px;}
   .menu-dropdown{left:0;right:auto;min-width:min(260px,86vw);}
-  .library-book{width:112px;height:144px;}
+  .library-grid{grid-template-columns:1fr;gap:8px;}
+  .library-tile{padding:9px 12px 9px 16px;gap:12px;}
+  .library-tile-ic{width:38px;height:38px;font-size:19px;border-radius:10px;}
   footer{margin-bottom:20px;}
 }
 @media (max-width:380px){

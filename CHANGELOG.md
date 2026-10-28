@@ -2,6 +2,11 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.51.0] — Libreria a riquadri
+
+### Modificato
+- «La tua libreria» (pagina Oggi) non scorre più di lato: i ricettari sono **riquadri che vanno a capo**, ognuno con colore proprio, icona scelta dal nome (primi, secondi, pizze, zuppe, vegetariano…), numero di ricette e una barra proporzionale al ricettario più grande. Se il ricettario ha una copertina, questa prende il posto dell'icona. Un tocco apre le sue ricette. Su telefono i riquadri sono più compatti. Test 43.
+
 ## [5.50.1] — Credito Special Elite
 
 - Nelle Note legali il credito di Special Elite riporta anche il copyright dell'autore.

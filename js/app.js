@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.50.1';
+  const VERSIONE_APP = '5.51.0';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -6717,13 +6717,25 @@
     const shoppingText = shoppingCount
       ? `${shoppingCount} voci da verificare per i pasti pianificati.${spesaLista.length ? ` Più ${spesaLista.length} nella tua lista.` : ''}`
       : (shoppingExtraItems.length ? `${shoppingExtraItems.length} promemoria dalla Dispensa.` : (spesaLista.length ? `${spesaLista.length} voci nella tua lista della spesa.` : 'Nessuna lista della spesa da preparare.'));
-    const libraryHtml = ricettari.map(rb=>{
-      const count = recipes.filter(r=>!r.archived && recipeRicettarioId(r) === rb.id).length;
-      const coverStyle = rb.cover ? `background-image:url('${rb.cover}');` : '';
+    // Libreria: riquadri che vanno a capo, con colore e icona per ricettario (scelti dal nome, nessun dato in più)
+    const LIB_COLORI = ['#36723E', '#D84831', '#B9852C', '#7A3B3B', '#2F6C7A', '#6B5B95', '#4F7A3A', '#A5562B', '#2E7D5B'];
+    const libIcona = nome => {
+      const n = String(nome || '').toLowerCase();
+      const m = [[/prim[io]|pasta|risott/, '🍝'], [/second|carne/, '🥩'], [/pizz|focacc|lievit|pane/, '🍕'], [/antipast|finger|aperitiv/, '🧀'],
+        [/zupp|minestr|brod/, '🍲'], [/veget|vegan|verdur/, '🥬'], [/dolc|dessert|torte/, '🍰'], [/pesc/, '🐟'], [/facil|veloc|rapid/, '⚡']].find(x => x[0].test(n));
+      return m ? m[1] : '📚';
+    };
+    const libConteggi = ricettari.map(rb => recipes.filter(r=>!r.archived && recipeRicettarioId(r) === rb.id).length);
+    const libMax = Math.max(1, ...libConteggi);
+    const libraryHtml = ricettari.map((rb, i)=>{
+      const count = libConteggi[i];
+      const colore = LIB_COLORI[i % LIB_COLORI.length];
+      const icona = rb.cover ? `<span class="library-tile-ic library-tile-cover" style="background-image:url('${rb.cover}')"></span>` : `<span class="library-tile-ic">${libIcona(rb.name)}</span>`;
       return `
-        <button type="button" class="library-book${rb.cover ? '' : ' library-book-placeholder'}" data-ricettario="${escapeAttr(rb.id)}" style="${coverStyle}">
-          ${rb.cover ? '' : '<span class="library-book-icon">📚</span>'}
-          <span class="library-book-label"><b>${escapeHtml(rb.name)}</b><br>${count} ricett${count===1?'a':'e'}</span>
+        <button type="button" class="library-tile" data-ricettario="${escapeAttr(rb.id)}" style="--c:${colore}">
+          ${icona}
+          <span class="library-tile-body"><b>${escapeHtml(rb.name)}</b><small>${count} ricett${count===1?'a':'e'}</small>
+            <span class="library-tile-bar" aria-hidden="true"><u style="width:${Math.round(count * 100 / libMax)}%"></u></span></span>
         </button>`;
     }).join('');
 
@@ -6818,7 +6830,7 @@
       </section>
       <section class="today-block today-library" aria-labelledby="today-lib-h">
         <div class="block-head"><h3 id="today-lib-h">La tua libreria</h3><button type="button" class="btn-ghost btn-small" id="today-library-manage-btn">Gestisci ricettari</button></div>
-        <div class="library-shelf">${libraryHtml}</div>
+        <div class="library-grid">${libraryHtml}</div>
       </section>`;
     document.getElementById('today-plan-btn').addEventListener('click', ()=>switchView('planning'));
     document.getElementById('today-meals-btn').addEventListener('click', ()=>switchView('planning'));
@@ -6840,7 +6852,7 @@
     document.getElementById('today-shopping-btn').addEventListener('click', ()=>document.getElementById('generate-shopping-btn').click());
     document.getElementById('today-quick-pantry-btn').addEventListener('click', ()=>{ favoritesOnly = false; switchView('recipes'); });
     document.getElementById('today-library-manage-btn').addEventListener('click', ()=> openRicettariManage());
-    content.querySelectorAll('.library-book').forEach(btn=>{
+    content.querySelectorAll('.library-tile').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         activeRicettarioFilter = btn.dataset.ricettario;
         ricettarioFilterEl.value = activeRicettarioFilter;

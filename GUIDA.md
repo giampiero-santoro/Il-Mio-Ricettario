@@ -69,7 +69,7 @@ Se chiudi il modulo (con la "×" o toccando fuori) mentre hai scritto qualcosa s
 
 Le ricette possono essere organizzate in più "volumi" distinti — ad esempio "Ricette mie", "Ricette della nonna", "Ricette di Andrea" — invece di stare tutte in un unico elenco. Ogni ricetta appartiene a **un solo ricettario per volta**.
 
-- Nella pagina **"☀️ Oggi"**, la sezione **"📚 La tua libreria"** mostra tutti i tuoi ricettari come dorsi di libri affiancati, ciascuno con il numero di ricette che contiene. Toccandone uno vai dritto al Ricettario già filtrato su quel volume
+- Nella pagina **"☀️ Oggi"**, la sezione **"📚 La tua libreria"** mostra tutti i tuoi ricettari come riquadri che vanno a capo, ciascuno con colore, icona, numero di ricette e una barra proporzionale (se il ricettario ha una copertina, questa sostituisce l'icona). Toccandone uno vai dritto al Ricettario già filtrato su quel volume
 - **"Gestisci ricettari"** (sotto la libreria in Oggi, oppure il pulsante omonimo in cima al Ricettario) apre il pannello dove puoi:
   - **rinominare** un ricettario (modifica direttamente il nome e premi fuori dal campo per salvare)
   - assegnargli una **copertina** personalizzata: premi "📷 Copertina", scegli una foto e ritagliala con lo stesso editor usato per le foto delle ricette — senza copertina viene mostrata un'icona 📚 su sfondo colorato
