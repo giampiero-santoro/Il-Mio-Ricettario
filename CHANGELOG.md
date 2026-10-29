@@ -2,6 +2,16 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.55.2] — Etichetta sul pulsante del menù
+
+### Aggiunto
+- Accanto all'icona del menù laterale compare la scritta «Nascondi menù» (menù visibile) o «Menù nascosto» (menù nascosto).
+
+## [5.55.1] — Numeri di pagina più discreti
+
+### Modificato
+- PDF A4 orizzontale: il «pag. N» in alto è più piccolo e senza cornice, così non copre più le etichette delle ricette.
+
 ## [5.55.0] — Pianificazione settimanale più robusta
 
 ### Corretto

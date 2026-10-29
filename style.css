@@ -1473,7 +1473,8 @@ input[type="time"].plan-slot-time{font-variant-numeric:tabular-nums;}
 .theme-toggle-row{display:none}
 
 /* ===== Pianificazione: matrice settimanale e menu nascondibile (v5.37) ===== */
-.sidebar-toggle-btn{display:none;flex:0 0 auto;width:40px;height:40px;padding:0;align-items:center;justify-content:center;background:var(--surface);color:var(--text-2);border:1px solid var(--border);border-radius:12px;}
+.sidebar-toggle-btn{display:none;flex:0 0 auto;min-width:40px;height:40px;padding:0 12px;gap:8px;align-items:center;justify-content:center;background:var(--surface);color:var(--text-2);border:1px solid var(--border);border-radius:12px;}
+.sidebar-toggle-btn .sidebar-toggle-lbl{font-size:var(--fs-sm);font-weight:600;white-space:nowrap;}
 .sidebar-toggle-btn:hover{background:var(--sage-soft);color:var(--accent-ink);}
 @media (min-width:761px){
   .sidebar-toggle-btn{display:inline-flex;margin-right:10px;}

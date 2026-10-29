@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.55.0';
+  const VERSIONE_APP = '5.55.2';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -4688,10 +4688,9 @@
     // numero di pagina: «pag. N» in un riquadro in alto al centro, in carattere macchina da scrivere
     function numeroPagina(arr, n){
       const t = 'pag. ' + n;
-      const sz = colonne ? 11 : 20, h = colonne ? 17 : 29, top = colonne ? 3 : 5;
-      const w = eMis(t, sz), bw = Math.max(colonne ? 46 : 79, w + 16), x0 = (PW - bw) / 2;
-      arr.push(`q 0 0 0 RG 0.75 w ${x0.toFixed(2)} ${(PH - top - h).toFixed(2)} ${bw.toFixed(2)} ${h} re S Q`);
-      Tx(arr, FE, sz, (PW - w) / 2, PH - top - h + (colonne ? 5 : 6), t, '#000000');
+      const sz = colonne ? 7.5 : 9;
+      const w = eMis(t, sz);
+      Tx(arr, FE, sz, (PW - w) / 2, PH - 4 - sz, t, '#444444');
     }
 
     // assemblaggio del file PDF
@@ -7359,6 +7358,7 @@
       sidebarToggleBtn.setAttribute('aria-expanded', String(!nascosta));
       const et = nascosta ? 'Mostra il menu' : 'Nascondi il menu';
       sidebarToggleBtn.setAttribute('aria-label', et); sidebarToggleBtn.title = et;
+      const lbl = document.getElementById('sidebar-toggle-lbl'); if(lbl) lbl.textContent = nascosta ? 'Menù nascosto' : 'Nascondi menù';
     }
     if(salva) safeStorageSet(SIDEBAR_KEY, nascosta ? 'hidden' : 'shown');
   }
