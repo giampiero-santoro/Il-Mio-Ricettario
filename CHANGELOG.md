@@ -2,6 +2,15 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.56.1] — Controllo generale e ottimizzazioni
+
+### Migliorato
+- **Uso offline**: font, icone «maskable» e favicon sono ora scaricati subito dal service worker, così l'app è completa offline fin dalla prima installazione.
+- Rimosse 48 regole CSS non più usate (≈4 KB).
+
+### Verificato
+- Nessun errore in console né scorrimento orizzontale in tutte le 13 viste a 390, 800 e 1300 px; nessun id duplicato; immagini tutte con testo alternativo.
+
 ## [5.56.0] — Ricette non spezzate su due colonne
 
 ### Modificato
