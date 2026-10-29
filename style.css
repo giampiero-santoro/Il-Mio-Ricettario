@@ -1483,8 +1483,11 @@ input[type="time"].plan-slot-time{font-variant-numeric:tabular-nums;}
 }
 body[data-view="planning"] .app-main > .app-topbar,body[data-view="planning"] .app-main > .book{max-width:1640px;}
 .plan-grid.plan-week.plan-matrix{display:grid;grid-template-columns:38px repeat(7,minmax(138px,1fr));column-gap:0;row-gap:8px;padding:10px 10px 14px;overflow-x:auto;background:var(--surface);}
-.plan-matrix > .plan-week-row{grid-row:1 / -1;display:grid;grid-template-rows:subgrid;row-gap:8px;padding:0 4px;border:none;min-width:0;background:transparent;}
-.plan-matrix > .plan-week-row.is-today{background:color-mix(in srgb, var(--sage-soft) 40%, transparent);border-radius:var(--r-md);}
+.plan-matrix > .plan-week-row{display:contents;}
+.plan-matrix .plan-cell{min-width:0;padding:0 4px;display:flex;flex-direction:column;position:relative;z-index:1;}
+.plan-matrix .plan-cell > .plan-meal-block,.plan-matrix .plan-cell > .plan-slot-empty{flex:1 1 auto;}
+.plan-matrix > .plan-today-bg{background:color-mix(in srgb, var(--sage-soft) 40%, transparent);border-radius:var(--r-md);z-index:0;pointer-events:none;}
+.plan-matrix .plan-add-meal{width:100%;}
 .plan-matrix .plan-grid-dayhead{border-bottom:none;background:transparent;flex-direction:column;align-items:center;text-align:center;padding:6px 4px 4px;gap:0;box-shadow:none;}
 .plan-matrix .plan-grid-dayhead.today{background:transparent;box-shadow:none;}
 .plan-matrix .plan-grid-dayhead .dname{font-size:var(--fs-md);}
@@ -1497,7 +1500,7 @@ body[data-view="planning"] .app-main > .app-topbar,body[data-view="planning"] .a
 .plan-matrix .plan-slot-head .plan-slot-time{order:0;}
 .plan-matrix .plan-slot-head .slot-remove-btn{order:1;}
 .plan-matrix .plan-slot-head .plan-slot-name{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
-.plan-matrix .plan-day-free{grid-row:2;align-self:start;}
+.plan-matrix .plan-day-free{display:block;text-align:center;padding:4px 6px;}
 /* schede delle ricette con foto */
 .plan-entry-thumb,.plan-entry-meta{display:none;}
 .plan-grid.plan-matrix .plan-entry{padding:0;overflow:hidden;display:flex;flex-direction:column;border-radius:12px;}

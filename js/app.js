@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.54.0';
+  const VERSIONE_APP = '5.55.0';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -7817,7 +7817,7 @@
     const jsDay = new Date().getDay();
     const todayName = planWeekStart === realMonday() ? DAYS[jsDay === 0 ? 6 : jsDay - 1] : '';
     const righe = planRowsOfWeek();
-    let html = `<div class="plan-grid plan-week plan-matrix" role="group" aria-label="Pianificazione della settimana" style="grid-template-rows:auto repeat(${righe.length},auto) auto">
+    let html = `<div class="plan-grid plan-week plan-matrix" role="group" aria-label="Pianificazione della settimana" style="grid-template-rows:auto ${righe.length ? `repeat(${righe.length},auto)` : 'auto'} auto">
       <div class="plan-matrix-corner" style="grid-column:1;grid-row:1"></div>`;
     righe.forEach((mt, r) => {
       html += `<div class="plan-row-label" style="grid-column:1;grid-row:${r + 2}" aria-hidden="true">${escapeHtml(mt)}</div>`;
@@ -7825,14 +7825,19 @@
     DAYS.forEach((day, di)=>{
       const isToday = day === todayName;
       const presenti = new Set(slotsOfDay(day));
-      html += `<div class="plan-week-row${isToday ? ' is-today' : ''}" style="grid-column:${di + 2}">
-        <div class="plan-grid-dayhead${isToday ? ' today' : ''}"><span class="dname">${escapeHtml(day)}</span><span class="ddate">${escapeHtml(dataBreve(dataDelGiorno(day)))}</span><span class="dtools"><button type="button" class="icon-btn plan-grid-day-shopping" data-day="${escapeAttr(day)}" title="Lista della spesa di ${escapeAttr(day)}" aria-label="Lista della spesa di ${escapeAttr(day)}">${icon('cart','ico-xs')}</button><button type="button" class="icon-btn plan-grid-day-open" data-day="${escapeAttr(day)}" title="Apri ${escapeAttr(day)} nel dettaglio" aria-label="Apri ${escapeAttr(day)} nel dettaglio">${icon('pencil','ico-xs')}</button></span></div>
-        ${righe.map(mt => presenti.has(mt)
+      const col = di + 2;
+      const cella = (riga, inner, cls) => `<div class="plan-cell${cls ? ' ' + cls : ''}" style="grid-column:${col};grid-row:${riga}">${inner}</div>`;
+      if(isToday) html += `<div class="plan-today-bg" aria-hidden="true" style="grid-column:${col};grid-row:1 / -1"></div>`;
+      html += `<div class="plan-week-row${isToday ? ' is-today' : ''}">`;
+      html += cella(1, `<div class="plan-grid-dayhead${isToday ? ' today' : ''}"><span class="dname">${escapeHtml(day)}</span><span class="ddate">${escapeHtml(dataBreve(dataDelGiorno(day)))}</span><span class="dtools"><button type="button" class="icon-btn plan-grid-day-shopping" data-day="${escapeAttr(day)}" title="Lista della spesa di ${escapeAttr(day)}" aria-label="Lista della spesa di ${escapeAttr(day)}">${icon('cart','ico-xs')}</button><button type="button" class="icon-btn plan-grid-day-open" data-day="${escapeAttr(day)}" title="Apri ${escapeAttr(day)} nel dettaglio" aria-label="Apri ${escapeAttr(day)} nel dettaglio">${icon('pencil','ico-xs')}</button></span></div>`);
+      righe.forEach((mt, r) => {
+        html += cella(r + 2, presenti.has(mt)
           ? weekSlotHtml(day, mt, isToday)
-          : `<button type="button" class="plan-slot-empty" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}" aria-label="Aggiungi ${escapeAttr(mt)}: ${escapeAttr(day)}" title="Aggiungi ${escapeAttr(mt)}">＋</button>`).join('')}
-        ${righe.length ? '' : '<span class="plan-day-free">Giorno libero: aggiungi i pasti che ti servono</span>'}
-        ${addMealSelectHtml(day)}
-      </div>`;
+          : `<button type="button" class="plan-slot-empty" data-day="${escapeAttr(day)}" data-mealtype="${escapeAttr(mt)}" aria-label="Aggiungi ${escapeAttr(mt)}: ${escapeAttr(day)}" title="Aggiungi ${escapeAttr(mt)}">＋</button>`);
+      });
+      if(!righe.length) html += cella(2, '<span class="plan-day-free">Giorno libero: aggiungi i pasti che ti servono</span>');
+      html += cella(Math.max(righe.length, 1) + 2, addMealSelectHtml(day));
+      html += `</div>`;
     });
     return html + '</div>';
   }

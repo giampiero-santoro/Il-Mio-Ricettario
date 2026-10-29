@@ -2,6 +2,12 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.55.0] — Pianificazione settimanale più robusta
+
+### Corretto
+- **Pianificazione settimanale**: in alcuni browser (Safari/Mac) i nomi dei giorni, «Giorno libero» e «Aggiungi pasto» si sovrapponevano. La griglia non usa più il «subgrid»: ogni cella è posizionata esplicitamente, quindi il layout è identico in tutti i browser.
+- Nuovo test che verifica che nessuna cella della settimana si sovrapponga.
+
 ## [5.54.0] — Indice dei ricettari e indici cliccabili
 
 ### Aggiunto

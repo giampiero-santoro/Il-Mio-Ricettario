@@ -19,8 +19,8 @@ async def run(page):
     check(times == ["07:30", "20:00"], f"Orari proposti per Colazione e Cena: {times}")
 
     # layout: giorni in colonna, pasti in verticale
-    r0 = await page.locator(".plan-week-row").nth(0).bounding_box()
-    r1 = await page.locator(".plan-week-row").nth(1).bounding_box()
+    r0 = await page.locator(".plan-grid-dayhead").nth(0).bounding_box()
+    r1 = await page.locator(".plan-grid-dayhead").nth(1).bounding_box()
     check(r1["x"] > r0["x"] + 50 and abs(r1["y"] - r0["y"]) < 5, "I giorni sono affiancati (colonne)")
     b = await row.locator(".plan-meal-block").evaluate_all("els=>els.map(e=>{const r=e.getBoundingClientRect();return [r.x,r.y]})")
     check(len(b) == 2 and abs(b[0][0] - b[1][0]) < 3 and b[1][1] > b[0][1], f"I pasti di un giorno sono uno sotto l'altro: {b}")

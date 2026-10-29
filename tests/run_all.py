@@ -70,6 +70,7 @@ TEST_MODULES = [
     "test_43_libreria",
     "test_44_stampa_ricettari_separati",
     "test_45_fonti_ispirazioni",
+    "test_46_pianificazione_vuota",
 ]
 
 
