@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.56.1';
+  const VERSIONE_APP = '5.57.0';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -6338,11 +6338,12 @@
     async function prepara(){
       if(ocrPronto) return ocrPronto;
       ocrPronto = (async () => {
-        if(typeof Tesseract === 'undefined') await caricaScript('js/vendor/ocr/tesseract.min.js');
-        return Tesseract.createWorker(['ita','eng'], 1, {
-          workerPath: 'js/vendor/ocr/worker.min.js', corePath: 'js/vendor/ocr/', langPath: 'js/vendor/ocr/', workerBlobURL: false,
+        const emb = window.__OCR_EMBED || null;   // file singolo: motore e lingue sono dentro il file
+        if(typeof Tesseract === 'undefined') await (emb ? emb.caricaTesseract() : caricaScript('js/vendor/ocr/tesseract.min.js'));
+        const opz = emb ? await emb.opzioni() : { workerPath: 'js/vendor/ocr/worker.min.js', corePath: 'js/vendor/ocr/', langPath: 'js/vendor/ocr/', workerBlobURL: false };
+        return Tesseract.createWorker(['ita','eng'], 1, Object.assign({}, opz, {
           logger: m => { if(m.status === 'recognizing text') msg('Lettura della foto… ' + Math.round((m.progress||0)*100) + '%'); }
-        });
+        }));
       })();
       ocrPronto.catch(() => { ocrPronto = null; });
       return ocrPronto;
@@ -6373,7 +6374,7 @@
         const m = $('nutri-import-msg'); m.innerHTML = '<div><b>Testo letto dalla foto: controlla bene i numeri</b>, la lettura può sbagliare.</div>' + m.innerHTML;
       }catch(err){
         ocrPronto = null;
-        msg('La lettura da foto non è disponibile (serve la versione completa del sito, non il file singolo). Puoi incollare o scrivere il testo qui sotto.', 'var(--danger, #b3261e)');
+        msg('La lettura da foto non è disponibile su questo browser. Puoi incollare o scrivere il testo qui sotto.', 'var(--danger, #b3261e)');
       }
     });
     $('nutri-import-close').addEventListener('click', chiudi);

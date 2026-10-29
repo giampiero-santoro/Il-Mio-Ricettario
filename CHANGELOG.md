@@ -2,6 +2,12 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.57.0] — File singolo con lettura da foto
+
+### Aggiunto
+- Il **file singolo HTML** include ora il motore di lettura da foto (OCR, italiano e inglese): «Da foto dell'etichetta…» funziona anche senza la versione web e senza internet. Il file passa da circa 7 a 17 MB.
+- In app.js la lettura da foto usa il motore incorporato quando presente; la versione web è invariata.
+
 ## [5.56.1] — Controllo generale e ottimizzazioni
 
 ### Migliorato
