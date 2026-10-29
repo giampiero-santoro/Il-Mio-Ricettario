@@ -167,7 +167,7 @@ Quando il PDF contiene più ricette, si apre con la **copertina**, poi l'**indic
 
 Dal menu **Esporta ▾** della scheda, **"📄 PDF A4 orizzontale"** scarica direttamente un file PDF, senza passare dalla stampante. La ricetta ha lo stesso impianto della scheda: titolo e procedimento a sinistra, **ingredienti in alto a destra a partire dal margine alto del foglio** (sotto, valori nutrizionali e foto), senza menu né pulsanti come "Modifica". I margini sono quelli predefiniti (10 mm; 8 mm nel layout a due colonne).
 
-**Layout del PDF.** Quando esporti più ricette ti viene chiesto come: **una ricetta per pagina** (il carattere si riduce da solo finché la ricetta sta in un foglio) oppure **due colonne con più ricette per foglio** (caratteri piccoli, le ricette brevi si impilano nella colonna). La scelta resta come predefinita.
+**Layout del PDF.** Quando esporti più ricette ti viene chiesto come: **una ricetta per pagina** (il carattere si riduce da solo finché la ricetta sta in un foglio) oppure **due colonne con più ricette per foglio** (caratteri piccoli, le ricette si impilano nella colonna; una ricetta che entra in una colonna non viene mai spezzata, se non c'è spazio passa intera alla colonna successiva). La scelta resta come predefinita.
 
 Per un ricettario intero: in **Gestisci ricettari** usa **"📄 PDF A4"** sulla riga del ricettario, oppure scegli le ricette da **Esporta PDF → PDF A4 orizzontale**. La stampa del browser (Ctrl/Cmd+P) a scheda aperta stampa comunque la scheda pulita. Il PDF usa caratteri standard (Helvetica) e non include le icone emoji.
 

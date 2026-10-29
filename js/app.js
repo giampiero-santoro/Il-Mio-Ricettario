@@ -776,7 +776,7 @@
     });
   }
 
-  const VERSIONE_APP = '5.55.2';
+  const VERSIONE_APP = '5.56.0';
   function datiCompletiPerFile(){
     return Object.assign(BackupImport.intestazione('completo', VERSIONE_APP),
       { recipes, ricettari, raccolte, weekPlan, planWeeks: settimaneComplete(), mealTypes, dispensaItems, shoppingExtraItems, weekNotes, spesaLista });
@@ -4532,7 +4532,7 @@
       else{
         const resto = y - MBOT;
         const serve = Math.max(b.hS, b.hD);
-        if(serve > resto && (corta || resto < 110)) nuovoRiquadro();
+        if(serve > resto && (serve <= FH || corta || resto < 110)) nuovoRiquadro();   // una ricetta che sta in una colonna non viene mai spezzata
       }
       let x0 = xRiquadro(), yInizio = y;
       if(b.hD > y - MBOT){ nuovoRiquadro(); x0 = xRiquadro(); yInizio = y; }

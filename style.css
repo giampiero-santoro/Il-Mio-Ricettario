@@ -1627,7 +1627,7 @@ body[data-view="planning"] .plan-day-card{padding:22px 26px;}
 #print-root.ps-colonne .ps-title{font-size:calc(var(--ps) * 1.7);margin:0 0 3px;}
 #print-root.ps-colonne .ps-meta{margin-bottom:4px;gap:10px;}
 #print-root.ps-colonne .ps-body{gap:5mm;margin-top:4px;}
-#print-root.ps-colonne .ps-sheet.ps-short{break-inside:avoid;page-break-inside:avoid;}
+#print-root.ps-colonne .ps-sheet{break-inside:avoid;page-break-inside:avoid;}
 #print-root.ps-colonne .ps-main{flex:2;}
 #print-root.ps-colonne .ps-side{flex:1;}
 #print-root.ps-colonne .ps-title,#print-root.ps-colonne .ps-h{break-after:avoid;}

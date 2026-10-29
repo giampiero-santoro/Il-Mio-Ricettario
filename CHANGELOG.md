@@ -2,6 +2,11 @@
 
 Tutte le modifiche rilevanti al progetto sono documentate in questo file.
 
+## [5.56.0] — Ricette non spezzate su due colonne
+
+### Modificato
+- Stampa su due colonne (PDF e stampa del browser): una ricetta che entra in una colonna non viene più divisa tra una colonna e l'altra o tra due pagine; se non c'è spazio passa intera alla colonna successiva. Solo le ricette più lunghe di una colonna intera continuano a proseguire sulla successiva.
+
 ## [5.55.2] — Etichetta sul pulsante del menù
 
 ### Aggiunto
